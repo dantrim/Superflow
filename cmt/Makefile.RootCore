@@ -7,11 +7,11 @@
 
 PACKAGE          = Superflow
 PACKAGE_PRELOAD  = Tree
-PACKAGE_CXXFLAGS = -Wno-sign-compare -Wno-parentheses -O3 -ffast-math 
+PACKAGE_CXXFLAGS = -Wno-sign-compare -Wno-parentheses -O3 -ffast-math -I/export/home/dantrim/include 
 PACKAGE_OBJFLAGS = 
 PACKAGE_LDFLAGS  = 
-PACKAGE_BINFLAGS = -lCintex -lReflex -lXMLParser -lEG 
-PACKAGE_LIBFLAGS = 
+PACKAGE_BINFLAGS = -lXMLParser -lEG
+PACKAGE_LIBFLAGS = -lm -L/export/home/dantrim/local/lib -lRestFrames
 PACKAGE_DEP      = SusyNtuple DGTriggerReweight DileptonMatrixMethod ChargeFlip
 PACKAGE_TRYDEP   = 
 PACKAGE_CLEAN    = 
