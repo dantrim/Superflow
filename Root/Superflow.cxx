@@ -168,455 +168,6 @@ namespace sflow {
     Superflow::~Superflow()
     {}
 
-    // --------------------------------------------------------------- //
-    //  Superflow operator implementation
-    //  Superflow operator implementation
-    //  Superflow operator implementation
-    // --------------------------------------------------------------- //
-
-    ////////////////////////////////////////////
-    // Cut operators
-    ////////////////////////////////////////////
-
-    /* ---------------------------
-        CutName operator
-
-        Feeds in a human-readable/descriptive name for a cut to be placed.
-        --> Checks that the SupersysState and SupervarState are closed, meaning
-            that any previous definition of a systematic or variable is finished
-            and succesfully saved/stored.
-
-        usage:
-            <SuperflowObject> << CutName("lead lepton pT > 20 GeV");
-       ---------------------------
-    */
-    Superflow& Superflow::operator<<(CutName cut_)
-    {
-        if (m_sysState == SupersysState::closed && m_varState == SupervarState::closed) {
-            m_CutStore_Name_Exists = true;
-            m_CutStoreNames.push_back(cut_.name);
-
-            cout << app_name << "New cut: " << cut_.name << endl;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Cutflow operations are incorrectly ordered.";
-            exit(1);
-        }
-        return *this;
-    }
-    
-    /* ----------------------------
-        Cut function operator
-
-        Feeds in the (lambda) function expression to be evaluated for the cut.
-        --> Checks that the SupersysState and SupervarState are closed, meaning
-            that any previous definition of a systematic or variable is finished
-            and succesfully saved/stored.
-        --> Checks m_CutStore_Name_Exists variable to be sure that we have processed
-            the CutName operator prior this call (i.e. so that this cut will have 
-            a descriptive name). If this is not the case, a default name is given.
-        --> Adds a place in the raw and weighted counters (m_RawCounter and m_WeightCounter).
-
-         usage:
-            <SuperflowObject> << CutName("at least 2 base leptons") << [](Superlink* sl) -> bool {
-                return (sl->baseLeptons.size() >= 2);
-            };
-        --------------------------
-    */
-    Superflow& Superflow::operator<<(std::function<bool(Superlink*)> cut_)
-    {
-        if (m_sysState == SupersysState::closed && m_varState == SupervarState::closed) {
-            m_CutStore.push_back(cut_);
-
-            if (m_CutStore_Name_Exists) {
-                m_CutStore_Name_Exists = false;
-            }
-            else {
-                m_CutStoreNames.push_back("Untitled-" + to_string(m_CutStoreUntitled));
-                cout << app_name << "New cut: " << "Untitled-" << m_CutStoreUntitled << endl;
-                m_CutStoreUntitled++;
-            }
-
-            m_RawCounter.push_back(0.0);
-            m_WeightCounter.push_back(0.0);
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Cutflow operations are incorrectly ordered.";
-            exit(1);
-        }
-        return *this;
-    }
-
-    ////////////////////////////////////////////
-    // HFT operators
-    //   These set what will be stored in the
-    //   output ntuples
-    ////////////////////////////////////////////
-
-    /* ----------------------------
-        NewVar operator
-            
-        Feeds in a human-readable/descriptive name for a variable to store in the output trees.
-        --> This is NOT the name that will show up as the leaf name (i.e. when you do TBrowser/TTree::Draw())
-        --> Checks that the SupersysState and SupervarState are closed, meaning
-            that any previous definition of a systematic or variable is finished
-            and succesfully saved/stored.
-        --> Name is stored in vector m_varNiceName
-        --> m_superVar_hasNiceName is set to true to ensure that the ordering of HFT var creation is correct.
-            This is set to false once the full variable is saved/stored.
-        --> Variable definition is to take place after the NewVar is fed in, so we set the 
-            m_varState to SupervarState::open. This will be set to SupervarState::closed once
-            the variable is saved/stored.
-
-        usage:
-            <SuperflowObject> << NewVar("stransverse mass");
- 
-       ----------------------------
-    */
-    Superflow& Superflow::operator<<(NewVar new_var_name) // this is the NiceName
-    {
-        if (m_varState == SupervarState::closed && m_sysState == SupersysState::closed) {
-            m_varNiceName.push_back(new_var_name.name);
-            m_superVar_hasNiceName = true;
-            m_varState = SupervarState::open;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Close the Var using SaveVar().";
-            exit(1);
-        }
-        return *this;
-    }
-
-    /* ----------------------------
-        HFTname operator
-        
-        Feed in the name of the variable that will appear in the output ntuples (i.e. when you 
-        do TTree::Draw() or look in the TBrowser).
-        --> We must have already provided a "nice name" using the NewVar operator which means that
-            m_varState == SupervarState::open.
-        --> m_superVar_hasHFTName must be false, this operator provides the HFTname and sets this to true.
-        --> The leaf name is stored in the vector m_varHFTName 
-
-        usage:
-            <SuperflowObject> << NewVar("stransverse mass") << HFTname("mT2");
-
-       ----------------------------
-    */
-    Superflow& Superflow::operator<<(HFTname hft_name)
-    {
-        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasHFTName) {
-            m_varHFTName.push_back(hft_name.name);
-            m_superVar_hasHFTName = true;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Open a new Var using NewVar().";
-            exit(1);
-        }
-        return *this;
-    }
-
-    /* ----------------------------
-        Variable function operators
-        
-        Provide a (lambda) function expression using the Superlink object to 
-        calculate/provide the values for the variables whose names we have
-        already provided using the NewVar and HFTname operators.
-        --> There are function expressions for each of the conceivable variable types:
-                - float
-                - double
-                - int
-                - bool
-                - void
-            and the expression is fed into the appropriate vector of functions. 
-            E.G. m_varExprFloat is type vector<std::function<double(Superlink*, var_float*)>> 
-        --> var_float, var_double, var_int, var_void, and var_bool are dummy classes that are
-            used only for type identification in the signatures of these different operators
-            (see Superflow/Supervar.h).
-        --> A null expression is provided to all other function vectors that are not of
-            the type of the current function expression being fed in. In this way all of the
-            function vectors will be of the same length and the indices of the functions will
-            unambiguously line up with the vectors for the NewVar and HFTname vectors.
-        --> m_varState must == SupervarState::open, indicating that we are currently in the process of
-            storing a variable.
-        --> m_superVar_hasFunction must be false since we have, at this point, only just opened the
-            the m_varState and have only provided names for this variable.
-        --> m_varType holds values of the enum SupervarType -- one for each function expression 
-            fed in and is essentially used as a way to determine how many variables we have
-            to store. 
-
-        --> NOTE: for var_void type function expressions the NewVar and HFTname operators do not need
-                to be called as they are set automatically within void function. The checks for the m_varState, etc...
-                are also not checked. The main purpose of the var_void type function expression operator
-                is to, for example, clear a global object that is defined in the executable outside of 
-                the function expressions but used across many of them.
-                E.G.
-                    JetVector central_light_jets;
-                    <VAR OPERATOR> { central_light_jets.push_back(foo) }
-                        ...
-                    <VAR OPERATOR> { central_light_jets.at(0)->Pt() }
-                        ...
-                    <SuperflowObject> << [&](Superlink* sl, var_void*) { central_light_jets.clear(); };
-
-        usage:
-            <SuperflowObject> << NewVar("leading lepton transverse momenta");
-            <SuperflowObject> << HFTname("lept1Pt");
-            <SuperflowObject> << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(0)->Pt(); }
-
-       ----------------------------
-    */
-
-    // float function
-    Superflow& Superflow::operator<<(std::function<double(Superlink*, var_float*)> var_)
-    {
-        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-            m_varExprFloat.push_back(var_); // fill
-            m_varExprDouble.push_back(m_nullExprDouble);
-            m_varExprInt.push_back(m_nullExprInt);
-            m_varExprBool.push_back(m_nullExprBool);
-            m_varExprVoid.push_back(m_nullExprVoid);
-
-            m_varType.push_back(SupervarType::sv_float);
-            m_superVar_hasFunction = true;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-            exit(1);
-        }
-        return *this;
-    }
-    // double function
-    Superflow& Superflow::operator<<(std::function<double(Superlink*, var_double*)> var_)
-    {
-        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-            m_varExprFloat.push_back(m_nullExprFloat);
-            m_varExprDouble.push_back(var_); // fill
-            m_varExprInt.push_back(m_nullExprInt);
-            m_varExprBool.push_back(m_nullExprBool);
-            m_varExprVoid.push_back(m_nullExprVoid);
-
-            m_varType.push_back(SupervarType::sv_double);
-            m_superVar_hasFunction = true;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-            exit(1);
-        }
-        return *this;
-    }
-    // int function
-    Superflow& Superflow::operator<<(std::function<int(Superlink*, var_int*)> var_)
-    {
-        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-            m_varExprFloat.push_back(m_nullExprFloat);
-            m_varExprDouble.push_back(m_nullExprDouble);
-            m_varExprInt.push_back(var_); // fill
-            m_varExprBool.push_back(m_nullExprBool);
-            m_varExprVoid.push_back(m_nullExprVoid);
-
-            m_varType.push_back(SupervarType::sv_int);
-            m_superVar_hasFunction = true;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-            exit(1);
-        }
-        return *this;
-    }
-    // bool function
-    Superflow& Superflow::operator<<(std::function<bool(Superlink*, var_bool*)> var_)
-    {
-        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-            m_varExprFloat.push_back(m_nullExprFloat);
-            m_varExprDouble.push_back(m_nullExprDouble);
-            m_varExprInt.push_back(m_nullExprInt);
-            m_varExprBool.push_back(var_); // fill
-            m_varExprVoid.push_back(m_nullExprVoid);
-
-            m_varType.push_back(SupervarType::sv_bool);
-            m_superVar_hasFunction = true;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-            exit(1);
-        }
-        return *this;
-    }
-    // void function
-    Superflow& Superflow::operator<<(std::function<void(Superlink*, var_void*)> var_)
-    {
-        m_varExprFloat.push_back(m_nullExprFloat);
-        m_varExprDouble.push_back(m_nullExprDouble);
-        m_varExprInt.push_back(m_nullExprInt);
-        m_varExprBool.push_back(m_nullExprBool);
-        m_varExprVoid.push_back(var_);// fill
-
-        m_varNiceName.push_back("void");
-        m_varHFTName.push_back("void");
-        m_varType.push_back(SupervarType::sv_void);
-        return *this;
-    }
-
-    /* ----------------------------
-        SaveVar operator
-        
-        Check that we have all of the required pieces for storing a variable in the 
-        output ntuples.
-        
-        --> If the var state is still open and we have defined a function (with a name) then we
-            have all of the pieces. Set these flags back to false so that we can be ready to
-            start defining the next variable to be stored.
-        --> If there is no name, provide the default one.
-
-        usage:
-            <SuperflowObject> << NewVar("sub-leading jet eta");
-            <SuperflowObject> << HFTname("jet2Eta");
-            <SuperflowObject> << [](Superlink* sl, var_float*) -> double {
-                return sl->jets->size() >= 2 ? sl->jets->at(1)->Eta() : 0.0;
-            };
-            <SuperflowObject> << SaveVar();
-            
-       ----------------------------
-    */
-    Superflow& Superflow::operator<<(SaveVar save_var)
-    {
-        if (m_varState == SupervarState::open && m_superVar_hasFunction && m_superVar_hasNiceName) {
-            if (!m_superVar_hasHFTName) {
-                m_varHFTName.push_back("Untitled_" + to_string(m_superVar_Untitled));
-                m_superVar_Untitled++;
-                m_superVar_hasHFTName = true;
-            }
-
-            m_varState = SupervarState::closed;
-            m_superVar_hasFunction = false;
-            m_superVar_hasNiceName = false;
-            m_superVar_hasHFTName = false;
-
-            cout << app_name << "New var: " << m_varNiceName.back() << endl;
-            cout << app_name << "    HFT: " << m_varHFTName.back() << endl;
-        }
-        else {
-            if (m_varState != SupervarState::open) {
-                cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-            }
-            else {
-                cout << app_name << "ERROR (Fatal): A lambda-expression is required.";
-            }
-            exit(1);
-        }
-        return *this;
-    }
-
-    ////////////////////////////////////////////
-    // Systematic operators
-    ////////////////////////////////////////////
-
-    Superflow& Superflow::operator<<(NewSystematic new_sys) // this is the NiceName
-    {
-        if (m_sysState == SupersysState::closed && m_varState == SupervarState::closed) {
-            m_sysTemplate.name = new_sys.name;
-            m_sys_hasNiceName = true;
-            m_sysState = SupersysState::open;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Close using SaveSystematic().";
-            exit(1);
-        }
-        return *this;
-    }
-
-    Superflow& Superflow::operator<<(TreeName tree_name)
-    {
-        if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasTreeName) {
-            m_sysTemplate.tree_name = tree_name.name;
-            m_sys_hasTreeName = true;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Open a NewSystematic().";
-            exit(1);
-        }
-        return *this;
-    }
-
-    Superflow& Superflow::operator<<(EventSystematic obj_)
-    {
-        if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasSystematic) {
-            m_sysTemplate.event_syst = obj_.event_syst_;
-            m_sysTemplate.weight_syst = SupersysWeight::null;
-            m_sys_hasSystematic = true;
-
-            m_sysTemplate.type = SupersysType::event;
-            m_sys_hasType = true;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Open a NewSystematic().";
-            exit(1);
-        }
-        return *this;
-    }
-
-    Superflow& Superflow::operator<<(WeightSystematic obj_)
-    {
-        if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasSystematic) {
-            m_sysTemplate.event_syst = Susy::NtSys::NOM;
-            m_sysTemplate.weight_syst_up = obj_.weight_syst_up;
-            m_sysTemplate.weight_syst_down = obj_.weight_syst_down;
-            m_sys_hasSystematic = true;
-
-            m_sysTemplate.type = SupersysType::weight;
-            m_sys_hasType = true;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Open a NewSystematic().";
-            exit(1);
-        }
-        return *this;
-    }
-
-    Superflow& Superflow::operator<<(SaveSystematic save_var)
-    {
-        if (m_sysState == SupersysState::open
-            && m_varState == SupervarState::closed
-            && m_sys_hasNiceName
-            && m_sys_hasTreeName
-            && m_sys_hasType
-            && m_sys_hasSystematic
-            ) {
-            if (m_sysTemplate.name == "") m_sysTemplate.name = m_sysTemplate.tree_name;
-
-            m_sysState = SupersysState::closed;
-            m_sys_hasNiceName = false;
-            m_sys_hasTreeName = false;
-            m_sys_hasSystematic = false;
-            m_sys_hasType = false;
-
-            m_sysStore.push_back(m_sysTemplate);
-            m_sysTemplate.reset();
-
-            cout << app_name << "New systematic: " << m_sysStore.back().name << endl;
-            if (m_sysStore.back().type == SupersysType::event) {
-                cout << app_name << "    event systematic: " << m_sysStore.back().tree_name << endl;
-            }
-            else if (m_sysStore.back().type == SupersysType::weight) {
-                cout << app_name << "    weight systematics: " << m_sysStore.back().tree_name << weight_suffix_up
-                    << "/" << m_sysStore.back().tree_name << weight_suffix_down << endl;
-            }
-            else {
-                cout << app_name << "ERROR (Fatal): Impossible SupersysType.";
-                exit(1);
-            }
-
-        }
-        else {
-            if (m_sysState != SupersysState::open) {
-                cout << app_name << "ERROR (Fatal): First open a NewSystematic().";
-            }
-            else {
-                cout << app_name << "ERROR (Fatal): Can't save incomplete systematic object.";
-            }
-            exit(1);
-        }
-        return *this;
-    }
 
     // Superlink
     // Superlink
@@ -2055,21 +1606,461 @@ namespace sflow {
     {
         m_do_qflip = true;
     }
-}
 
-/* snippets
+    /////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
 
-//debug// cout << app_name << endl;
-//debug// cout << app_name << m_NtSys_to_string[m_RunSyst->event_syst] << endl;
-//debug// cout << app_name << m_NtSys_to_string[m_RunSyst->event_syst] << endl;
-//debug// cout << app_name << m_NtSys_to_string[m_RunSyst->event_syst] << endl;
-//debug// cout << app_name << endl;
+    // --------------------------------------------------------------- //
+    //  Superflow operator implementation
+    //  Superflow operator implementation
+    //  Superflow operator implementation
+    // --------------------------------------------------------------- //
 
-// cout << app_name << "Weight variation: " << m_sysStore[index_weight_sys[w_]].tree_name << endl;
-// cout << "    nom: " << nom_eventweight << endl;
-// cout << "    up : " << up_weight << endl;
-// cout << "    dwn: " << down_weight << endl;
-// cout << app_name << endl << app_name << endl;
+    ////////////////////////////////////////////
+    // Cut operators
+    ////////////////////////////////////////////
 
+    /* ---------------------------
+        CutName operator
 
-*/
+        Feeds in a human-readable/descriptive name for a cut to be placed.
+        --> Checks that the SupersysState and SupervarState are closed, meaning
+            that any previous definition of a systematic or variable is finished
+            and succesfully saved/stored.
+
+        usage:
+            <SuperflowObject> << CutName("lead lepton pT > 20 GeV");
+       ---------------------------
+    */
+    Superflow& Superflow::operator<<(CutName cut_)
+    {
+        if (m_sysState == SupersysState::closed && m_varState == SupervarState::closed) {
+            m_CutStore_Name_Exists = true;
+            m_CutStoreNames.push_back(cut_.name);
+
+            cout << app_name << "New cut: " << cut_.name << endl;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): Cutflow operations are incorrectly ordered.";
+            exit(1);
+        }
+        return *this;
+    }
+    
+    /* ----------------------------
+        Cut function operator
+
+        Feeds in the (lambda) function expression to be evaluated for the cut.
+        --> Checks that the SupersysState and SupervarState are closed, meaning
+            that any previous definition of a systematic or variable is finished
+            and succesfully saved/stored.
+        --> Checks m_CutStore_Name_Exists variable to be sure that we have processed
+            the CutName operator prior this call (i.e. so that this cut will have 
+            a descriptive name). If this is not the case, a default name is given.
+        --> Adds a place in the raw and weighted counters (m_RawCounter and m_WeightCounter).
+
+         usage:
+            <SuperflowObject> << CutName("at least 2 base leptons") << [](Superlink* sl) -> bool {
+                return (sl->baseLeptons.size() >= 2);
+            };
+        --------------------------
+    */
+    Superflow& Superflow::operator<<(std::function<bool(Superlink*)> cut_)
+    {
+        if (m_sysState == SupersysState::closed && m_varState == SupervarState::closed) {
+            m_CutStore.push_back(cut_);
+
+            if (m_CutStore_Name_Exists) {
+                m_CutStore_Name_Exists = false;
+            }
+            else {
+                m_CutStoreNames.push_back("Untitled-" + to_string(m_CutStoreUntitled));
+                cout << app_name << "New cut: " << "Untitled-" << m_CutStoreUntitled << endl;
+                m_CutStoreUntitled++;
+            }
+
+            m_RawCounter.push_back(0.0);
+            m_WeightCounter.push_back(0.0);
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): Cutflow operations are incorrectly ordered.";
+            exit(1);
+        }
+        return *this;
+    }
+
+    ////////////////////////////////////////////
+    // HFT operators
+    //   These set what will be stored in the
+    //   output ntuples
+    ////////////////////////////////////////////
+
+    /* ----------------------------
+        NewVar operator
+            
+        Feeds in a human-readable/descriptive name for a variable to store in the output trees.
+        --> This is NOT the name that will show up as the leaf name (i.e. when you do TBrowser/TTree::Draw())
+        --> Checks that the SupersysState and SupervarState are closed, meaning
+            that any previous definition of a systematic or variable is finished
+            and succesfully saved/stored.
+        --> Name is stored in vector m_varNiceName
+        --> m_superVar_hasNiceName is set to true to ensure that the ordering of HFT var creation is correct.
+            This is set to false once the full variable is saved/stored.
+        --> Variable definition is to take place after the NewVar is fed in, so we set the 
+            m_varState to SupervarState::open. This will be set to SupervarState::closed once
+            the variable is saved/stored.
+
+        usage:
+            <SuperflowObject> << NewVar("stransverse mass");
+ 
+       ----------------------------
+    */
+    Superflow& Superflow::operator<<(NewVar new_var_name) // this is the NiceName
+    {
+        if (m_varState == SupervarState::closed && m_sysState == SupersysState::closed) {
+            m_varNiceName.push_back(new_var_name.name);
+            m_superVar_hasNiceName = true;
+            m_varState = SupervarState::open;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): Close the Var using SaveVar().";
+            exit(1);
+        }
+        return *this;
+    }
+
+    /* ----------------------------
+        HFTname operator
+        
+        Feed in the name of the variable that will appear in the output ntuples (i.e. when you 
+        do TTree::Draw() or look in the TBrowser).
+        --> We must have already provided a "nice name" using the NewVar operator which means that
+            m_varState == SupervarState::open.
+        --> m_superVar_hasHFTName must be false, this operator provides the HFTname and sets this to true.
+        --> The leaf name is stored in the vector m_varHFTName 
+
+        usage:
+            <SuperflowObject> << NewVar("stransverse mass") << HFTname("mT2");
+
+       ----------------------------
+    */
+    Superflow& Superflow::operator<<(HFTname hft_name)
+    {
+        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasHFTName) {
+            m_varHFTName.push_back(hft_name.name);
+            m_superVar_hasHFTName = true;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): Open a new Var using NewVar().";
+            exit(1);
+        }
+        return *this;
+    }
+
+    /* ----------------------------
+        Variable function operators
+        
+        Provide a (lambda) function expression using the Superlink object to 
+        calculate/provide the values for the variables whose names we have
+        already provided using the NewVar and HFTname operators.
+        --> There are function expressions for each of the conceivable variable types:
+                - float
+                - double
+                - int
+                - bool
+                - void
+            and the expression is fed into the appropriate vector of functions. 
+            E.G. m_varExprFloat is type vector<std::function<double(Superlink*, var_float*)>> 
+        --> var_float, var_double, var_int, var_void, and var_bool are dummy classes that are
+            used only for type identification in the signatures of these different operators
+            (see Superflow/Supervar.h).
+        --> A null expression is provided to all other function vectors that are not of
+            the type of the current function expression being fed in. In this way all of the
+            function vectors will be of the same length and the indices of the functions will
+            unambiguously line up with the vectors for the NewVar and HFTname vectors.
+        --> m_varState must == SupervarState::open, indicating that we are currently in the process of
+            storing a variable.
+        --> m_superVar_hasFunction must be false since we have, at this point, only just opened the
+            the m_varState and have only provided names for this variable.
+        --> m_varType holds values of the enum SupervarType -- one for each function expression 
+            fed in and is essentially used as a way to determine how many variables we have
+            to store. 
+
+        --> NOTE: for var_void type function expressions the NewVar and HFTname operators do not need
+                to be called as they are set automatically within void function. The checks for the m_varState, etc...
+                are also not checked. The main purpose of the var_void type function expression operator
+                is to, for example, clear a global object that is defined in the executable outside of 
+                the function expressions but used across many of them.
+                E.G.
+                    JetVector central_light_jets;
+                    <VAR OPERATOR> { central_light_jets.push_back(foo) }
+                        ...
+                    <VAR OPERATOR> { central_light_jets.at(0)->Pt() }
+                        ...
+                    <SuperflowObject> << [&](Superlink* sl, var_void*) { central_light_jets.clear(); };
+
+        usage:
+            <SuperflowObject> << NewVar("leading lepton transverse momenta");
+            <SuperflowObject> << HFTname("lept1Pt");
+            <SuperflowObject> << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(0)->Pt(); }
+
+       ----------------------------
+    */
+
+    // float function
+    Superflow& Superflow::operator<<(std::function<double(Superlink*, var_float*)> var_)
+    {
+        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
+            m_varExprFloat.push_back(var_); // fill
+            m_varExprDouble.push_back(m_nullExprDouble);
+            m_varExprInt.push_back(m_nullExprInt);
+            m_varExprBool.push_back(m_nullExprBool);
+            m_varExprVoid.push_back(m_nullExprVoid);
+
+            m_varType.push_back(SupervarType::sv_float);
+            m_superVar_hasFunction = true;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
+            exit(1);
+        }
+        return *this;
+    }
+    // double function
+    Superflow& Superflow::operator<<(std::function<double(Superlink*, var_double*)> var_)
+    {
+        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
+            m_varExprFloat.push_back(m_nullExprFloat);
+            m_varExprDouble.push_back(var_); // fill
+            m_varExprInt.push_back(m_nullExprInt);
+            m_varExprBool.push_back(m_nullExprBool);
+            m_varExprVoid.push_back(m_nullExprVoid);
+
+            m_varType.push_back(SupervarType::sv_double);
+            m_superVar_hasFunction = true;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
+            exit(1);
+        }
+        return *this;
+    }
+    // int function
+    Superflow& Superflow::operator<<(std::function<int(Superlink*, var_int*)> var_)
+    {
+        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
+            m_varExprFloat.push_back(m_nullExprFloat);
+            m_varExprDouble.push_back(m_nullExprDouble);
+            m_varExprInt.push_back(var_); // fill
+            m_varExprBool.push_back(m_nullExprBool);
+            m_varExprVoid.push_back(m_nullExprVoid);
+
+            m_varType.push_back(SupervarType::sv_int);
+            m_superVar_hasFunction = true;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
+            exit(1);
+        }
+        return *this;
+    }
+    // bool function
+    Superflow& Superflow::operator<<(std::function<bool(Superlink*, var_bool*)> var_)
+    {
+        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
+            m_varExprFloat.push_back(m_nullExprFloat);
+            m_varExprDouble.push_back(m_nullExprDouble);
+            m_varExprInt.push_back(m_nullExprInt);
+            m_varExprBool.push_back(var_); // fill
+            m_varExprVoid.push_back(m_nullExprVoid);
+
+            m_varType.push_back(SupervarType::sv_bool);
+            m_superVar_hasFunction = true;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
+            exit(1);
+        }
+        return *this;
+    }
+    // void function
+    Superflow& Superflow::operator<<(std::function<void(Superlink*, var_void*)> var_)
+    {
+        m_varExprFloat.push_back(m_nullExprFloat);
+        m_varExprDouble.push_back(m_nullExprDouble);
+        m_varExprInt.push_back(m_nullExprInt);
+        m_varExprBool.push_back(m_nullExprBool);
+        m_varExprVoid.push_back(var_);// fill
+
+        m_varNiceName.push_back("void");
+        m_varHFTName.push_back("void");
+        m_varType.push_back(SupervarType::sv_void);
+        return *this;
+    }
+
+    /* ----------------------------
+        SaveVar operator
+        
+        Check that we have all of the required pieces for storing a variable in the 
+        output ntuples.
+        
+        --> If the var state is still open and we have defined a function (with a name) then we
+            have all of the pieces. Set these flags back to false so that we can be ready to
+            start defining the next variable to be stored.
+        --> If there is no name, provide the default one.
+
+        usage:
+            <SuperflowObject> << NewVar("sub-leading jet eta");
+            <SuperflowObject> << HFTname("jet2Eta");
+            <SuperflowObject> << [](Superlink* sl, var_float*) -> double {
+                return sl->jets->size() >= 2 ? sl->jets->at(1)->Eta() : 0.0;
+            };
+            <SuperflowObject> << SaveVar();
+            
+       ----------------------------
+    */
+    Superflow& Superflow::operator<<(SaveVar save_var)
+    {
+        if (m_varState == SupervarState::open && m_superVar_hasFunction && m_superVar_hasNiceName) {
+            if (!m_superVar_hasHFTName) {
+                m_varHFTName.push_back("Untitled_" + to_string(m_superVar_Untitled));
+                m_superVar_Untitled++;
+                m_superVar_hasHFTName = true;
+            }
+
+            m_varState = SupervarState::closed;
+            m_superVar_hasFunction = false;
+            m_superVar_hasNiceName = false;
+            m_superVar_hasHFTName = false;
+
+            cout << app_name << "New var: " << m_varNiceName.back() << endl;
+            cout << app_name << "    HFT: " << m_varHFTName.back() << endl;
+        }
+        else {
+            if (m_varState != SupervarState::open) {
+                cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
+            }
+            else {
+                cout << app_name << "ERROR (Fatal): A lambda-expression is required.";
+            }
+            exit(1);
+        }
+        return *this;
+    }
+
+    ////////////////////////////////////////////
+    // Systematic operators
+    ////////////////////////////////////////////
+
+    Superflow& Superflow::operator<<(NewSystematic new_sys) // this is the NiceName
+    {
+        if (m_sysState == SupersysState::closed && m_varState == SupervarState::closed) {
+            m_sysTemplate.name = new_sys.name;
+            m_sys_hasNiceName = true;
+            m_sysState = SupersysState::open;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): Close using SaveSystematic().";
+            exit(1);
+        }
+        return *this;
+    }
+
+    Superflow& Superflow::operator<<(TreeName tree_name)
+    {
+        if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasTreeName) {
+            m_sysTemplate.tree_name = tree_name.name;
+            m_sys_hasTreeName = true;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): Open a NewSystematic().";
+            exit(1);
+        }
+        return *this;
+    }
+
+    Superflow& Superflow::operator<<(EventSystematic obj_)
+    {
+        if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasSystematic) {
+            m_sysTemplate.event_syst = obj_.event_syst_;
+            m_sysTemplate.weight_syst = SupersysWeight::null;
+            m_sys_hasSystematic = true;
+
+            m_sysTemplate.type = SupersysType::event;
+            m_sys_hasType = true;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): Open a NewSystematic().";
+            exit(1);
+        }
+        return *this;
+    }
+
+    Superflow& Superflow::operator<<(WeightSystematic obj_)
+    {
+        if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasSystematic) {
+            m_sysTemplate.event_syst = Susy::NtSys::NOM;
+            m_sysTemplate.weight_syst_up = obj_.weight_syst_up;
+            m_sysTemplate.weight_syst_down = obj_.weight_syst_down;
+            m_sys_hasSystematic = true;
+
+            m_sysTemplate.type = SupersysType::weight;
+            m_sys_hasType = true;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): Open a NewSystematic().";
+            exit(1);
+        }
+        return *this;
+    }
+
+    Superflow& Superflow::operator<<(SaveSystematic save_var)
+    {
+        if (m_sysState == SupersysState::open
+            && m_varState == SupervarState::closed
+            && m_sys_hasNiceName
+            && m_sys_hasTreeName
+            && m_sys_hasType
+            && m_sys_hasSystematic
+            ) {
+            if (m_sysTemplate.name == "") m_sysTemplate.name = m_sysTemplate.tree_name;
+
+            m_sysState = SupersysState::closed;
+            m_sys_hasNiceName = false;
+            m_sys_hasTreeName = false;
+            m_sys_hasSystematic = false;
+            m_sys_hasType = false;
+
+            m_sysStore.push_back(m_sysTemplate);
+            m_sysTemplate.reset();
+
+            cout << app_name << "New systematic: " << m_sysStore.back().name << endl;
+            if (m_sysStore.back().type == SupersysType::event) {
+                cout << app_name << "    event systematic: " << m_sysStore.back().tree_name << endl;
+            }
+            else if (m_sysStore.back().type == SupersysType::weight) {
+                cout << app_name << "    weight systematics: " << m_sysStore.back().tree_name << weight_suffix_up
+                    << "/" << m_sysStore.back().tree_name << weight_suffix_down << endl;
+            }
+            else {
+                cout << app_name << "ERROR (Fatal): Impossible SupersysType.";
+                exit(1);
+            }
+
+        }
+        else {
+            if (m_sysState != SupersysState::open) {
+                cout << app_name << "ERROR (Fatal): First open a NewSystematic().";
+            }
+            else {
+                cout << app_name << "ERROR (Fatal): Can't save incomplete systematic object.";
+            }
+            exit(1);
+        }
+        return *this;
+    }
+
+} // namespace sflow
