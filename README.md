@@ -16,4 +16,4 @@ At the moment this checks out two packages:
 
 2. **ChargeFlip**
 
-    Package holding charge-flip probability maps and methods to calculate the charge-flip probablity.
+    Package holding charge-flip probability maps and methods to calculate the charge-flip probablity. This package is located at [https://svnweb.cern.ch/cern/wsvn/atlasphys/Physics/SUSY/Analyses/WeakProduction/ChargeFlip/](https://svnweb.cern.ch/cern/wsvn/atlasphys/Physics/SUSY/Analyses/WeakProduction/ChargeFlip/)
