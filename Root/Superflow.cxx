@@ -229,10 +229,10 @@ namespace sflow {
         }
     }
 
-    // TSelector States
-    // TSelector States
-    // TSelector States
-
+    ///////////////////////////////////////////////////////////////////////////////
+    // TSelector Begin
+    //  > Called before looping on entries
+    ///////////////////////////////////////////////////////////////////////////////
     void Superflow::Begin(TTree* /*tree*/)
     {
         cout << app_name << m_sample << endl;
@@ -280,17 +280,18 @@ namespace sflow {
                 }
             }
         }
-
-        // Set single event systematic
+        
+        // if run mode single_event_syst, set which syst to run on
         if (m_runMode == SuperflowRunMode::single_event_syst) {
             for (int i = 0; i < m_sysStore.size(); i++) {
                 if (m_sysStore[i].type == SupersysType::event && m_sysStore[i].event_syst == m_singleEventSyst) {
+                    // initially set to nominal
                     delete m_RunSyst;
 
                     m_RunSyst = &m_sysStore[i]; // don't delete!!
                 }
             }
-        }
+        } // end if run mode single_event_syst
 
         cout << app_name << "in Begin()" << endl;
         SusyNtAna::Begin(0);
@@ -340,7 +341,8 @@ namespace sflow {
             m_allconfigured = initMatrixTool();
         }
         // ----------------- Configure Matrix Tool [END] ------------------------//
-    }
+    
+    } // end Superflow::Begin()
 
     ///////////////////////////////////////////////////////////////////////////////
     // TSelector Init
@@ -669,28 +671,42 @@ namespace sflow {
     Bool_t Superflow::Process(Long64_t entry)
     {
         GetEntry(entry);
-    #warning what is "save_entry_to_list"???
+        ///////////////////////////////////////////////////////////////////////
+        // since we may be looping over for many systematics, etc... we only
+        // want to save to the EntryLists each entry once. "save_entry_to_list"
+        // acts as a catch to prevent from duplicate storing.
         bool save_entry_to_list = true;
+        ///////////////////////////////////////////////////////////////////////
 
         m_chainEntry++; // SusyNtAna counter
 
         if (m_chainEntry % 500 == 0) {
             cout << app_name << "**** Processing entry " << setw(6) << m_chainEntry
-                << " run " << setw(6) << nt.evt()->run
+                << " run "   << setw(6) << nt.evt()->run
                 << " event " << setw(7) << nt.evt()->event << " ****" << endl;
         }
 
-        // select baseline and signal objects
-        bool removeLepsFromIso = false;
 
         // these are flags
-        var_float* vf_ = nullptr;
+        var_float* vf_  = nullptr;
         var_double* vd_ = nullptr;
-        var_int* vi_ = nullptr;
-        var_bool* vb_ = nullptr;
-        var_void* vv_ = nullptr;
+        var_int* vi_    = nullptr;
+        var_bool* vb_   = nullptr;
+        var_void* vv_   = nullptr;
+
+        /////////////////////////////////////////////////////////////
+        // Now select the objects, etc... depending on which 
+        // run mode you are in
+        /////////////////////////////////////////////////////////////
+        
+        // select baseline and signal objects
+        #warning removeLepsFromIso is obsolete!
+        bool removeLepsFromIso = false;
 
         switch (m_runMode) {
+            /////////////////////////
+            // run mode data
+            /////////////////////////
             case SuperflowRunMode::data: {
                 clearObjects();
                 selectObjects(m_RunSyst->event_syst, removeLepsFromIso, TauID_medium); // always select with nominal? (to compute event flags)
@@ -743,6 +759,11 @@ namespace sflow {
                 delete m_weights;
 
             } break;
+            
+            /////////////////////////
+            // run mode nominal
+            // run mode single_event_syst
+            /////////////////////////
             case SuperflowRunMode::nominal:
             case SuperflowRunMode::single_event_syst: {
 

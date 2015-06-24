@@ -74,11 +74,12 @@ namespace sflow {
         Superflow& operator<<(WeightSystematic obj_);
         Superflow& operator<<(SaveSystematic save_var);
 
-        void Begin(TTree *tree); ///< called before looping on entries
-        void Init(TTree *tree); ///< called when the TChain is attached
-        void Terminate(); ///< called after looping is finished
-        Bool_t Notify(); ///< called at each event
+        // TSelector Methods
+        void Begin(TTree *tree);        ///< called before looping on entries
+        void Init(TTree *tree);         ///< called when the TChain is attached
+        Bool_t Notify();                ///< called at each event
         Bool_t Process(Long64_t entry); ///< called at each event
+        void Terminate();               ///< called after looping is finished
 
         void setCountWeights(bool value); ///< Toggle the display of the weighted cuts. (default off)
         void setRunMode(SuperflowRunMode run_mode_);
