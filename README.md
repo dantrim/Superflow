@@ -9,4 +9,5 @@
 At the moment this checks out two packages:
 
 1. **DileptonMatrixMethod**
-⋅⋅* Package written by Davide Gerbaudo (Davide.Gerbaudo@cern.ch) to calculate fake efficiencies, etc... located at [github.com/gerbaudo/DileptonMatrixMethod](https://github.com/gerbaudo/DileptonMatrixMethod)
+
+\tPackage written by Davide Gerbaudo (Davide.Gerbaudo@cern.ch) to calculate fake efficiencies, etc... located at [github.com/gerbaudo/DileptonMatrixMethod](https://github.com/gerbaudo/DileptonMatrixMethod)
