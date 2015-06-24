@@ -24,6 +24,7 @@ namespace sflow {
     ////////////////////////////////////////////
     Superflow::Superflow()
     {
+        app_name = "Superflow    ";
         m_dbg = true;
         setSelectTaus(true);
 
@@ -1331,10 +1332,7 @@ namespace sflow {
                 default: break;
             }
             if (do_susynt_w) {
-                # warning setting susynt weight to 1 !!!!
-                # warning setting susynt weight to 1 !!!!
-                weights_->susynt = 1.0;
-                //weights_->susynt = weighter.getMCWeight(ntobj.evt(), 10000, wSys);
+                weights_->susynt = weighter.getMCWeight(ntobj.evt(), m_luminosity, wSys);
             }
 
             // Other weight systematic variations
@@ -1607,7 +1605,11 @@ namespace sflow {
         delete weights;
         return isr_weight;
     }
-            
+
+    void Superflow::setLumi(const float lumi) {
+        m_luminosity = lumi;
+        cout << app_name << "Setting MC normalization (luminosity) to " << m_luminosity << " pb^-1." << endl;
+    }
 
     void Superflow::setCountWeights(bool value) ///> public function, if set true it prints the weighted cutflow
     {

@@ -80,7 +80,9 @@ namespace sflow {
         Bool_t Notify();                ///< called at each event
         Bool_t Process(Long64_t entry); ///< called at each event
         void Terminate();               ///< called after looping is finished
-
+        
+        void setAnaName(string name) { app_name = name + "    "; }
+        void setLumi(const float lumi = LUMI_A_A3); ///< Set the MC normalization lumi
         void setCountWeights(bool value); ///< Toggle the display of the weighted cuts. (default off)
         void setRunMode(SuperflowRunMode run_mode_);
         void setSingleEventSyst(SusyNtSys nt_syst_);
@@ -94,6 +96,7 @@ namespace sflow {
         bool isMM(const LeptonVector& leptons);
 
     protected:
+        string app_name;
         void attach_superlink(Superlink* sl_);
 
         DilTrigLogic* m_trigObj; ///< trigger logic class
@@ -130,6 +133,7 @@ namespace sflow {
         vector<double> m_WeightCounter; // indexed by cut #
 
         bool m_countWeights;
+        float m_luminosity;
 
         Superweight* m_weights;
 
@@ -208,7 +212,6 @@ namespace sflow {
 
     private:
         bool initMcWeighter(TTree *tree);
-        string app_name = "Superflow    ";
 
         map<ATLAS_stream, map<ATLAS_period, string>> m_data_periods;
         map<ATLAS_stream, string> m_data_stream2string;
