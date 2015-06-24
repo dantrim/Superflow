@@ -45,15 +45,14 @@ int main(int argc, char* argv[])
 
     TChain* chain = new TChain("susyNt");
     chain->SetDirectory(0);
-
     
     ////////////////////////////////////////////////////////////
-    // Read in the command-line options
+    // Read in the command-line options (input file, num events, etc...)
     ////////////////////////////////////////////////////////////
     read_options(argc, argv, chain, n_skip_, num_events_, sample_, run_mode, nt_sys_); // defined below
 
     ////////////////////////////////////////////////////////////
-    // Initialize the analysis
+    // Initialize & configure the analysis
     //  > Superflow inherits from SusyNtAna : TSelector
     ////////////////////////////////////////////////////////////
     Superflow* cutflow = new Superflow(); // initialize the cutflow
@@ -80,7 +79,6 @@ int main(int argc, char* argv[])
     /////////////////////////////////////////////////////////////////////////
     
     *cutflow << CutName("read in") << [](Superlink* sl) -> bool { return true; };
-
 
     ////////////////////////////////////////////////////////////
     //  Cleaning Cuts
@@ -156,13 +154,8 @@ int main(int argc, char* argv[])
         *cutflow << [](Superlink* sl, var_double*) -> double { 
             return sl->weights->product();
         };
-    
         *cutflow << SaveVar();
     }
-
-    // VARIABLES FOR DEBUGGING "NEW" AND "OLD" ALPGEN+PYTHIA Z+JETS [BEGIN]
-    // VARIABLES FOR DEBUGGING "NEW" AND "OLD" ALPGEN+PYTHIA Z+JETS [BEGIN]
-    // VARIABLES FOR DEBUGGING "NEW" AND "OLD" ALPGEN+PYTHIA Z+JETS [BEGIN]
 
     *cutflow << NewVar("mcChannel (dsid)"); {
         *cutflow << HFTname("dsid");
@@ -177,23 +170,6 @@ int main(int argc, char* argv[])
         *cutflow << SaveVar();
     }
 
-    *cutflow << NewVar("c1c1Pt"); {
-        *cutflow << HFTname("c1c1Pt");
-        *cutflow << [&](Superlink* sl, var_double*) -> double {
-            double c1c1pt = 0.0;
-            std::vector<Susy::TruthParticle> c1c1Part;
-            for(int itp=0; itp<sl->nt->tpr()->size(); itp++){
-                if(fabs(sl->nt->tpr()->at(itp).pdgId)==1000024) {
-                    c1c1Part.push_back(sl->nt->tpr()->at(itp));
-                } // end if pdg = c1
-            } // end tpr loop
-            if(c1c1Part.size()==2){
-                c1c1pt = (c1c1Part[0] + c1c1Part[1]).Pt();
-            }
-            return c1c1pt;
-        };
-        *cutflow << SaveVar();
-    }
     *cutflow << NewVar("Monte-Carlo generator event weight"); {
         *cutflow << HFTname("w");
         *cutflow << [](Superlink* sl, var_double*) -> double {
@@ -201,6 +177,7 @@ int main(int argc, char* argv[])
         };
         *cutflow << SaveVar();
     }
+
     *cutflow << NewVar("Pile-up weight"); {
         *cutflow << HFTname("pupw");
         *cutflow << [](Superlink* sl, var_double*) -> double {
