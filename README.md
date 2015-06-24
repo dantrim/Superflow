@@ -4,7 +4,9 @@
 
 **Superflow** is a package that analyzes susyNt so it is assumed that the **SusyNtuple** package is already checked out in your working directory. 
 
-**Superflow** can also be configured for making fake ntuples and computing charge-flip probability ~out-of-the-box and so requiries the necessary packages in order to be compiled. These can be checked out by sourcing the script locaged in *Superflow/scripts/get_superflow_dep.sh*. These packages may need to be updated in order to run on ROOT6 by removing dependencies/includes on Cint.
+**Superflow** can also be configured for making fake ntuples and computing charge-flip probability ~out-of-the-box and so requiries the necessary packages in order to be compiled. These packages may need to be updated in order to run on ROOT6 by removing dependencies/includes on Cint. The necessary packages can be checked out by running the following command (once you have checked out Superflow):
+
+`source Superflow/scripts/get_superflow_dep.sh`
 
 At the moment this checks out two packages:
 
