@@ -18,7 +18,7 @@ namespace sflow {
             tree_name = "NOM";
 
             type = SupersysType::central;
-            event_syst = NtSys_NOM;
+            event_syst = Susy::NtSys::NOM;
             weight_syst = SupersysWeight::null;
         }
         else {
@@ -35,7 +35,7 @@ namespace sflow {
         weight_down = 0.0;
 
         type = SupersysType::null;
-        event_syst = NtSys_NOM;
+        event_syst = Susy::NtSys::NOM;
         weight_syst = SupersysWeight::null;
         weight_syst_up = SupersysWeight::null;
         weight_syst_down = SupersysWeight::null;
@@ -75,7 +75,7 @@ namespace sflow {
         name = tree_name;
     }
 
-    EventSystematic::EventSystematic(SusyNtSys syst_val)
+    EventSystematic::EventSystematic(Susy::NtSys::SusyNtSys syst_val)
     {
         event_syst_ = syst_val;
     }

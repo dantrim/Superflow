@@ -8,6 +8,7 @@
 #include "SusyNtuple/SusyNtObject.h"
 #include "SusyNtuple/SusyNtTools.h"
 #include "SusyNtuple/DilTrigLogic.h"
+#include "SusyNtuple/AnalysisType.h"
 
 #include "Superflow/Supersys.h"
 #include "Superflow/DataDefinitions.h"

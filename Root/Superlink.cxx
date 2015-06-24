@@ -5,6 +5,7 @@ using namespace std;
 
 #include "Superflow/Superlink.h"
 
+
 namespace sflow {
 
     Superlink::Superlink()
@@ -15,11 +16,11 @@ namespace sflow {
 
         tools = nullptr;
 
-        anaType = Ana_2Lep;
+        anaType = Susy::AnalysisType::Ana_2Lep;
 
         nt = nullptr;
         weights = nullptr;
-        nt_sys = NtSys_NOM;
+        nt_sys = Susy::NtSys::NOM;
 
         preElectrons = nullptr;
         preMuons = nullptr;
@@ -44,7 +45,7 @@ namespace sflow {
 
         dileptonTrigger = nullptr;
 
-        jvfTool = nullptr;
+      //  jvfTool = nullptr;
     }
 
     Superlink::~Superlink()
@@ -55,11 +56,11 @@ namespace sflow {
 
         tools = nullptr;
 
-        anaType = Ana_2Lep;
+        anaType = Susy::AnalysisType::Ana_2Lep;
 
         nt = nullptr;
         weights = nullptr;
-        nt_sys = NtSys_NOM;
+        nt_sys = Susy::NtSys::NOM;
 
         preElectrons = nullptr;
         preMuons = nullptr;
@@ -84,6 +85,6 @@ namespace sflow {
 
         dileptonTrigger = nullptr;
 
-        jvfTool = nullptr;
+     //   jvfTool = nullptr;
     }
 }

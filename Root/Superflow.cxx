@@ -24,6 +24,7 @@ namespace sflow {
     ////////////////////////////////////////////
     Superflow::Superflow()
     {
+        m_dbg = true;
         setSelectTaus(true);
 
         m_runMode = SuperflowRunMode::null;
@@ -99,7 +100,7 @@ namespace sflow {
         m_sys_hasType       = false;
         m_sys_hasSystematic = false;
 
-        m_singleEventSyst = NtSys_NOM;
+        m_singleEventSyst = NtSys::NOM;
         m_RunSyst         = new Supersys(SupersysType::central);
 
         m_tree_leafs_size    = 0;
@@ -131,34 +132,34 @@ namespace sflow {
         m_data_periods[ATLAS_stream::Muons][ATLAS_period::J] = "periodJ.physics_Muons.PhysCont";
         m_data_periods[ATLAS_stream::Muons][ATLAS_period::L] = "periodL.physics_Muons.PhysCont";
 
-        m_NtSys_to_string[NtSys_EES_Z_UP]     = "EESZUP";
-        m_NtSys_to_string[NtSys_EES_Z_DN]     = "EESZDOWN";
-        m_NtSys_to_string[NtSys_EES_MAT_UP]   = "EESMATUP";
-        m_NtSys_to_string[NtSys_EES_MAT_DN]   = "EESMATDOWN";
-        m_NtSys_to_string[NtSys_EES_PS_UP]    = "EESPSUP";
-        m_NtSys_to_string[NtSys_EES_PS_DN]    = "EESPSDOWN";
-        m_NtSys_to_string[NtSys_EES_LOW_UP]   = "EESLOWUP";
-        m_NtSys_to_string[NtSys_EES_LOW_DN]   = "EESLOWDOWN";
-        m_NtSys_to_string[NtSys_EER_UP]       = "EERUP";
-        m_NtSys_to_string[NtSys_EER_DN]       = "EERDOWN";
-        m_NtSys_to_string[NtSys_MS_UP]        = "MSUP";
-        m_NtSys_to_string[NtSys_MS_DN]        = "MSDOWN";
-        m_NtSys_to_string[NtSys_ID_UP]        = "IDUP";
-        m_NtSys_to_string[NtSys_ID_DN]        = "IDDOWN";
-        m_NtSys_to_string[NtSys_JES_UP]       = "JESUP";
-        m_NtSys_to_string[NtSys_JES_DN]       = "JESDOWN";
-        m_NtSys_to_string[NtSys_JER]          = "JER";
-        m_NtSys_to_string[NtSys_SCALEST_UP]   = "SCALESTUP";
-        m_NtSys_to_string[NtSys_SCALEST_DN]   = "SCALESTDOWN";
-        m_NtSys_to_string[NtSys_RESOST]       = "RESOST";
-        m_NtSys_to_string[NtSys_TRIGSF_EL_UP] = "TRIGSFELUP";
-        m_NtSys_to_string[NtSys_TRIGSF_EL_DN] = "TRIGSFELDN";
-        m_NtSys_to_string[NtSys_TRIGSF_MU_UP] = "TRIGSFMUUP";
-        m_NtSys_to_string[NtSys_TRIGSF_MU_DN] = "TRIGSFMUDN";
-        m_NtSys_to_string[NtSys_TES_UP]       = "TESUP";
-        m_NtSys_to_string[NtSys_TES_DN]       = "TESDOWN";
-        m_NtSys_to_string[NtSys_JVF_UP]       = "JVFUP";
-        m_NtSys_to_string[NtSys_JVF_DN]       = "JVFDOWN";
+        m_NtSys_to_string[Susy::NtSys::EES_Z_UP]     = "EESZUP";
+        m_NtSys_to_string[Susy::NtSys::EES_Z_DN]     = "EESZDOWN";
+        m_NtSys_to_string[Susy::NtSys::EES_MAT_UP]   = "EESMATUP";
+        m_NtSys_to_string[Susy::NtSys::EES_MAT_DN]   = "EESMATDOWN";
+        m_NtSys_to_string[Susy::NtSys::EES_PS_UP]    = "EESPSUP";
+        m_NtSys_to_string[Susy::NtSys::EES_PS_DN]    = "EESPSDOWN";
+        m_NtSys_to_string[Susy::NtSys::EES_LOW_UP]   = "EESLOWUP";
+        m_NtSys_to_string[Susy::NtSys::EES_LOW_DN]   = "EESLOWDOWN";
+        m_NtSys_to_string[Susy::NtSys::EER_UP]       = "EERUP";
+        m_NtSys_to_string[Susy::NtSys::EER_DN]       = "EERDOWN";
+        m_NtSys_to_string[Susy::NtSys::MS_UP]        = "MSUP";
+        m_NtSys_to_string[Susy::NtSys::MS_DN]        = "MSDOWN";
+        m_NtSys_to_string[Susy::NtSys::ID_UP]        = "IDUP";
+        m_NtSys_to_string[Susy::NtSys::ID_DN]        = "IDDOWN";
+        m_NtSys_to_string[Susy::NtSys::JES_UP]       = "JESUP";
+        m_NtSys_to_string[Susy::NtSys::JES_DN]       = "JESDOWN";
+        m_NtSys_to_string[Susy::NtSys::JER]          = "JER";
+        m_NtSys_to_string[Susy::NtSys::SCALEST_UP]   = "SCALESTUP";
+        m_NtSys_to_string[Susy::NtSys::SCALEST_DN]   = "SCALESTDOWN";
+        m_NtSys_to_string[Susy::NtSys::RESOST]       = "RESOST";
+        m_NtSys_to_string[Susy::NtSys::TRIGSF_EL_UP] = "TRIGSFELUP";
+        m_NtSys_to_string[Susy::NtSys::TRIGSF_EL_DN] = "TRIGSFELDN";
+        m_NtSys_to_string[Susy::NtSys::TRIGSF_MU_UP] = "TRIGSFMUUP";
+        m_NtSys_to_string[Susy::NtSys::TRIGSF_MU_DN] = "TRIGSFMUDN";
+        m_NtSys_to_string[Susy::NtSys::TES_UP]       = "TESUP";
+        m_NtSys_to_string[Susy::NtSys::TES_DN]       = "TESDOWN";
+        m_NtSys_to_string[Susy::NtSys::JVF_UP]       = "JVFUP";
+        m_NtSys_to_string[Susy::NtSys::JVF_DN]       = "JVFDOWN";
     }
 
     ////////////////////////////////////////////
@@ -556,7 +557,7 @@ namespace sflow {
     Superflow& Superflow::operator<<(WeightSystematic obj_)
     {
         if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasSystematic) {
-            m_sysTemplate.event_syst = NtSys_NOM;
+            m_sysTemplate.event_syst = Susy::NtSys::NOM;
             m_sysTemplate.weight_syst_up = obj_.weight_syst_up;
             m_sysTemplate.weight_syst_down = obj_.weight_syst_down;
             m_sys_hasSystematic = true;
@@ -623,9 +624,10 @@ namespace sflow {
 
     void Superflow::attach_superlink(Superlink* sl_)
     {
-        sl_->tools = this;
+        //sl_->tools = this;
+        sl_->tools = &m_nttools; // from SusyNtAna
 
-        sl_->anaType = m_anaType;
+        sl_->anaType = m_nttools.getAnaType();
 
         sl_->nt = &nt; // SusyNt
         sl_->weights = m_weights;
@@ -656,13 +658,13 @@ namespace sflow {
      //   sl_->muons = selectBaseLineLeptons ? &m_baseMuons : &m_signalMuons;
 
         sl_->taus = &m_signalTaus;
-        sl_->jets = &m_signalJets2Lep;
+        sl_->jets = &m_signalJets;
 
         sl_->met = m_met;
 
         sl_->dileptonTrigger = m_trigObj;
-
-        sl_->jvfTool = m_jvfTool;
+    # warning not setting jvftool
+      //  sl_->jvfTool = m_jvfTool;
     
         sl_->fakeMatrix = m_matrix;
 
@@ -694,7 +696,7 @@ namespace sflow {
             exit(1);
         }
 
-        if (m_runMode == SuperflowRunMode::single_event_syst && m_singleEventSyst == NtSys_NOM) {
+        if (m_runMode == SuperflowRunMode::single_event_syst && m_singleEventSyst == Susy::NtSys::NOM) {
             cout << app_name << "ERROR (Fatal): SuperflowRunMode::single_event_syst: Call setSingleEventSyst(SusyNtSys nt_syst_)." << endl;
             exit(1);
         }
@@ -810,6 +812,7 @@ namespace sflow {
             stringstream sfile_name_;
             sfile_name_ << "CENTRAL_";
 
+    # warning need to set up running over data15!!
             size_t find_period = m_sample.find("period");
             if (find_period != string::npos) {
                 char data_per_ = m_sample.substr(find_period + 6, 1)[0];
@@ -1097,6 +1100,7 @@ namespace sflow {
     Bool_t Superflow::Process(Long64_t entry)
     {
         GetEntry(entry);
+    #warning what is "save_entry_to_list"???
         bool save_entry_to_list = true;
 
         m_chainEntry++; // SusyNtAna counter
@@ -1189,7 +1193,6 @@ namespace sflow {
                 if (m_CutStore.size() > 0) {
                     for (int i = 0; i < m_CutStore.size(); i++) {
                         pass_cuts = m_CutStore[i](sl_); // run the cut function
-
                         if (pass_cuts) {
                             m_RawCounter[i]++;
                             if (m_countWeights) m_WeightCounter[i] += m_weights->product();
@@ -1743,7 +1746,10 @@ namespace sflow {
                 default: break;
             }
             if (do_susynt_w) {
-                weights_->susynt = weighter.getMCWeight(ntobj.evt(), LUMI_A_L, wSys);
+                # warning setting susynt weight to 1 !!!!
+                # warning setting susynt weight to 1 !!!!
+                weights_->susynt = 1.0;
+                //weights_->susynt = weighter.getMCWeight(ntobj.evt(), 10000, wSys);
             }
 
             // Other weight systematic variations
@@ -1770,23 +1776,23 @@ namespace sflow {
                 }
 
                 bool do_lep_triggers_ = false; // do_lep_triggers_
-                SusyNtSys trig_sys = NtSys_NOM;
+                SusyNtSys trig_sys = Susy::NtSys::NOM;
 
                 switch (super_sys->weight_syst) {
                     case SupersysWeight::ETRIGREWUP: {
-                        trig_sys = NtSys_TRIGSF_EL_UP;
+                        trig_sys = Susy::NtSys::TRIGSF_EL_UP;
                         do_lep_triggers_ = true;
                     } break;
                     case SupersysWeight::ETRIGREWDOWN: {
-                        trig_sys = NtSys_TRIGSF_EL_DN;
+                        trig_sys = Susy::NtSys::TRIGSF_EL_DN;
                         do_lep_triggers_ = true;
                     } break;
                     case SupersysWeight::MTRIGREWUP: {
-                        trig_sys = NtSys_TRIGSF_MU_UP;
+                        trig_sys = Susy::NtSys::TRIGSF_MU_UP;
                         do_lep_triggers_ = true;
                     } break;
                     case SupersysWeight::MTRIGREWDOWN: {
-                        trig_sys = NtSys_TRIGSF_MU_DN;
+                        trig_sys = Susy::NtSys::TRIGSF_MU_DN;
                         do_lep_triggers_ = true;
                     } break;
                     case SupersysWeight::null: {
@@ -1813,7 +1819,9 @@ namespace sflow {
                     default: break;
                 }
                 if (do_btag_) {
-                    weights_->btag = computeBtagWeight(jets, nt.evt(), super_sys->weight_syst);
+                    weights_->btag = 1.0;
+                    #warning fixing btag weight to 1.0!
+                    //weights_->btag = computeBtagWeight(jets, nt.evt(), super_sys->weight_syst);
                 }
 
                 if(m_do_qflip){ // global switch set in SuperflowQFlip executable
@@ -1862,7 +1870,7 @@ namespace sflow {
         double trigW = 1.0;
         if (leptons.size() == 2) {
 
-            trigW = m_trigObj->getTriggerWeight(leptons, nt.evt()->isMC, m_met->Et, m_signalJets2Lep.size(), nt.evt()->nVtx, sys);
+            trigW = m_trigObj->getTriggerWeight(leptons, nt.evt()->isMC, m_met->Et, m_signalJets.size(), nt.evt()->nVtx, sys);
             bool twIsInvalid = !(trigW >= 0) || trigW < 0.0;
             trigW = twIsInvalid ? 0.0 : trigW;
         }
@@ -1872,8 +1880,14 @@ namespace sflow {
     double Superflow::computeBtagWeight(const JetVector& jets, const Susy::Event* evt, SupersysWeight sys)
     {
         // cout << app_name << "in computeBtagWeight" << endl;
-        JetVector taggableJets = SusyNtTools::getBTagSFJets2Lep(jets);
-        return SusyNtTools::bTagSF(evt, taggableJets, evt->mcChannel, supersys_to_btagsys(sys));
+        //JetVector taggableJets = SusyNtTools::getBTagSFJets2Lep(jets);
+        //return SusyNtTools::bTagSF(evt, taggableJets, evt->mcChannel, supersys_to_btagsys(sys));
+        Superlink* sl_ = new Superlink();
+        attach_superlink(sl_);
+        JetVector taggableJets = sl_->tools->getBTagSFJets2Lep(jets);
+        double btagsf = sl_->tools->bTagSF(evt, taggableJets, evt->mcChannel, supersys_to_btagsys(sys));
+        delete sl_;
+        return btagsf;
     }
 
     double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const SupersysWeight sys)

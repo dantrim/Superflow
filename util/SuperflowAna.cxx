@@ -14,6 +14,7 @@
 #include "SusyNtuple/ChainHelper.h"
 #include "SusyNtuple/string_utils.h"
 #include "SusyNtuple/MCWeighter.h"
+#include "SusyNtuple/SusyNtSys.h"
 
 #include "Superflow/Superflow.h"
 #include "Superflow/Superlink.h"
@@ -45,7 +46,7 @@ int main(int argc, char* argv[])
     int num_events_ = -1;
     string sample_;
     SuperflowRunMode run_mode = SuperflowRunMode::nominal;
-    SusyNtSys nt_sys_ = NtSys_NOM;
+    SusyNtSys nt_sys_ = NtSys::NOM;
 
     TChain* chain = new TChain("susyNt");
     chain->SetDirectory(0);
@@ -54,7 +55,7 @@ int main(int argc, char* argv[])
     // END read-in
 
     Superflow* cutflow = new Superflow(); // initialize the cutflow
-    cutflow->setAnaType(Ana_2Lep); // Ana_2Lep Ana_2LepWH 
+    cutflow->setAnaType(AnalysisType::Ana_2Lep); // Ana_2Lep Ana_2LepWH 
     cutflow->setSampleName(sample_);
     cutflow->setRunMode(run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows
@@ -122,10 +123,9 @@ int main(int argc, char* argv[])
             && sl->tools->passLarErr(cutFlags);
     };
 
+    # warning fix clean up cuts in SuperflowAna
     *cutflow << CutName("bad jets") << [&](Superlink* sl) -> bool {
         JetVector jets = sl->tools->getPreJets(sl->nt, sl->nt_sys);
-        sl->tools->e_j_overlap(*sl->baseElectrons, jets, J_E_DR, true);
-        sl->tools->t_j_overlap(*sl->taus, jets, J_T_DR, true);
         return !sl->tools->hasBadJet(jets);
     };
 
@@ -574,7 +574,9 @@ int main(int argc, char* argv[])
         *cutflow << HFTname("nCentralLightJets");
         *cutflow << [&](Superlink* sl, var_int*) -> int {
             for (int i = 0; i < sl->jets->size(); i++) {
-                if (sl->tools->isCentralLightJet(sl->jets->at(i), sl->jvfTool, sl->nt_sys, sl->anaType)) {
+                # warning need to add in SusyNtTools method to grab isCLJet
+                if( sl->tools->m_jetSelector.isCentralLightJet(sl->jets->at(i))){
+                //if (sl->tools->isCentralLightJet(sl->jets->at(i), sl->jvfTool, sl->nt_sys, sl->anaType)) {
                     central_light_jets.push_back(sl->jets->at(i));
                 }
             }
@@ -764,7 +766,6 @@ int main(int argc, char* argv[])
             double   dphi_L1_L2           = 0.0;
             double   gamma_R              = 0.0;
             double   dphi_vBETA_R_vBETA_T = 0.0;
-            double   cosTheta_b           = 0.0;
             TVector3 vBETA_z;
             TVector3 pT_CM;
             TVector3 vBETA_T_CMtoR;
@@ -772,7 +773,7 @@ int main(int argc, char* argv[])
             sl->tools->superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
-                                    mDeltaR, cosThetaRp1, cosTheta_b);
+                                    mDeltaR, cosThetaRp1);
             return SHATR * GeV_to_MeV;
         };
         *cutflow << SaveVar();
@@ -788,7 +789,6 @@ int main(int argc, char* argv[])
             double   dphi_L1_L2           = 0.0;
             double   gamma_R              = 0.0;
             double   dphi_vBETA_R_vBETA_T = 0.0;
-            double   cosTheta_b           = 0.0;
             TVector3 vBETA_z;
             TVector3 pT_CM;
             TVector3 vBETA_T_CMtoR;
@@ -796,7 +796,7 @@ int main(int argc, char* argv[])
             sl->tools->superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
-                                    mDeltaR, cosThetaRp1, cosTheta_b);
+                                    mDeltaR, cosThetaRp1);
             return mDeltaR * GeV_to_MeV;
         };
         *cutflow << SaveVar();
@@ -812,7 +812,6 @@ int main(int argc, char* argv[])
             double   dphi_L1_L2           = 0.0;
             double   gamma_R              = 0.0;
             double   dphi_vBETA_R_vBETA_T = 0.0;
-            double   cosTheta_b           = 0.0;
             TVector3 vBETA_z;
             TVector3 pT_CM;
             TVector3 vBETA_T_CMtoR;
@@ -820,7 +819,7 @@ int main(int argc, char* argv[])
             sl->tools->superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
-                                    mDeltaR, cosThetaRp1, cosTheta_b);
+                                    mDeltaR, cosThetaRp1);
             return cosThetaRp1;
         };
         *cutflow << SaveVar();
@@ -836,7 +835,6 @@ int main(int argc, char* argv[])
             double   dphi_L1_L2           = 0.0;
             double   gamma_R              = 0.0;
             double   dphi_vBETA_R_vBETA_T = 0.0;
-            double   cosTheta_b           = 0.0;
             TVector3 vBETA_z;
             TVector3 pT_CM;
             TVector3 vBETA_T_CMtoR;
@@ -844,36 +842,11 @@ int main(int argc, char* argv[])
             sl->tools->superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
-                                    mDeltaR, cosThetaRp1, cosTheta_b);
+                                    mDeltaR, cosThetaRp1);
             return dphi_LL_vBETA_T;
         };
         *cutflow << SaveVar();
     }
-    
-    *cutflow << NewVar("cosine(Theta_{b})"); {
-        *cutflow << HFTname("cosTheta_b");
-        *cutflow << [](Superlink* sl, var_float*) -> double {
-            double   mDeltaR              = 0.0;
-            double   SHATR                = 0.0;
-            double   cosThetaRp1          = 0.0; 
-            double   dphi_LL_vBETA_T      = 0.0;
-            double   dphi_L1_L2           = 0.0;
-            double   gamma_R              = 0.0;
-            double   dphi_vBETA_R_vBETA_T = 0.0;
-            double   cosTheta_b           = 0.0;
-            TVector3 vBETA_z;
-            TVector3 pT_CM;
-            TVector3 vBETA_T_CMtoR;
-            TVector3 vBETA_R;
-            sl->tools->superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
-                                    vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
-                                    dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
-                                    mDeltaR, cosThetaRp1, cosTheta_b);
-            return cosTheta_b;
-        };
-        *cutflow << SaveVar();
-    }
-            
     
     *cutflow << NewVar("R1"); {
         *cutflow << HFTname("R1");
@@ -990,145 +963,145 @@ int main(int argc, char* argv[])
 
     // event variation systematics
     *cutflow << NewSystematic("Electron Scale Zsys + sigma"); {
-        *cutflow << EventSystematic(NtSys_EES_Z_UP);
+        *cutflow << EventSystematic(NtSys::EES_Z_UP);
         *cutflow << TreeName("EESZUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Electron Scale Zsys - sigma"); {
-        *cutflow << EventSystematic(NtSys_EES_Z_DN);
+        *cutflow << EventSystematic(NtSys::EES_Z_DN);
         *cutflow << TreeName("EESZDOWN");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Electron Scale Material + sigma"); {
-        *cutflow << EventSystematic(NtSys_EES_MAT_UP);
+        *cutflow << EventSystematic(NtSys::EES_MAT_UP);
         *cutflow << TreeName("EESMATUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Electron Scale Material - sigma"); {
-        *cutflow << EventSystematic(NtSys_EES_MAT_DN);
+        *cutflow << EventSystematic(NtSys::EES_MAT_DN);
         *cutflow << TreeName("EESMATDOWN");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Electron Scale Presampler + sigma"); {
-        *cutflow << EventSystematic(NtSys_EES_PS_UP);
+        *cutflow << EventSystematic(NtSys::EES_PS_UP);
         *cutflow << TreeName("EESPSUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Electron Scale Presampler - sigma"); {
-        *cutflow << EventSystematic(NtSys_EES_PS_DN);
+        *cutflow << EventSystematic(NtSys::EES_PS_DN);
         *cutflow << TreeName("EESPSDOWN");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Electron Scale Low Pt + sigma"); {
-        *cutflow << EventSystematic(NtSys_EES_LOW_UP);
+        *cutflow << EventSystematic(NtSys::EES_LOW_UP);
         *cutflow << TreeName("EESLOWUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Electron Scale Low Pt - sigma"); {
-        *cutflow << EventSystematic(NtSys_EES_LOW_DN);
+        *cutflow << EventSystematic(NtSys::EES_LOW_DN);
         *cutflow << TreeName("EESLOWDOWN");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Electron Resolution + sigma"); {
-        *cutflow << EventSystematic(NtSys_EER_UP);
+        *cutflow << EventSystematic(NtSys::EER_UP);
         *cutflow << TreeName("EERUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Electron Resolution - sigma"); {
-        *cutflow << EventSystematic(NtSys_EER_DN);
+        *cutflow << EventSystematic(NtSys::EER_DN);
         *cutflow << TreeName("EERDOWN");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Muon MS track + sigma"); {
-        *cutflow << EventSystematic(NtSys_MS_UP);
+        *cutflow << EventSystematic(NtSys::MS_UP);
         *cutflow << TreeName("MSUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Muon MS track - sigma"); {
-        *cutflow << EventSystematic(NtSys_MS_DN);
+        *cutflow << EventSystematic(NtSys::MS_DN);
         *cutflow << TreeName("MSDOWN");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Muon ID track + sigma"); {
-        *cutflow << EventSystematic(NtSys_ID_UP);
+        *cutflow << EventSystematic(NtSys::ID_UP);
         *cutflow << TreeName("IDUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Muon ID track - sigma"); {
-        *cutflow << EventSystematic(NtSys_ID_DN);
+        *cutflow << EventSystematic(NtSys::ID_DN);
         *cutflow << TreeName("IDDOWN");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Jet Energy Scale + sigma"); {
-        *cutflow << EventSystematic(NtSys_JES_UP);
+        *cutflow << EventSystematic(NtSys::JES_UP);
         *cutflow << TreeName("JESUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Jet Energy Scale - sigma"); {
-        *cutflow << EventSystematic(NtSys_JES_DN);
+        *cutflow << EventSystematic(NtSys::JES_DN);
         *cutflow << TreeName("JESDOWN");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Jet Energy Resolution (gaussian)"); {
-        *cutflow << EventSystematic(NtSys_JER);
+        *cutflow << EventSystematic(NtSys::JER);
         *cutflow << TreeName("JER");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Met scale soft term + sigma"); {
-        *cutflow << EventSystematic(NtSys_SCALEST_UP);
+        *cutflow << EventSystematic(NtSys::SCALEST_UP);
         *cutflow << TreeName("SCALESTUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Met scale soft term - sigma"); {
-        *cutflow << EventSystematic(NtSys_SCALEST_DN);
+        *cutflow << EventSystematic(NtSys::SCALEST_DN);
         *cutflow << TreeName("SCALESTDOWN");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Met resolution soft term + sigma"); {
-        *cutflow << EventSystematic(NtSys_RESOST);
+        *cutflow << EventSystematic(NtSys::RESOST);
         *cutflow << TreeName("RESOST");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Tau energy scale + sigma"); {
-        *cutflow << EventSystematic(NtSys_TES_UP);
+        *cutflow << EventSystematic(NtSys::TES_UP);
         *cutflow << TreeName("TESUP");
         *cutflow << SaveSystematic();
     }
 
     *cutflow << NewSystematic("Tau energy scale - sigma"); {
-        *cutflow << EventSystematic(NtSys_TES_DN);
+        *cutflow << EventSystematic(NtSys::TES_DN);
         *cutflow << TreeName("TESDOWN");
         *cutflow << SaveSystematic();
     }
 
      *cutflow << NewSystematic("Jet JVF cut + sigma"); { // THIS systematic is erroring out.
-         *cutflow << EventSystematic(NtSys_JVF_UP);
+         *cutflow << EventSystematic(NtSys::JVF_UP);
          *cutflow << TreeName("JVFUP");
          *cutflow << SaveSystematic();
      }
      
      *cutflow << NewSystematic("Jet JVF cut - sigma"); { // THIS systematic is erroring out.
-         *cutflow << EventSystematic(NtSys_JVF_DN);
+         *cutflow << EventSystematic(NtSys::JVF_DN);
          *cutflow << TreeName("JVFDOWN");
          *cutflow << SaveSystematic();
      }
@@ -1185,9 +1158,9 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
         }
     }
 
-    bool inputIsFile = susy::utils::endswith(input, ".root");
-    bool inputIsList = susy::utils::endswith(input, ".txt");
-    bool inputIsDir = susy::utils::endswith(input, "/");
+    bool inputIsFile = Susy::utils::endswith(input, ".root");
+    bool inputIsList = Susy::utils::endswith(input, ".txt");
+    bool inputIsDir = Susy::utils::endswith(input, "/");
     bool validInput(inputIsFile || inputIsList || inputIsDir);
     if (!validInput) {
         cout << "Analysis    invalid input '" << input << "'" << endl;
@@ -1246,34 +1219,34 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
     }
 
     map <string, SusyNtSys> event_syst_map;
-    event_syst_map["EESZUP"] = NtSys_EES_Z_UP;
-    event_syst_map["EESZDOWN"] = NtSys_EES_Z_DN;
-    event_syst_map["EESMATUP"] = NtSys_EES_MAT_UP;
-    event_syst_map["EESMATDOWN"] = NtSys_EES_MAT_DN;
-    event_syst_map["EESPSUP"] = NtSys_EES_PS_UP;
-    event_syst_map["EESPSDOWN"] = NtSys_EES_PS_DN;
-    event_syst_map["EESLOWUP"] = NtSys_EES_LOW_UP;
-    event_syst_map["EESLOWDOWN"] = NtSys_EES_LOW_DN;
-    event_syst_map["EERUP"] = NtSys_EER_UP;
-    event_syst_map["EERDOWN"] = NtSys_EER_DN;
-    event_syst_map["MSUP"] = NtSys_MS_UP;
-    event_syst_map["MSDOWN"] = NtSys_MS_DN;
-    event_syst_map["IDUP"] = NtSys_ID_UP;
-    event_syst_map["IDDOWN"] = NtSys_ID_DN;
-    event_syst_map["JESUP"] = NtSys_JES_UP;
-    event_syst_map["JESDOWN"] = NtSys_JES_DN;
-    event_syst_map["JER"] = NtSys_JER;
-    event_syst_map["SCALESTUP"] = NtSys_SCALEST_UP;
-    event_syst_map["SCALESTDOWN"] = NtSys_SCALEST_DN;
-    event_syst_map["RESOST"] = NtSys_RESOST;
-    event_syst_map["TRIGSFELUP"] = NtSys_TRIGSF_EL_UP;
-    event_syst_map["TRIGSFELDN"] = NtSys_TRIGSF_EL_DN;
-    event_syst_map["TRIGSFMUUP"] = NtSys_TRIGSF_MU_UP;
-    event_syst_map["TRIGSFMUDN"] = NtSys_TRIGSF_MU_DN;
-    event_syst_map["TESUP"] = NtSys_TES_UP;
-    event_syst_map["TESDOWN"] = NtSys_TES_DN;
-    event_syst_map["JVFUP"] = NtSys_JVF_UP;
-    event_syst_map["JVFDOWN"] = NtSys_JVF_DN;
+    event_syst_map["EESZUP"] = NtSys::EES_Z_UP;
+    event_syst_map["EESZDOWN"] = NtSys::EES_Z_DN;
+    event_syst_map["EESMATUP"] = NtSys::EES_MAT_UP;
+    event_syst_map["EESMATDOWN"] = NtSys::EES_MAT_DN;
+    event_syst_map["EESPSUP"] = NtSys::EES_PS_UP;
+    event_syst_map["EESPSDOWN"] = NtSys::EES_PS_DN;
+    event_syst_map["EESLOWUP"] = NtSys::EES_LOW_UP;
+    event_syst_map["EESLOWDOWN"] = NtSys::EES_LOW_DN;
+    event_syst_map["EERUP"] = NtSys::EER_UP;
+    event_syst_map["EERDOWN"] = NtSys::EER_DN;
+    event_syst_map["MSUP"] = NtSys::MS_UP;
+    event_syst_map["MSDOWN"] = NtSys::MS_DN;
+    event_syst_map["IDUP"] = NtSys::ID_UP;
+    event_syst_map["IDDOWN"] = NtSys::ID_DN;
+    event_syst_map["JESUP"] = NtSys::JES_UP;
+    event_syst_map["JESDOWN"] = NtSys::JES_DN;
+    event_syst_map["JER"] = NtSys::JER;
+    event_syst_map["SCALESTUP"] = NtSys::SCALEST_UP;
+    event_syst_map["SCALESTDOWN"] = NtSys::SCALEST_DN;
+    event_syst_map["RESOST"] = NtSys::RESOST;
+    event_syst_map["TRIGSFELUP"] = NtSys::TRIGSF_EL_UP;
+    event_syst_map["TRIGSFELDN"] = NtSys::TRIGSF_EL_DN;
+    event_syst_map["TRIGSFMUUP"] = NtSys::TRIGSF_MU_UP;
+    event_syst_map["TRIGSFMUDN"] = NtSys::TRIGSF_MU_DN;
+    event_syst_map["TESUP"] = NtSys::TES_UP;
+    event_syst_map["TESDOWN"] = NtSys::TES_DN;
+    event_syst_map["JVFUP"] = NtSys::JVF_UP;
+    event_syst_map["JVFDOWN"] = NtSys::JVF_DN;
 
     if (single_event_syst_) {
         if (event_syst_map.count(systematic_) == 1) {
@@ -1354,25 +1327,25 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
 // }
 //
 // *cutflow << NewSystematic("Trigger Scale factor + error for el"); {
-//     *cutflow << EventSystematic(NtSys_TRIGSF_EL_UP);
+//     *cutflow << EventSystematic(NtSys::TRIGSF_EL_UP);
 //     *cutflow << TreeName("TRIGSFELUP");
 //     *cutflow << SaveSystematic();
 // } // These are correctly included as event variation systematics
 // 
 // *cutflow << NewSystematic("Trigger Scale factor - error for el"); {
-//     *cutflow << EventSystematic(NtSys_TRIGSF_EL_DN);
+//     *cutflow << EventSystematic(NtSys::TRIGSF_EL_DN);
 //     *cutflow << TreeName("TRIGSFELDN");
 //     *cutflow << SaveSystematic();
 // } // These are correctly included as event variation systematics
 // 
 // *cutflow << NewSystematic("Trigger Scale factor + error for mu"); {
-//     *cutflow << EventSystematic(NtSys_TRIGSF_MU_UP);
+//     *cutflow << EventSystematic(NtSys::TRIGSF_MU_UP);
 //     *cutflow << TreeName("TRIGSFMUUP");
 //     *cutflow << SaveSystematic();
 // } // These are correctly included as event variation systematics
 // 
 // *cutflow << NewSystematic("Trigger Scale factor - error for mu"); {
-//     *cutflow << EventSystematic(NtSys_TRIGSF_MU_DN);
+//     *cutflow << EventSystematic(NtSys::TRIGSF_MU_DN);
 //     *cutflow << TreeName("TRIGSFMUDN");
 //     *cutflow << SaveSystematic();
 // } // These are correctly included as event variation systematics
