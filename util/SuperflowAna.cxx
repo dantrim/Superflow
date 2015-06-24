@@ -30,10 +30,6 @@
 using namespace std;
 using namespace sflow;
 
-// constants
-const double GeV_to_MeV = 1000.0;
-//const double GeV_to_MeV = 1.0;  // rather than comment out all of the places where we thought MeV was reasonable
-
 // function prototypes
 void print_usage(const char *exeName);
 void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_events_, string& sample_, SuperflowRunMode& run_mode_, SusyNtSys& nt_sysnt_);
@@ -51,104 +47,83 @@ int main(int argc, char* argv[])
     TChain* chain = new TChain("susyNt");
     chain->SetDirectory(0);
 
+    
+    ////////////////////////////////////////////////////////////
+    // Read in the command-line options
+    ////////////////////////////////////////////////////////////
     read_options(argc, argv, chain, n_skip_, num_events_, sample_, run_mode, nt_sys_); // defined below
-    // END read-in
 
+    ////////////////////////////////////////////////////////////
+    // Initialize the analysis
+    //  > Superflow inherits from SusyNtAna : TSelector
+    ////////////////////////////////////////////////////////////
     Superflow* cutflow = new Superflow(); // initialize the cutflow
-    cutflow->setAnaType(AnalysisType::Ana_2Lep); // Ana_2Lep Ana_2LepWH 
+    cutflow->setAnaType(AnalysisType::Ana_2Lep); 
     cutflow->setSampleName(sample_);
     cutflow->setRunMode(run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows
     cutflow->setChain(chain);
 
-    string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc12_8TeV/");
-    MCWeighter* weighter = new MCWeighter(chain, xsecDir);
-
     cout << "Analysis    Total Entries: " << chain->GetEntries() << endl;
 
     if (run_mode == SuperflowRunMode::single_event_syst) cutflow->setSingleEventSyst(nt_sys_);
 
-    // START Setup cuts
-    // START Setup cuts
-    // START Setup cuts
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    //
+    //  Superflow methods [BEGIN]
+    //
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
     
     *cutflow << CutName("read in") << [](Superlink* sl) -> bool { return true; };
 
-    *cutflow << CutName("HFOR") << [](Superlink *sl) -> bool {
-        bool pass_ = true;
 
-        if(sl->nt->evt()->hfor==4) {
-            pass_ = false;
-        }
-        return pass_;
+    ////////////////////////////////////////////////////////////
+    //  Cleaning Cuts
+    ////////////////////////////////////////////////////////////
+    
+    int cutflags = 0;
+    
+    *cutflow << CutName("Pass GRL") << [&](Superlink* sl) -> bool {
+        cutflags = sl->nt->evt()->cutFlags[sl->nt_sys];
+        return (cutflags & ECut_GRL);
     };
     
-
-    *cutflow << CutName("Mll Cut") << [](Superlink *sl) -> bool {
-        bool pass_ = true;
-
-        if(sl->nt->evt()->isMC){
-        if((sl->nt->evt()->mcChannel>=147770 && sl->nt->evt()->mcChannel<=147772) ||
-           (sl->nt->evt()->mcChannel>=128975 && sl->nt->evt()->mcChannel<=128977) ||
-           (sl->nt->evt()->mcChannel>=146820 && sl->nt->evt()->mcChannel<=146822)
-          ){
-           if(sl->nt->evt()->mllMcTruth > 60){ pass_ = false; }
-           }
-        if((sl->nt->evt()->mcChannel>=110805 && sl->nt->evt()->mcChannel<=110828) ||
-           (sl->nt->evt()->mcChannel>=117650 && sl->nt->evt()->mcChannel<=117675)
-          ){
-           if(sl->nt->evt()->mllMcTruth < 60){ pass_ = false; }
-           }
-        } 
-        
-        return pass_;
+    *cutflow << CutName("LAr error") << [&](Superlink* sl) -> bool {
+        return (cutflags & ECut_LarErr);
     };
-        
-
-
-    *cutflow << CutName("at least two signal leptons") << [](Superlink* sl) -> bool {
-        return !(sl->leptons->size() < 2);
+    
+    *cutflow << CutName("Tile error") << [&](Superlink* sl) -> bool {
+        return (cutflags & ECut_TileErr);
+    };
+    
+    *cutflow << CutName("TTC veto") << [&](Superlink* sl) -> bool {
+        return (cutflags & ECut_TTC);
     };
 
-    *cutflow << CutName("remove higgsino events") << [](Superlink* sl) -> bool {
-        return !sl->nt->evt()->eventWithSusyProp;
+    *cutflow << CutName("bad muon veto") << [&](Superlink* sl) -> bool {
+        return (cutflags & ECut_BadMuon);
+    };
+    
+    *cutflow << CutName("jet cleaning") << [&](Superlink* sl) -> bool {
+        return (cutflags & ECut_BadJet);
+    };
+    
+    *cutflow << CutName("pass good vertex") << [&](Superlink* sl) -> bool {
+        return (cutflags & ECut_GoodVtx);
+    };
+    
+    *cutflow << CutName("pass cosmic veto") << [&](Superlink* sl) -> bool {
+        return (cutflags & ECut_Cosmic);
     };
 
-    int cutFlags = 0;
-
-    *cutflow << CutName("GRL, tile trip, and LAr error") << [&](Superlink* sl) -> bool {
-        cutFlags = sl->tools->cleaningCutFlags(sl->nt->evt()->cutFlags[sl->nt_sys], *sl->preMuons, *sl->baseMuons, *sl->preJets, *sl->baseJets);
-        return sl->tools->passGRL(cutFlags)
-            && sl->tools->passTileTripCut(cutFlags)
-            && sl->tools->passLarErr(cutFlags);
-    };
-
-    # warning fix clean up cuts in SuperflowAna
-    *cutflow << CutName("bad jets") << [&](Superlink* sl) -> bool {
-        JetVector jets = sl->tools->getPreJets(sl->nt, sl->nt_sys);
-        return !sl->tools->hasBadJet(jets);
-    };
-
-    *cutflow << CutName("dead regions") << [&](Superlink* sl) -> bool {
-        return sl->tools->passDeadRegions(*sl->preJets, sl->met, sl->nt->evt()->run, sl->nt->evt()->isMC);
-    };
-
-    *cutflow << CutName("bad muons") << [&](Superlink* sl) -> bool {
-        return !sl->tools->hasBadMuon(*sl->preMuons);
-    };
-
-    *cutflow << CutName("cosmic muons") << [&](Superlink* sl) -> bool {
-        return !sl->tools->hasCosmicMuon(*sl->baseMuons);
-    };
-
-    *cutflow << CutName("hotspot jets") << [&](Superlink* sl) -> bool {
-        return !sl->tools->hasHotSpotJet(*sl->preJets);
-    };
-
-    *cutflow << CutName("TTC Veto and Good Vertex") << [&](Superlink* sl) -> bool {
-        return sl->tools->passTTCVeto(cutFlags) && sl->tools->passGoodVtx(cutFlags);
-    };
-
+    ////////////////////////////////////////////////////////////
+    //  Analysis Cuts
+    ////////////////////////////////////////////////////////////
+    
     *cutflow << CutName("exactly two base leptons") << [](Superlink* sl) -> bool {
         return sl->baseLeptons->size() == 2;
     };
@@ -157,96 +132,24 @@ int main(int argc, char* argv[])
         return (*sl->baseLeptons->at(0) + *sl->baseLeptons->at(1)).M() > 20.0;
     };
 
-    *cutflow << CutName("muon eta < 2.4") << [](Superlink* sl) -> bool {
-        return (!sl->leptons->at(0)->isMu() || abs(sl->leptons->at(0)->Eta()) < 2.4)
-            && (!sl->leptons->at(1)->isMu() || abs(sl->leptons->at(1)->Eta()) < 2.4);
-    };
-
     *cutflow << CutName("tau veto") << [](Superlink* sl) -> bool {
         return sl->taus->size() == 0;
     };
-
-    *cutflow << CutName("pass dilepton trigger") << [](Superlink* sl) -> bool {
-        return sl->dileptonTrigger->passDilTrig(*sl->leptons, sl->met->lv().Pt(), sl->nt->evt());
-    };
-
-//    *cutflow << CutName("pass MET trigger") << [](Superlink* sl) -> bool {
-//        return sl->nt->evt()->trigFlags & TRIG_xe80T_tclcw_loose;
-//    };
-    *cutflow << CutName("prompt leptons") << [&](Superlink* sl) -> bool {       // DANTRIM (capture)
-        bool pass_ = true;
-        if (sl->isMC) {                        
-            for (int l_ = 0; l_ < sl->leptons->size(); l_++) {
-                bool isReal = sl->leptons->at(l_)->truthType == LeptonTruthType::PROMPT;
-
-                bool isChargeFlip = sl->leptons->at(l_)->isEle()
-                    && static_cast<Electron*>(sl->leptons->at(l_))->isChargeFlip;
-
-                if (!isReal || isChargeFlip) pass_ = false;
-            }
-        }
-        return pass_;
-    };
-    
-//    *cutflow << CutName("same-sign") << [](Superlink *sl) -> bool {
-//        return sl->leptons->at(0)->q * sl->leptons->at(1)->q > 0;
-//    };
-
 
     *cutflow << CutName("opposite sign") << [](Superlink* sl) -> bool {
         return (sl->leptons->at(0)->q * sl->leptons->at(1)->q < 0);
     };
 
-  //  *cutflow << CutName("leading lepton Pt > 25 GeV") << [](Superlink* sl) -> bool {
-  //      return sl->leptons->at(0)->Pt() > 25.0;
-  //  };
 
-  //  *cutflow << CutName("subleading lepton Pt > 10 GeV") << [](Superlink* sl) -> bool {
-  //      please return sl->leptons->at(1)->Pt() > 10.0;
-  //  };
-
-  //  *cutflow << CutName("forward jets veto") << [](Superlink* sl) -> bool {
-  //      return sl->tools->numberOfFJets(*sl->jets) == 0;
-  //  };
-    
-
-    // END Setup cuts
-    // END Setup cuts
-    // END Setup cuts
-
-    // GAP //
-    // GAP //
-    // GAP //
-
-    // START Setup output trees
-    // START Setup output trees
-    // START Setup output trees
-
-
-
+    ////////////////////////////////////////////////////////////
+    //  Output Ntuple Setup
+    //      > Ntuple variables
+    ////////////////////////////////////////////////////////////
 
     *cutflow << NewVar("event weight"); {
         *cutflow << HFTname("eventweight");
         *cutflow << [](Superlink* sl, var_double*) -> double { 
-            if ( (sl->nt->evt()->mcChannel==105861) || (sl->nt->evt()->mcChannel==117050) ) {
-                double powHegWeight=1.0;
-                std::vector<Susy::TruthParticle> ttbarPart;
-                for(int itp=0; itp<sl->nt->tpr()->size(); itp++){
-                    if(fabs(sl->nt->tpr()->at(itp).pdgId)==6){ 
-                        ttbarPart.push_back(sl->nt->tpr()->at(itp));
-                    } // end if pdgId==6
-                } // end loop over truthparticles
-                if(ttbarPart.size()==2){
-                    double ttbarPt = (ttbarPart[0] + ttbarPart[1]).Pt() * GeV_to_MeV;
-                    powHegWeight = PhysicsTools::ttbar_powheg_differentialxsec( ttbarPt );
-                }
-                return sl->weights->product()*powHegWeight;
-//                return sl->weights->product()*powHegWeight > 0.0 ? sl->weights->product()*powHegWeight : 0.0;
-            } // end if PowHeg+Pythia    
-            else { 
-                return sl->weights->product();
-//                return sl->weights->product() > 0.0 ? sl->weights->product() : 0.0;
-            }
+            return sl->weights->product();
         };
     
         *cutflow << SaveVar();
@@ -269,13 +172,6 @@ int main(int argc, char* argv[])
         *cutflow << SaveVar();
     }
 
-    *cutflow << NewVar("sumw"); {
-        *cutflow << HFTname("sumw");
-        *cutflow << [&](Superlink* sl, var_double*) -> double {
-            return weighter->getSumw(sl->nt->evt());
-        };
-        *cutflow << SaveVar();
-    }
     *cutflow << NewVar("c1c1Pt"); {
         *cutflow << HFTname("c1c1Pt");
         *cutflow << [&](Superlink* sl, var_double*) -> double {
@@ -287,154 +183,34 @@ int main(int argc, char* argv[])
                 } // end if pdg = c1
             } // end tpr loop
             if(c1c1Part.size()==2){
-                c1c1pt = (c1c1Part[0] + c1c1Part[1]).Pt() * GeV_to_MeV;
+                c1c1pt = (c1c1Part[0] + c1c1Part[1]).Pt();
             }
             return c1c1pt;
         };
         *cutflow << SaveVar();
     }
-    *cutflow << NewVar("isr_weight_nom"); {
-        *cutflow << HFTname("isr_weight_nom");
-        *cutflow << [&](Superlink* sl, var_double*) -> double {
-            double isr_weight = 1.0;
-            string weights_filename = gSystem->ExpandPathName("$ROOTCOREBIN/data/Superflow/FinalPtC1C1Weights.root");
-            TFile* weights_file = new TFile(weights_filename.c_str(), "READ");
-            TGraphAsymmErrors* weights = (TGraphAsymmErrors*) weights_file->Get("Weight");
-            double* EXhigh = weights->GetEXhigh();
-            double* EXlow  = weights->GetEXlow();
-            double* EYhigh = weights->GetEYhigh();
-            double* EYlow  = weights->GetEYlow();
-            double c1c1Pt = 0.0;
-            std::vector<Susy::TruthParticle> c1c1Parts;
-            for(int itp=0; itp < sl->nt->tpr()->size(); itp++){
-                if(fabs(sl->nt->tpr()->at(itp).pdgId)==1000024){
-                    c1c1Parts.push_back(sl->nt->tpr()->at(itp));
-                } // if itp
-            } // tpr loop
-            if(c1c1Parts.size()==2){
-                c1c1Pt = (c1c1Parts[0] + c1c1Parts[1]).Pt();
-                for(int i=0; i < weights->GetN(); ++i){
-                    double x=0.;
-                    double y=0.;
-                    weights->GetPoint(i, x, y);
-                    if( (c1c1Pt > (x-EXlow[i])) && 
-                        ( c1c1Pt < (x+EXhigh[i])) ) {
-                            isr_weight = y;
-                    }
-                }
-            }
-            weights_file->Close();
-            delete weights_file;
-            delete weights;
-            return isr_weight;
-            };
-            *cutflow << SaveVar();
-        }
-  //  *cutflow << NewVar("isr_weight_up"); {
-  //      *cutflow << HFTname("isr_weight_up");
-  //      *cutflow << [&](Superlink* sl, var_double*) -> double {
-  //          double isr_weight = 1.0;
-  //          string weights_filename = gSystem->ExpandPathName("$ROOTCOREBIN/data/Superflow/FinalPtC1C1Weights.root");
-  //          TFile* weights_file = new TFile(weights_filename.c_str(), "READ");
-  //          TGraphAsymmErrors* weights = (TGraphAsymmErrors*) weights_file->Get("Weight");
-  //          double* EXhigh = weights->GetEXhigh();
-  //          double* EXlow  = weights->GetEXlow();
-  //          double* EYhigh = weights->GetEYhigh();
-  //          double* EYlow  = weights->GetEYlow();
-  //          double c1c1Pt = 0.0;
-  //          std::vector<Susy::TruthParticle> c1c1Parts;
-  //          for(int itp=0; itp < sl->nt->tpr()->size(); itp++){
-  //              if(fabs(sl->nt->tpr()->at(itp).pdgId)==1000024){
-  //                  c1c1Parts.push_back(sl->nt->tpr()->at(itp));
-  //              } // if itp
-  //          } // tpr loop
-  //          if(c1c1Parts.size()==2){
-  //              c1c1Pt = (c1c1Parts[0] + c1c1Parts[1]).Pt();
-  //              for(int i=0; i < weights->GetN(); ++i){
-  //                  double x=0.;
-  //                  double y=0.;
-  //                  weights->GetPoint(i, x, y);
-  //                  if( (c1c1Pt > (x-EXlow[i])) && 
-  //                      ( c1c1Pt < (x+EXhigh[i])) ) {
-  //                          isr_weight = y + EYhigh[i];
-  //                  }
-  //              }
-  //          }
-  //          weights_file->Close();
-  //          return isr_weight;
-  //          };
-  //          *cutflow << SaveVar();
-  //      }
-  //  *cutflow << NewVar("isr_weight_down"); {
-  //      *cutflow << HFTname("isr_weight_down");
-  //      *cutflow << [&](Superlink* sl, var_double*) -> double {
-  //          double isr_weight = 1.0;
-  //          string weights_filename = gSystem->ExpandPathName("$ROOTCOREBIN/data/Superflow/FinalPtC1C1Weights.root");
-  //          TFile* weights_file = new TFile(weights_filename.c_str(), "READ");
-  //          TGraphAsymmErrors* weights = (TGraphAsymmErrors*) weights_file->Get("Weight");
-  //          double* EXhigh = weights->GetEXhigh();
-  //          double* EXlow  = weights->GetEXlow();
-  //          double* EYhigh = weights->GetEYhigh();
-  //          double* EYlow  = weights->GetEYlow();
-  //          double c1c1Pt = 0.0;
-  //          std::vector<Susy::TruthParticle> c1c1Parts;
-  //          for(int itp=0; itp < sl->nt->tpr()->size(); itp++){
-  //              if(fabs(sl->nt->tpr()->at(itp).pdgId)==1000024){
-  //                  c1c1Parts.push_back(sl->nt->tpr()->at(itp));
-  //              } // if itp
-  //          } // tpr loop
-  //          if(c1c1Parts.size()==2){
-  //              c1c1Pt = (c1c1Parts[0] + c1c1Parts[1]).Pt();
-  //              for(int i=0; i < weights->GetN(); ++i){
-  //                  double x=0.;
-  //                  double y=0.;
-  //                  weights->GetPoint(i, x, y);
-  //                  if( (c1c1Pt > (x-EXlow[i])) && 
-  //                      ( c1c1Pt < (x+EXhigh[i])) ) {
-  //                          isr_weight = y - EYlow[i];
-  //                  }
-  //              }
-  //          }
-  //          weights_file->Close();
-  //          return isr_weight;
-  //          };
-  //          *cutflow << SaveVar();
-  //      }
-        
-            
-             
-
-    // VARIABLES FOR DEBUGGING "NEW" AND "OLD" ALPGEN+PYTHIA Z+JETS [BEGIN]
-    *cutflow << NewVar("w"); {
+    *cutflow << NewVar("Monte-Carlo generator event weight"); {
         *cutflow << HFTname("w");
         *cutflow << [](Superlink* sl, var_double*) -> double {
             return sl->nt->evt()->w; 
         };
         *cutflow << SaveVar();
     }
-    *cutflow << NewVar("pile-up weight"); {
+    *cutflow << NewVar("Pile-up weight"); {
         *cutflow << HFTname("pupw");
         *cutflow << [](Superlink* sl, var_double*) -> double {
             return sl->nt->evt()->wPileup;
         };
         *cutflow << SaveVar();
     }
-    *cutflow << NewVar("xsec times eff"); {
-        *cutflow << HFTname("xsec");
-        *cutflow << [&](Superlink* sl, var_double*) -> double {
-            return weighter->getXsecTimesEff(sl->nt->evt(), MCWeighter::Sys_NOM);
-        };
-        *cutflow << SaveVar();
-    }
 
-
-    *cutflow << NewVar("run number"); {
+    *cutflow << NewVar("Event run number"); {
         *cutflow << HFTname("runNumber");
         *cutflow << [](Superlink* sl, var_int*) -> int { return sl->nt->evt()->run; };
         *cutflow << SaveVar();
     }
 
-    *cutflow << NewVar("event number"); {
+    *cutflow << NewVar("Event number"); {
         *cutflow << HFTname("eventNumber");
         *cutflow << [](Superlink* sl, var_int*) -> int { return sl->nt->evt()->event; };
         *cutflow << SaveVar();
@@ -494,7 +270,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("lepton-1 Pt"); {
         *cutflow << HFTname("lept1Pt");
-        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(0)->Pt() * GeV_to_MeV; };
+        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(0)->Pt(); };
         *cutflow << SaveVar();
     }
 
@@ -512,7 +288,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("lepton-1 Energy"); {
         *cutflow << HFTname("lept1E");
-        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(0)->E() * GeV_to_MeV; };
+        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(0)->E(); };
         *cutflow << SaveVar();
     }
 
@@ -530,7 +306,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("lepton-2 Pt"); {
         *cutflow << HFTname("lept2Pt");
-        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(1)->Pt() * GeV_to_MeV; };
+        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(1)->Pt(); };
         *cutflow << SaveVar();
     }
 
@@ -548,7 +324,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("lepton-2 Energy"); {
         *cutflow << HFTname("lept2E");
-        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(1)->E() * GeV_to_MeV; };
+        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(1)->E(); };
         *cutflow << SaveVar();
     }
 
@@ -600,7 +376,7 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("jet-1 Pt"); {
         *cutflow << HFTname("jet1Pt");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
-            return central_light_jets.size() >= 1 ? central_light_jets[0]->Pt() * GeV_to_MeV : 0.0;
+            return central_light_jets.size() >= 1 ? central_light_jets[0]->Pt() : 0.0;
         };
         *cutflow << SaveVar();
     }
@@ -624,7 +400,7 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("jet-2 Pt"); {
         *cutflow << HFTname("jet2Pt");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
-            return central_light_jets.size() >= 2 ? central_light_jets[1]->Pt() * GeV_to_MeV  : 0.0;
+            return central_light_jets.size() >= 2 ? central_light_jets[1]->Pt() : 0.0;
         };
         *cutflow << SaveVar();
     }
@@ -653,7 +429,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("transverse missing energy (Et)"); {
         *cutflow << HFTname("met");
-        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->met->Et * GeV_to_MeV ; };
+        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->met->Et; };
         *cutflow << SaveVar();
     }
 
@@ -665,7 +441,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("Etmiss Rel"); {
         *cutflow << HFTname("metrel");
-        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->tools->getMetRel(sl->met, *sl->leptons, *sl->jets) * GeV_to_MeV ; };
+        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->tools->getMetRel(sl->met, *sl->leptons, *sl->jets); };
         *cutflow << SaveVar();
     }
 
@@ -691,14 +467,14 @@ int main(int argc, char* argv[])
         *cutflow << HFTname("mll");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
             local_ll = (*sl->leptons->at(0) + *sl->leptons->at(1));
-            return local_ll.M() * GeV_to_MeV ;
+            return local_ll.M();
         };
         *cutflow << SaveVar();
     }
 
     *cutflow << NewVar("Pt of di-lepton system, Pt_ll"); {
         *cutflow << HFTname("pTll");
-        *cutflow << [&](Superlink* sl, var_float*) -> double { return local_ll.Pt() * GeV_to_MeV ; };
+        *cutflow << [&](Superlink* sl, var_float*) -> double { return local_ll.Pt(); };
         *cutflow << SaveVar();
     }
 
@@ -726,7 +502,7 @@ int main(int argc, char* argv[])
                     ht += sl->jets->at(i)->Pt();
                 }
             }
-            return ht * GeV_to_MeV;
+            return ht;
         };
         *cutflow << SaveVar();
     }
@@ -751,7 +527,7 @@ int main(int argc, char* argv[])
             delete[] pb;
             delete[] pmiss;
 
-            return mt2_ * GeV_to_MeV;
+            return mt2_;
         };
         *cutflow << SaveVar();
     }
@@ -774,7 +550,7 @@ int main(int argc, char* argv[])
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
                                     mDeltaR, cosThetaRp1);
-            return SHATR * GeV_to_MeV;
+            return SHATR;
         };
         *cutflow << SaveVar();
     }
@@ -797,7 +573,7 @@ int main(int argc, char* argv[])
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
                                     mDeltaR, cosThetaRp1);
-            return mDeltaR * GeV_to_MeV;
+            return mDeltaR;
         };
         *cutflow << SaveVar();
     }
@@ -860,7 +636,7 @@ int main(int argc, char* argv[])
                     mEff += sl->jets->at(i)->Pt();
                 }
             }
-            return sl->met->Et/mEff * GeV_to_MeV;
+            return sl->met->Et/mEff;
         };
         *cutflow << SaveVar();
     }
@@ -881,19 +657,15 @@ int main(int argc, char* argv[])
         *cutflow << SaveVar();
     }
 
-    // END Setup output trees
-    // END Setup output trees
-    // END Setup output trees
+    ////////////////////////////////////////////////////////////
+    //  Output Ntuple Setup
+    //      > Setup the output systematic ntuples
+    ////////////////////////////////////////////////////////////
 
-    // GAP //
-    // GAP //
-    // GAP //
-
-    // START Setup systematics
-    // START Setup systematics
-    // START Setup systematics
-
-    // weight variation systematics
+    //
+    // Weight variation systematics
+    //  > stored in nominal output tree
+    //
     *cutflow << NewSystematic("positve shift due to background estimation method"); {
         *cutflow << WeightSystematic(SupersysWeight::BKGMETHODUP, SupersysWeight::BKGMETHODDOWN);
         *cutflow << TreeName("BKGMETHOD");    
@@ -961,7 +733,12 @@ int main(int argc, char* argv[])
         *cutflow << SaveSystematic();
     }
 
-    // event variation systematics
+
+    //
+    // Event/object systematics
+    //  > stored in separate output ntuples
+    //
+
     *cutflow << NewSystematic("Electron Scale Zsys + sigma"); {
         *cutflow << EventSystematic(NtSys::EES_Z_UP);
         *cutflow << TreeName("EESZUP");
@@ -1106,6 +883,16 @@ int main(int argc, char* argv[])
          *cutflow << SaveSystematic();
      }
 
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    //
+    //  Superflow methods [END]
+    //
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+
     // END Setup systematics
     // END Setup systematics
     // END Setup systematics
@@ -1134,22 +921,22 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
 
     /** Read inputs to program */
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "/n") == 0)
+        if (strcmp(argv[i], "-n") == 0)
             num_events_ = atoi(argv[++i]);
-        else if (strcmp(argv[i], "/c") == 0)
+        else if (strcmp(argv[i], "-c") == 0)
             nominal_ = true;
-        else if (strcmp(argv[i], "/w") == 0)
+        else if (strcmp(argv[i], "-w") == 0)
             nominal_and_weight_syst_ = true;
-        else if (strcmp(argv[i], "/e") == 0) {
+        else if (strcmp(argv[i], "-e") == 0) {
             single_event_syst_ = true;
         }
-        else if (strcmp(argv[i], "/a") == 0) {
+        else if (strcmp(argv[i], "-a") == 0) {
             all_syst_ = true;
         }
-        else if (strcmp(argv[i], "/i") == 0) {
+        else if (strcmp(argv[i], "-i") == 0) {
             input = argv[++i];
         }
-        else if (strcmp(argv[i], "/s") == 0) {
+        else if (strcmp(argv[i], "-s") == 0) {
             systematic_ = argv[++i];
         }
         else {
@@ -1258,150 +1045,3 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
         }
     }
 }
-
-
-// List of event systematics (for scripting)
-// 
-// "EESZUP",
-// "EESZDOWN",
-// "EESMATUP",
-// "EESMATDOWN",
-// "EESPSUP",
-// "EESPSDOWN",
-// "EESLOWUP",
-// "EESLOWDOWN",
-// "EERUP",
-// "EERDOWN",
-// "MSUP",
-// "MSDOWN",
-// "IDUP",
-// "IDDOWN",
-// "JESUP",
-// "JESDOWN",
-// "JER",
-// "SCALESTUP",
-// "SCALESTDOWN",
-// "RESOST",
-// "TRIGSFELUP",
-// "TRIGSFELDN",
-// "TRIGSFMUUP",
-// "TRIGSFMUDN",
-// "TESUP",
-// "TESDOWN",
-// "JVFUP",
-// "JVFDOWN",
-// 
-
-
-// A SELECTION OF CUTS and Variables
-// A SELECTION OF CUTS and Variables
-// A SELECTION OF CUTS and Variables
-//
-// *cutflow << CutName("exactly two base leptons") << [](Superlink* sl) -> bool {
-//     return sl->baseLeptons->size() == 2;
-// };
-//
-// *cutflow << CutName("m_ll > 20 GeV") << [](Superlink* sl) -> bool {
-//     double m_ll = (*sl->baseLeptons->at(0) + *sl->baseLeptons->at(1)).M();
-//     return m_ll > 20.0;
-// };
-//
-// *cutflow << CutName("is MM") << [](Superlink* sl) -> bool {
-//     return sl->baseLeptons->at(0)->isMu() && sl->baseLeptons->at(1)->isMu();
-// }; // debug only !!!
-//
-// *cutflow << CutName("exactly two signal leptons") << [](Superlink* sl) -> bool {
-//     return sl->leptons->size() == 2;
-// };
-//
-// *cutflow << NewVar("mCT"); {
-//     *cutflow << HFTname("mct");
-//     *cutflow << [&](Superlink* sl, var_float*) -> double { please return PhysicsTools::mCT(*sl->leptons->at(0), *sl->leptons->at(1)) * GeV_to_MeV; };
-//     *cutflow << SaveVar();
-// }
-// 
-// *cutflow << NewVar("mCT perpendicular"); {
-//     *cutflow << HFTname("mctPerp");
-//     *cutflow << [&](Superlink* sl, var_float*) -> double { return PhysicsTools::mCTperp(*sl->leptons->at(0), *sl->leptons->at(1), sl->met->lv()) * GeV_to_MeV; };
-//     *cutflow << SaveVar();
-// }
-//
-// *cutflow << NewSystematic("Trigger Scale factor + error for el"); {
-//     *cutflow << EventSystematic(NtSys::TRIGSF_EL_UP);
-//     *cutflow << TreeName("TRIGSFELUP");
-//     *cutflow << SaveSystematic();
-// } // These are correctly included as event variation systematics
-// 
-// *cutflow << NewSystematic("Trigger Scale factor - error for el"); {
-//     *cutflow << EventSystematic(NtSys::TRIGSF_EL_DN);
-//     *cutflow << TreeName("TRIGSFELDN");
-//     *cutflow << SaveSystematic();
-// } // These are correctly included as event variation systematics
-// 
-// *cutflow << NewSystematic("Trigger Scale factor + error for mu"); {
-//     *cutflow << EventSystematic(NtSys::TRIGSF_MU_UP);
-//     *cutflow << TreeName("TRIGSFMUUP");
-//     *cutflow << SaveSystematic();
-// } // These are correctly included as event variation systematics
-// 
-// *cutflow << NewSystematic("Trigger Scale factor - error for mu"); {
-//     *cutflow << EventSystematic(NtSys::TRIGSF_MU_DN);
-//     *cutflow << TreeName("TRIGSFMUDN");
-//     *cutflow << SaveSystematic();
-// } // These are correctly included as event variation systematics
-//
-// A SELECTION OF CUTS and Variables
-// A SELECTION OF CUTS and Variables
-// A SELECTION OF CUTS and Variables
-
-
-//rem// Cut* is_e_mu = new IsEMu(); // initialize cut
-//rem// Cut* is_two_lepton = new Is2Lepton();
-//rem// Cut* is_e_e_and_os = new IsEEOS();
-//rem// *cutflow << (new IsEEOS()); // push cut to cutflow
-//rem// class Is2Lepton : public Cut {
-//rem// public:
-//rem//     Is2Lepton()
-//rem//     {
-//rem//         name = "base is 2-lepton";
-//rem//     }
-//rem//     bool operator() (Superlink* sl) // return true to pass the cut
-//rem//     {
-//rem//         return sl->baseLeptons->size() == 2; // exactly two base leptons
-//rem//     }
-//rem// };
-//rem// 
-//rem// class IsEMu : public Cut {
-//rem// public:
-//rem//     IsEMu()
-//rem//     {
-//rem//         name = "base is e + mu";
-//rem//     }
-//rem//     bool operator() (Superlink* sl) // return true to pass the cut
-//rem//     {
-//rem//         if (sl->baseLeptons->size() == 2) { // exactly two base leptons
-//rem//             return sl->baseLeptons->at(0)->isEle() ^ sl->baseLeptons->at(1)->isEle(); // e + mu
-//rem//         }
-//rem//         else {
-//rem//             return false;
-//rem//         }
-//rem//     }
-//rem// };
-//rem// 
-//rem// class IsEEOS : public Cut {
-//rem// public:
-//rem//     IsEEOS()
-//rem//     {
-//rem//         name = "base is e + e + OS";
-//rem//     }
-//rem//     bool operator() (Superlink* sl) // return true to pass the cut
-//rem//     {
-//rem//         if (sl->baseLeptons->size() == 2) { // exactly two base leptons
-//rem//             return (sl->baseLeptons->at(0)->q * sl->baseLeptons->at(1)->q < 0)
-//rem//                 && (sl->baseLeptons->at(0)->isEle() && sl->baseLeptons->at(1)->isEle()); // e + mu
-//rem//         }
-//rem//         else {
-//rem//             return false;
-//rem//         }
-//rem//     }
-//rem// };

@@ -30,10 +30,6 @@
 using namespace std;
 using namespace sflow;
 
-// constants
-const double GeV_to_MeV = 1000.0;
-//const double GeV_to_MeV = 1.0;  // rather than comment out all of the places where we thought MeV was reasonable
-
 // function prototypes
 void print_usage(const char *exeName);
 void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_events_, string& sample_, SuperflowRunMode& run_mode_, SusyNtSys& nt_sysnt_);
