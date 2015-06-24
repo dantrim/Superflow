@@ -43,7 +43,8 @@ namespace sflow {
     };
 
     enum class ATLAS_period { A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, null };
-    enum class ATLAS_stream { Egamma, Muons, null };
+    enum class ATLAS_stream { Main, Egamma, Muons, null };
+    //enum class ATLAS_stream { Main, null };
 
     class Superflow : public SusyNtAna {
 
@@ -116,7 +117,7 @@ namespace sflow {
             Supersys* super_sys,
             Superweight* weightComponents);
 
-        double computeDileptonTriggerWeight(const LeptonVector &leptons, const SusyNtSys sys);
+        //double computeDileptonTriggerWeight(const LeptonVector &leptons, const SusyNtSys sys);
 
         double computeBtagWeight(const JetVector& jets, const Susy::Event* evt, SupersysWeight sys);
 
@@ -209,6 +210,7 @@ namespace sflow {
         string app_name = "Superflow    ";
 
         map<ATLAS_stream, map<ATLAS_period, string>> m_data_periods;
+        map<ATLAS_stream, string> m_data_stream2string;
         map<SusyNtSys, string> m_NtSys_to_string;
 
         TChain* m_input_chain;

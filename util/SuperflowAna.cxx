@@ -13,7 +13,6 @@
 
 #include "SusyNtuple/ChainHelper.h"
 #include "SusyNtuple/string_utils.h"
-#include "SusyNtuple/MCWeighter.h"
 #include "SusyNtuple/SusyNtSys.h"
 
 #include "Superflow/Superflow.h"
@@ -134,6 +133,10 @@ int main(int argc, char* argv[])
 
     *cutflow << CutName("tau veto") << [](Superlink* sl) -> bool {
         return sl->taus->size() == 0;
+    };
+
+    *cutflow << CutName("exactly two signal leptons") << [](Superlink* sl) -> bool {
+        return (sl->leptons->size() == 2);
     };
 
     *cutflow << CutName("opposite sign") << [](Superlink* sl) -> bool {

@@ -106,7 +106,7 @@ namespace sflow {
         m_tree_leafs_size    = 0;
         m_weight_leaf_offset = 0;
 
-        m_trigObj = nullptr;
+        //m_trigObj = nullptr;
 
         m_input_chain = nullptr;
 
@@ -131,6 +131,8 @@ namespace sflow {
         m_data_periods[ATLAS_stream::Muons][ATLAS_period::I] = "periodI.physics_Muons.PhysCont";
         m_data_periods[ATLAS_stream::Muons][ATLAS_period::J] = "periodJ.physics_Muons.PhysCont";
         m_data_periods[ATLAS_stream::Muons][ATLAS_period::L] = "periodL.physics_Muons.PhysCont";
+
+        m_data_stream2string[ATLAS_stream::Main] = "physics_Main";
 
         m_NtSys_to_string[Susy::NtSys::EES_Z_UP]     = "EESZUP";
         m_NtSys_to_string[Susy::NtSys::EES_Z_DN]     = "EESZDOWN";
@@ -213,7 +215,7 @@ namespace sflow {
 
         sl_->met = m_met;
 
-        sl_->dileptonTrigger = m_trigObj;
+        //sl_->dileptonTrigger = m_trigObj;
     # warning not setting jvftool
       //  sl_->jvfTool = m_jvfTool;
     
@@ -293,9 +295,9 @@ namespace sflow {
         cout << app_name << "in Begin()" << endl;
         SusyNtAna::Begin(0);
 
-        string period = "Moriond";
-        bool useReweightUtils = false;
-        m_trigObj = new DilTrigLogic(period, useReweightUtils);
+        //string period = "Moriond";
+        //bool useReweightUtils = false;
+        //m_trigObj = new DilTrigLogic(period, useReweightUtils);
 
         // -------------- Configure ChargeFlip Tool [BEGIN] ---------------------//
         // Currently set-up to run ChargeFlip-00-00-11 which has the 
@@ -340,6 +342,11 @@ namespace sflow {
         // ----------------- Configure Matrix Tool [END] ------------------------//
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // TSelector Init
+    //  > called when the TChain is attached
+    //  > initialize all output files and ntuples
+    ///////////////////////////////////////////////////////////////////////////////
     void Superflow::Init(TTree* tree)
     {
         cout << app_name << "in Init()" << endl;
@@ -363,42 +370,46 @@ namespace sflow {
             stringstream sfile_name_;
             sfile_name_ << "CENTRAL_";
 
-    # warning need to set up running over data15!!
-            size_t find_period = m_sample.find("period");
-            if (find_period != string::npos) {
-                char data_per_ = m_sample.substr(find_period + 6, 1)[0];
-
-                if (data_per_ >= 'A') {
-                    ATLAS_period this_period = static_cast<ATLAS_period>(data_per_ - 'A');
-                    cout << app_name << "Determined data period: " << data_per_ << endl;
-
-                    m_period = this_period; // set the period
-
-                    size_t find_Egamma = m_sample.find("Egamma");
-                    size_t find_Muons = m_sample.find("Muons");
-
-                    if (find_Egamma != string::npos) {
-                        cout << app_name << "Determined stream: Egamma" << endl;
-                        m_stream = ATLAS_stream::Egamma;
-                    }
-                    else if (find_Muons != string::npos) {
-                        cout << app_name << "Determined stream: Muons" << endl;
-                        m_stream = ATLAS_stream::Muons;
+            size_t find_data = m_sample.find("data15_13TeV.");
+            if (find_data != string::npos) {
+                unsigned int ndata_run_ = nt.evt()->run;
+                string data_run_ = "";
+                ostringstream convert;
+                convert << ndata_run_;
+                data_run_ = convert.str();
+                if(data_run_ != "") {
+                    size_t find_Main = m_sample.find("physics_Main");
+                    if(find_Main != string::npos) {
+                        cout << app_name << "Determined data stream: Main" << endl;
+                        m_stream = ATLAS_stream::Main;
                     }
                     else {
-                        cout << app_name << "ERROR (Fatal): Unknown data stream! Supported streams: Egamma, Muons." << endl;
+                        cout << app_name << "ERROR    Could not determine data stream for sample " << endl;
+                        cout << app_name << "ERROR    \t" << m_sample << endl;
+                        cout << app_name << "ERROR    The only supported stream is 'Main' ('physics_main')." << endl;
+                        cout << app_name << "ERROR    Exitting." << endl;
                         exit(1);
                     }
                 }
-
-                sfile_name_ << m_data_periods[m_stream][m_period] << ".root";
+                else {
+                    cout << app_name << "ERROR    Could not determine data run for sample " << endl;
+                    cout << app_name << "ERROR    \t" << m_sample << endl;
+                    cout << app_name << "ERROR    Check that the sample name is in the expected format: " << endl;
+                    cout << app_name << "ERROR    \tfoo.data15_13TeV.<run-number>.physics_Main.bar.susyNt.root" << endl;
+                    cout << app_name << "ERROR    Exitting." << endl;
+                    exit(1);
+                }
+                
+                sfile_name_ << m_data_stream2string[m_stream] << "_" << data_run_ << ".root";
                 cout << app_name << "Setting output file name to: " << sfile_name_.str() << endl;
-
+                
                 m_outputFileName = sfile_name_.str();
-                m_entry_list_FileName += m_data_periods[m_stream][m_period] + ".root";
+                m_entry_list_FileName += m_data_stream2string[m_stream] + "_" + data_run_ + ".root";
             }
             else {
-                cout << app_name << "ERROR (fatal): Failed to determine data period. Try to specify the full path." << endl;
+                cout << app_name << "ERROR    Failed to recognize data sample format." << endl;
+                cout << app_name << "ERROR     > Looking for 'data15_13Tev' sub-string." << endl;
+                cout << app_name << "ERROR     > Try to specify the full path. Exitting." << endl;
                 exit(1);
             }
         }
@@ -414,7 +425,7 @@ namespace sflow {
             // output file name
             stringstream sfile_name_;
             sfile_name_ << "CENTRAL_";
-
+#warning need to set up output file/tree name for fake ntuples (copy data example)
             size_t find_period = m_sample.find("period");
             if (find_period != string::npos) {
                 char data_per_ = m_sample.substr(find_period + 6, 1)[0];
@@ -491,10 +502,10 @@ namespace sflow {
         // output tree name
         stringstream tree_name;
         if (m_runMode == SuperflowRunMode::data) {
-            tree_name << "id_" << m_data_periods[m_stream][m_period];
+            tree_name << "id_" << m_data_stream2string[m_stream];
         }
         else if (m_runMode == SuperflowRunMode::fakes) {
-            tree_name << "id_fakes." << m_data_periods[m_stream][m_period];
+            tree_name << "id_fakes_" << m_data_stream2string[m_stream];
         }
         else {
             tree_name << "id_" << nt.evt()->mcChannel;
@@ -571,7 +582,6 @@ namespace sflow {
         if (m_runMode == SuperflowRunMode::all_syst) {
 
             m_output_array = new TFile*[index_event_sys.size()];
-
             for (int i = 0; i < index_event_sys.size(); i++) {
                 stringstream sfile_name_; // output file name
                 sfile_name_ << m_NtSys_to_string[m_sysStore[index_event_sys[i]].event_syst] << "_" << nt.evt()->mcChannel << ".root";
@@ -630,8 +640,12 @@ namespace sflow {
                 }
             }
         }
-    }
+    } // end Superflow::Init()
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // TSelector Notify
+    //  > Called at each event
+    ///////////////////////////////////////////////////////////////////////////////
     Bool_t Superflow::Notify()
     {
         static int tree_counter;
@@ -646,8 +660,12 @@ namespace sflow {
         m_entry_list_single_tree->SetTree(m_input_chain->GetTree());
 
         return kTRUE;
-    }
+    } // end Superflow::Notify()
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // TSelector Process
+    //  > Called at each event
+    ///////////////////////////////////////////////////////////////////////////////
     Bool_t Superflow::Process(Long64_t entry)
     {
         GetEntry(entry);
@@ -1046,8 +1064,12 @@ namespace sflow {
             default: break;
         }
         return kTRUE;
-    }
+    } // end Superflow::Process()
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // TSelector Terminate
+    //  > Called after looping over events is finished
+    ///////////////////////////////////////////////////////////////////////////////
     void Superflow::Terminate()
     {
         cout << app_name << "in Terminate()" << endl;
@@ -1100,7 +1122,7 @@ namespace sflow {
         SusyNtAna::Terminate();
 
         if (m_mcWeighter) delete m_mcWeighter;
-        if (m_trigObj) delete m_trigObj;
+        //if (m_trigObj) delete m_trigObj;
 
         delete[] m_varFloat;
         delete[] m_varDouble;
@@ -1121,7 +1143,8 @@ namespace sflow {
         if (m_runMode != SuperflowRunMode::single_event_syst) delete m_RunSyst;
 
         cout << app_name << "Done." << endl;
-    }
+
+    } // end Superflow::Terminate()
 
 
 
@@ -1129,21 +1152,11 @@ namespace sflow {
     {
         bool success = false;
         if (tree) {
-            string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc12_8TeV/");
+            string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc15_13TeV/");
             m_mcWeighter = new MCWeighter(tree, xsecDir);
-
-            bool isPmssmSample = false;
-            if (sampleName().find("Herwigpp_UEEE3_CTEQ6L1_DGnoSL_TB10") != string::npos) {
-                isPmssmSample = true;
-            }
-
-         //   m_mcWeighter->parseAdditionalXsecFile("${ROOTCOREBIN}/data/Superflow/LFV.txt", /*m_dbg*/ false);
-
-            if (isPmssmSample) {
-                m_mcWeighter->setLabelBinCounter("Initial").clearAndRebuildSumwMap(m_tree);
-            }
             if (m_dbg) {
                 cout << app_name << "MCWeighter has been initialized." << endl;
+                cout << app_name << "MCWeighter using cross-section directory: " << xsecDir << endl;
             }
         }
         else {
@@ -1325,7 +1338,9 @@ namespace sflow {
                 if (do_lepSf_) {
                     weights_->lepSf = (computeLeptonEfficiencySf(l0, super_sys->weight_syst) * computeLeptonEfficiencySf(l1, super_sys->weight_syst));
                 }
-
+                
+                #warning removing lepton trigger systematic vaiations
+                /*
                 bool do_lep_triggers_ = false; // do_lep_triggers_
                 SusyNtSys trig_sys = Susy::NtSys::NOM;
 
@@ -1354,7 +1369,7 @@ namespace sflow {
                 if (do_lep_triggers_) {
                     weights_->trigger = computeDileptonTriggerWeight(leptons, trig_sys);
                 }
-
+                */
                 bool do_btag_ = false; // do_btag_
 
                 switch (super_sys->weight_syst) {
@@ -1415,18 +1430,18 @@ namespace sflow {
         return true;
     }
 
+    #warning removing DileptonTrigger re-weighting
+    //double Superflow::computeDileptonTriggerWeight(const LeptonVector &leptons, const SusyNtSys sys)
+    //{
+    //    double trigW = 1.0;
+    //    if (leptons.size() == 2) {
 
-    double Superflow::computeDileptonTriggerWeight(const LeptonVector &leptons, const SusyNtSys sys)
-    {
-        double trigW = 1.0;
-        if (leptons.size() == 2) {
-
-            trigW = m_trigObj->getTriggerWeight(leptons, nt.evt()->isMC, m_met->Et, m_signalJets.size(), nt.evt()->nVtx, sys);
-            bool twIsInvalid = !(trigW >= 0) || trigW < 0.0;
-            trigW = twIsInvalid ? 0.0 : trigW;
-        }
-        return trigW;
-    }
+    //        trigW = m_trigObj->getTriggerWeight(leptons, nt.evt()->isMC, m_met->Et, m_signalJets.size(), nt.evt()->nVtx, sys);
+    //        bool twIsInvalid = !(trigW >= 0) || trigW < 0.0;
+    //        trigW = twIsInvalid ? 0.0 : trigW;
+    //    }
+    //    return trigW;
+    //}
 
     double Superflow::computeBtagWeight(const JetVector& jets, const Susy::Event* evt, SupersysWeight sys)
     {
