@@ -6,7 +6,6 @@
 *~
 /bin/
 /obj/
-/scripts/*
 /StandAlone/
 /run/out/selection/*
 /run/batch/selection/*
