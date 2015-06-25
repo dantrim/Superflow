@@ -188,8 +188,8 @@ namespace sflow {
         sl_->nt_sys = m_RunSyst->event_syst;
 
         sl_->preElectrons = &m_preElectrons;
-        sl_->preMuons = &m_preMuons;
-        sl_->preJets = &m_preJets;
+        sl_->preMuons     = &m_preMuons;
+        sl_->preJets      = &m_preJets;
 
         sl_->baseLeptons = &m_baseLeptons;
         sl_->baseElectrons = &m_baseElectrons;
@@ -197,16 +197,20 @@ namespace sflow {
         sl_->baseTaus = &m_baseTaus;
         sl_->baseJets = &m_baseJets;
 
-        if (m_runMode == SuperflowRunMode::fakes) {
-            sl_->leptons = &m_baseLeptons;
-            sl_->electrons = &m_baseElectrons;
-            sl_->muons = &m_baseMuons;
-        }
-        else{
-            sl_->leptons = &m_signalLeptons;
-            sl_->electrons = &m_signalElectrons;
-            sl_->muons = &m_signalMuons;
-        }
+        sl_->leptons = &m_signalLeptons;
+        sl_->electrons = &m_signalElectrons;
+        sl_->muons = &m_signalMuons;
+
+     //   if (m_runMode == SuperflowRunMode::fakes) {
+     //       sl_->leptons = &m_baseLeptons;
+     //       sl_->electrons = &m_baseElectrons;
+     //       sl_->muons = &m_baseMuons;
+     //   }
+     //   else{
+     //       sl_->leptons = &m_signalLeptons;
+     //       sl_->electrons = &m_signalElectrons;
+     //       sl_->muons = &m_signalMuons;
+     //   }
      //   sl_->leptons = selectBaseLineLeptons ? &m_baseLeptons : &m_signalLeptons;
      //   sl_->electrons = selectBaseLineLeptons ? &m_baseElectrons : &m_signalElectrons;
      //   sl_->muons = selectBaseLineLeptons ? &m_baseMuons : &m_signalMuons;
