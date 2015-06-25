@@ -58,7 +58,8 @@ int main(int argc, char* argv[])
     Superflow* cutflow = new Superflow(); // initialize the cutflow
     cutflow->setAnaName("SuperflowAna");
     cutflow->setAnaType(AnalysisType::Ana_2Lep); 
-    cutflow->setLumi(LUMI_A_A3); // set the MC normalized to lumi periods A1-A3
+    //cutflow->setLumi(LUMI_A_A3); // set the MC normalized to lumi periods A1-A3
+    cutflow->setLumi(0.32233); // setting the lumi for runs 266904,266919, 267167
     cutflow->setSampleName(sample_);
     cutflow->setRunMode(run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows
@@ -207,12 +208,6 @@ int main(int argc, char* argv[])
     // LEPTONS
     // LEPTONS
     // LEPTONS
-
-    *cutflow << NewVar("is genuine same-sign"); {
-        *cutflow << HFTname("isGenSS");
-        *cutflow << [](Superlink *sl, var_bool*) -> bool { return PhysicsTools::isGenuineSS(sl->leptons); };
-        *cutflow << SaveVar();
-    }
 
     *cutflow << NewVar("is e + e"); {
         *cutflow << HFTname("isElEl");
@@ -468,7 +463,13 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("delta Phi of di-lepton system"); {
         *cutflow << HFTname("dphi_ll");
-        *cutflow << [](Superlink* sl, var_float*) -> double { return abs(sl->leptons->at(0)->Phi() - sl->leptons->at(1)->Phi()); };
+        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(0)->DeltaPhi(*sl->leptons->at(1)); };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("delta R between the two leptons"); {
+        *cutflow << HFTname("dR_ll");
+        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(0)->DeltaR(*sl->leptons->at(1)); };
         *cutflow << SaveVar();
     }
 
@@ -648,6 +649,7 @@ int main(int argc, char* argv[])
     // Weight variation systematics
     //  > stored in nominal output tree
     //
+/*
     *cutflow << NewSystematic("positve shift due to background estimation method"); {
         *cutflow << WeightSystematic(SupersysWeight::BKGMETHODUP, SupersysWeight::BKGMETHODDOWN);
         *cutflow << TreeName("BKGMETHOD");    
@@ -715,7 +717,7 @@ int main(int argc, char* argv[])
         *cutflow << SaveSystematic();
     }
 
-
+*/
     //
     // Event/object systematics
     //  > stored in separate output ntuples

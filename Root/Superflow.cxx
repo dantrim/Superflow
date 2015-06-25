@@ -681,7 +681,7 @@ namespace sflow {
 
         m_chainEntry++; // SusyNtAna counter
 
-        if (m_chainEntry % 500 == 0) {
+        if (m_chainEntry % 50000 == 0) {
             cout << app_name << "**** Processing entry " << setw(6) << m_chainEntry
                 << " run "   << setw(6) << nt.evt()->run
                 << " event " << setw(7) << nt.evt()->event << " ****" << endl;
@@ -1464,15 +1464,16 @@ namespace sflow {
 
     double Superflow::computeBtagWeight(const JetVector& jets, const Susy::Event* evt, SupersysWeight sys)
     {
-        // cout << app_name << "in computeBtagWeight" << endl;
-        //JetVector taggableJets = SusyNtTools::getBTagSFJets2Lep(jets);
-        //return SusyNtTools::bTagSF(evt, taggableJets, evt->mcChannel, supersys_to_btagsys(sys));
-        Superlink* sl_ = new Superlink();
-        attach_superlink(sl_);
-        JetVector taggableJets = sl_->tools->getBTagSFJets2Lep(jets);
-        double btagsf = sl_->tools->bTagSF(evt, taggableJets, evt->mcChannel, supersys_to_btagsys(sys));
-        delete sl_;
-        return btagsf;
+        return 1.0;
+      //  // cout << app_name << "in computeBtagWeight" << endl;
+      //  //JetVector taggableJets = SusyNtTools::getBTagSFJets2Lep(jets);
+      //  //return SusyNtTools::bTagSF(evt, taggableJets, evt->mcChannel, supersys_to_btagsys(sys));
+      //  Superlink* sl_ = new Superlink();
+      //  attach_superlink(sl_);
+      //  JetVector taggableJets = sl_->tools->getBTagSFJets2Lep(jets);
+      //  double btagsf = sl_->tools->bTagSF(evt, taggableJets, evt->mcChannel, supersys_to_btagsys(sys));
+      //  delete sl_;
+      //  return btagsf;
     }
 
     double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const SupersysWeight sys)
