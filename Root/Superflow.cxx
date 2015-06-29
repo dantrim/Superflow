@@ -77,6 +77,10 @@ namespace sflow {
         m_mcWeighter = nullptr;
 
         m_nullExprFloat  = [](Superlink* sl, var_float*) -> double { return 0.0; };
+        m_nullExprFloatArray = [](Superlink* sl, var_float_array*) -> double {
+                                double null_float[25] = { 0.0 };
+                                return null_float;
+                        };
         m_nullExprDouble = [](Superlink* sl, var_double*) -> double { return 0.0; };
         m_nullExprInt    = [](Superlink* sl, var_int*) -> int { return 0; };
         m_nullExprBool   = [](Superlink* sl, var_bool*) -> bool { return false; };
@@ -563,6 +567,11 @@ namespace sflow {
                 case SupervarType::sv_bool: {
                     string leaflist_ = m_varHFTName[i] + "/O";
                     m_HFT->Branch(m_varHFTName[i].data(), m_varBool + i, leaflist_.data(), 65536);
+                    break;
+                }
+                case SupervarType::sv_float_array: {
+                    string leaflist_ = m_varHFTName[i] + "[25]/F";
+                    m_HFT->Branch(m_varHFTName[i].data(), m_varFloat + i, leaflist_.data(), 65536);
                     break;
                 }
             }
