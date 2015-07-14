@@ -161,10 +161,6 @@ int main(int argc, char* argv[])
         return sl->taus->size() == 0;
     };
 
-    *cutflow << CutName("pass dilepton trigger") << [](Superlink* sl) -> bool {
-        return sl->dileptonTrigger->passDilTrig(*sl->leptons, sl->met->lv().Pt(), sl->nt->evt());
-    };
-
 //    *cutflow << CutName("pass MET trigger") << [](Superlink* sl) -> bool {
 //        return sl->nt->evt()->trigFlags & TRIG_xe80T_tclcw_loose;
 //    };
@@ -291,7 +287,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("event number"); {
         *cutflow << HFTname("eventNumber");
-        *cutflow << [](Superlink* sl, var_int*) -> int { return sl->nt->evt()->event; };
+        *cutflow << [](Superlink* sl, var_int*) -> int { return sl->nt->evt()->eventNumber; };
         *cutflow << SaveVar();
     }
 
@@ -721,12 +717,6 @@ int main(int argc, char* argv[])
     // START Setup systematics
 
     // weight variation systematics
-    *cutflow << NewSystematic("positve shift due to background estimation method"); {
-        *cutflow << WeightSystematic(SupersysWeight::BKGMETHODUP, SupersysWeight::BKGMETHODDOWN);
-        *cutflow << TreeName("BKGMETHOD");    
-        *cutflow << SaveSystematic();
-    }
-
 
     *cutflow << NewSystematic("shift in electron trigger weights"); {
         *cutflow << WeightSystematic(SupersysWeight::ETRIGREWUP, SupersysWeight::ETRIGREWDOWN);
@@ -779,12 +769,6 @@ int main(int argc, char* argv[])
     *cutflow << NewSystematic("shift in cross section"); {
         *cutflow << WeightSystematic(SupersysWeight::XSUP, SupersysWeight::XSDOWN);
         *cutflow << TreeName("XS");
-        *cutflow << SaveSystematic();
-    }
-
-    *cutflow << NewSystematic("shift in ISR uncertainty (MG5 scale variation)"); {
-        *cutflow << WeightSystematic(SupersysWeight::ISRUP, SupersysWeight::ISRDOWN);
-        *cutflow << TreeName("ISR");
         *cutflow << SaveSystematic();
     }
 

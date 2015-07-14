@@ -7,14 +7,12 @@
 #include "SusyNtuple/SusyDefs.h"
 #include "SusyNtuple/SusyNtObject.h"
 #include "SusyNtuple/SusyNtTools.h"
-#include "SusyNtuple/DilTrigLogic.h"
 #include "SusyNtuple/AnalysisType.h"
 
 #include "Superflow/Supersys.h"
 #include "Superflow/DataDefinitions.h"
 #include "JVFUncertaintyTool/JVFUncertaintyTool.h"
 
-#include "DileptonMatrixMethod/DileptonMatrixMethod.h"
 
 using namespace DataDefinitions;
 
@@ -28,8 +26,7 @@ namespace sflow {
 
         bool isMC;
         bool isData;
-        bool doFake;
-
+        
         SusyNtTools* tools;
 
         AnalysisType anaType;
@@ -61,10 +58,7 @@ namespace sflow {
 
         const Susy::Met* met; ///< Met
 
-        DilTrigLogic* dileptonTrigger;
-
         JVFUncertaintyTool* jvfTool;
 
-        susy::fake::DileptonMatrixMethod* fakeMatrix;
     };
 };

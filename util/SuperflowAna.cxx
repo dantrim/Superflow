@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("Event number"); {
         *cutflow << HFTname("eventNumber");
-        *cutflow << [](Superlink* sl, var_int*) -> int { return sl->nt->evt()->event; };
+        *cutflow << [](Superlink* sl, var_int*) -> int { return sl->nt->evt()->eventNumber; };
         *cutflow << SaveVar();
     }
 
@@ -648,12 +648,6 @@ int main(int argc, char* argv[])
     // Weight variation systematics
     //  > stored in nominal output tree
     //
-    *cutflow << NewSystematic("positve shift due to background estimation method"); {
-        *cutflow << WeightSystematic(SupersysWeight::BKGMETHODUP, SupersysWeight::BKGMETHODDOWN);
-        *cutflow << TreeName("BKGMETHOD");    
-        *cutflow << SaveSystematic();
-    }
-
 
     *cutflow << NewSystematic("shift in electron trigger weights"); {
         *cutflow << WeightSystematic(SupersysWeight::ETRIGREWUP, SupersysWeight::ETRIGREWDOWN);
@@ -706,12 +700,6 @@ int main(int argc, char* argv[])
     *cutflow << NewSystematic("shift in cross section"); {
         *cutflow << WeightSystematic(SupersysWeight::XSUP, SupersysWeight::XSDOWN);
         *cutflow << TreeName("XS");
-        *cutflow << SaveSystematic();
-    }
-
-    *cutflow << NewSystematic("shift in ISR uncertainty (MG5 scale variation)"); {
-        *cutflow << WeightSystematic(SupersysWeight::ISRUP, SupersysWeight::ISRDOWN);
-        *cutflow << TreeName("ISR");
         *cutflow << SaveSystematic();
     }
 

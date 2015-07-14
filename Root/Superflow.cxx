@@ -34,21 +34,6 @@ namespace sflow {
         // SusyNtuple/Trigger 
         /////////////////////////
         m_nttrig = nullptr;
-        /////////////////////////
-        // Matrix Method
-        /////////////////////////
-        m_matrixFilename = "";
-        m_use2dparametrization = false;
-        m_allconfigured = false;
-        m_matrix = nullptr;
-        m_fake_region = "";
-        selectBaseLineLeptons = false;
-
-        /////////////////////////
-        // Charge-flip
-        /////////////////////////
-        m_do_qflip = false;
-        
 
         m_CutStore_Name_Exists = false;
         m_CutStoreUntitled     = 1;
@@ -216,31 +201,14 @@ namespace sflow {
         sl_->electrons = &m_signalElectrons;
         sl_->muons = &m_signalMuons;
 
-    //    if (m_runMode == SuperflowRunMode::fakes) {
-    //        sl_->leptons = &m_baseLeptons;
-    //        sl_->electrons = &m_baseElectrons;
-    //        sl_->muons = &m_baseMuons;
-    //    }
-    //    else{
-    //        sl_->leptons = &m_signalLeptons;
-    //        sl_->electrons = &m_signalElectrons;
-    //        sl_->muons = &m_signalMuons;
-    //    }
-     //   sl_->leptons = selectBaseLineLeptons ? &m_baseLeptons : &m_signalLeptons;
-     //   sl_->electrons = selectBaseLineLeptons ? &m_baseElectrons : &m_signalElectrons;
-     //   sl_->muons = selectBaseLineLeptons ? &m_baseMuons : &m_signalMuons;
-
         sl_->taus = &m_signalTaus;
         sl_->jets = &m_signalJets;
 
         sl_->met = m_met;
 
-        //sl_->dileptonTrigger = m_trigObj;
     # warning not setting jvftool
       //  sl_->jvfTool = m_jvfTool;
     
-        sl_->fakeMatrix = m_matrix;
-
         if (nt.evt()->isMC) {
             sl_->isMC = true;
         }
@@ -283,15 +251,6 @@ namespace sflow {
             }
         }
 
-        // determine number of fake-weight systematics
-        if (m_runMode == SuperflowRunMode::fakes) {
-            for (int i = 0; i < m_sysStore.size(); i++) {
-                if (m_sysStore[i].type == SupersysType::weight) {
-                    index_weight_sys.push_back(i);
-                }
-            }
-        }
-
         // determine number of event systematics
         if (m_runMode == SuperflowRunMode::all_syst) {
             for (int i = 0; i < m_sysStore.size(); i++) {
@@ -318,54 +277,10 @@ namespace sflow {
 
         //string period = "Moriond";
         //bool useReweightUtils = false;
-        //m_trigObj = new DilTrigLogic(period, useReweightUtils);
 
         // -------------- Configure SusyNtuple Trigger Tool [BEGIN] --------------- //
         m_nttrig = new Trigger(m_input_chain, true);
         // -------------- Configure SusyNtuple Trigger Tool [BEGIN] --------------- //
-
-        // -------------- Configure ChargeFlip Tool [BEGIN] ---------------------//
-        // Currently set-up to run ChargeFlip-00-00-11 which has the 
-        // charge flip map chargeFlip.root and the functionality as used
-        // here
-        // TODO: re-configure for Emma's  new map (--Dantrim 11/18/2014)
-        if(m_do_qflip) {  // global switch set in SuperflowQFlip executable
-            //string chargeFlipInput = "../../ChargeFlip/data/chargeFlip.root";
-        //    string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc12_8TeV/");
-        //    string chargeFlipInput = gSystem->ExpandPathName("$ROOTCOREBIN/data/ChargeFlip/chargeflip_map_12nov2014.root");
-            string chargeFlipInput = gSystem->ExpandPathName("$ROOTCOREBIN/data/ChargeFlip/chargeflip_map_12nov2014_scale_with_mc_last_ptbin.root");
-        //    string chargeFlipInput = "../../ChargeFlip/data/chargeflip_map_12nov2014.root";
-            ifstream qflipFile(chargeFlipInput.data());
-            if(qflipFile) {
-                cout << "\n >>> Using chargeflip map: " << chargeFlipInput << ". " << endl;
-            }
-            else {
-                cout << "ERROR (Fatal): chargeflip map file (" << chargeFlipInput << ") does not exist or cannot be opened. Exitting. " << endl;
-                exit(1);
-            }
-            m_chargeFlip = new chargeFlip(chargeFlipInput);
-        }
-        // ---------------- Configure ChargeFlip Tool [END] ---------------------//
-        // ----------------- Configure Matrix Tool [BEGIN] ------------------------//
-        // cf https://github.com/gerbaudo/DileptonMatrixMethod/
-        if (m_runMode == SuperflowRunMode::fakes) {   
-           // m_matrixFilename = gSystem->ExpandPathName("$ROOTCOREBIN/data/DileptonMatrixMethod/FakeMatrix_Oct_20.root");
-           // m_matrixFilename = gSystem->ExpandPathName("$ROOTCOREBIN/data/DileptonMatrixMethod/FakeMatrix_Nov_26.root");
-           // m_matrixFilename = gSystem->ExpandPathName("$ROOTCOREBIN/data/DileptonMatrixMethod/pass3_Summer2013.root");
-           // m_matrixFilename = gSystem->ExpandPathName("$ROOTCOREBIN/data/DileptonMatrixMethod/FakeMatrix_Dec_03.root");
-           // m_matrixFilename = gSystem->ExpandPathName("$ROOTCOREBIN/data/DileptonMatrixMethod/FakeMatrix_Dec_03_with_syst.root");
-            m_matrixFilename = gSystem->ExpandPathName("$ROOTCOREBIN/data/DileptonMatrixMethod/FakeMatrix_Nov_26_with_syst.root");
-
-       //     m_matrixFilename = "../../DileptonMatrixMethod/data/FakeMatrix_Oct_20.root";
-            ifstream the_matrix(m_matrixFilename.data());
-            if(!the_matrix){
-                cout << "ERROR (Fatal): matrix method matrix at " << m_matrixFilename << " does not exist or cannot be opened. Exitting. " << endl;
-                exit(1);
-            }
-            m_allconfigured = initMatrixTool();
-        }
-        // ----------------- Configure Matrix Tool [END] ------------------------//
-    
     } // end Superflow::Begin()
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -378,10 +293,11 @@ namespace sflow {
         cout << app_name << "in Init()" << endl;
         SusyNtAna::Init(tree);
 
-        if (!nt.evt()->isMC && !(m_runMode == SuperflowRunMode::fakes)) {
+        if (!nt.evt()->isMC) {
+            cout << app_name << "    Switching run mode to SuperflowRunMode::data" << endl;
             m_runMode = SuperflowRunMode::data; // Changing the run mode!!
         }
-        else if (m_runMode != SuperflowRunMode::fakes) {
+        else if (nt.evt()->isMC) {
             initMcWeighter(tree);
         }
 
@@ -439,58 +355,6 @@ namespace sflow {
                 exit(1);
             }
         }
-        else if (m_runMode == SuperflowRunMode::fakes) {
-
-            if (m_fake_region.compare("") == 0) {
-                cout << app_name << "ERROR (Fatal): No fake region! Example: /f \'razor\' " << endl;
-                exit(1);
-            }
-
-            m_countWeights = false;
-
-            // output file name
-            stringstream sfile_name_;
-            sfile_name_ << "CENTRAL_";
-#warning need to set up output file/tree name for fake ntuples (copy data example)
-            size_t find_period = m_sample.find("period");
-            if (find_period != string::npos) {
-                char data_per_ = m_sample.substr(find_period + 6, 1)[0];
-
-                if (data_per_ >= 'A') {
-                    ATLAS_period this_period = static_cast<ATLAS_period>(data_per_ - 'A');
-                    cout << app_name << "Determined data period: " << data_per_ << endl;
-
-                    m_period = this_period; // set the period
-
-                    size_t find_Egamma = m_sample.find("Egamma");
-                    size_t find_Muons = m_sample.find("Muons");
-
-                    if (find_Egamma != string::npos) {
-                        cout << app_name << "Determined stream: Egamma" << endl;
-                        m_stream = ATLAS_stream::Egamma;
-                    }
-                    else if (find_Muons != string::npos) {
-                        cout << app_name << "Determined stream: Muons" << endl;
-                        m_stream = ATLAS_stream::Muons;
-                    }
-                    else {
-                        cout << app_name << "ERROR (Fatal): Unknown data stream! Supported streams: Egamma, Muons." << endl;
-                        exit(1);
-                    }
-                }
-
-
-                sfile_name_ << "fakes." << m_fake_region << "." << m_data_periods[m_stream][m_period] << ".root";
-                cout << app_name << "Setting output file name to: " << sfile_name_.str() << endl;
-
-                m_outputFileName = sfile_name_.str();
-                m_entry_list_FileName += string("fakes.") + m_fake_region + "." + m_data_periods[m_stream][m_period] + ".root";
-            }
-            else {
-                cout << app_name << "ERROR (fatal): Failed to determine data period. Try to specify the full path." << endl;
-                exit(1);
-            }
-        }
         else if (m_runMode == SuperflowRunMode::single_event_syst) {
             if (m_NtSys_to_string.count(m_singleEventSyst) != 0) {
                 stringstream sfile_name_; // output file name
@@ -529,9 +393,6 @@ namespace sflow {
         stringstream tree_name;
         if (m_runMode == SuperflowRunMode::data) {
             tree_name << "id_" << m_data_stream2string[m_stream];
-        }
-        else if (m_runMode == SuperflowRunMode::fakes) {
-            tree_name << "id_fakes_" << m_data_stream2string[m_stream];
         }
         else {
             tree_name << "id_" << nt.evt()->mcChannel;
@@ -734,7 +595,7 @@ namespace sflow {
         if (m_chainEntry % 50000 == 0) {
             cout << app_name << "**** Processing entry " << setw(6) << m_chainEntry
                 << " run "   << setw(6) << nt.evt()->run
-                << " event " << setw(7) << nt.evt()->event << " ****" << endl;
+                << " event " << setw(7) << nt.evt()->eventNumber << " ****" << endl;
         }
 
         // these are flags
@@ -1071,114 +932,6 @@ namespace sflow {
                 delete sl_;
                 delete m_weights;
             } break;
-            case SuperflowRunMode::fakes: {
-                delete m_RunSyst;
-                m_RunSyst = new Supersys(SupersysType::central);
-
-                clearObjects();
-                selectObjects(m_RunSyst->event_syst, removeLepsFromIso, TauID_medium);
-
-                m_weights = new Superweight();
-                Superlink* sl_ = new Superlink;
-                attach_superlink(sl_);
-
-                bool pass_cuts = true;
-
-                if (m_CutStore.size() > 0) {
-                    for (int i = 0; i < m_CutStore.size(); i++) {
-                        pass_cuts = m_CutStore[i](sl_); // run the cut function
-
-                        if (pass_cuts) {
-                            m_RawCounter[i]++;
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                }
-
-                if (pass_cuts) {
-                    if (save_entry_to_list) {
-                        m_entry_list_single_tree->Enter(entry);
-                        save_entry_to_list = false;
-                    }
-                    computeWeights(nt, *m_mcWeighter, m_signalLeptons, m_baseJets, m_RunSyst, m_weights);
-
-                    double nom_eventweight = m_weights->product();
-                    m_WeightCounter[m_CutStore.size() - 1] += m_weights->product();
-
-                    // FILL HFTs
-                    for (int v_ = 0; v_ < m_varType.size(); v_++) {
-                        switch (m_varType[v_]) {
-                            case SupervarType::sv_float: {
-                                m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_); break;
-                            }
-                            case SupervarType::sv_double: {
-                                m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_); break;
-                            }
-                            case SupervarType::sv_float_array: { break; } 
-                   //             double array[25] = { 0.0 };
-                   //             for (int i = 0; i<25; i++) {
-                   //                 array[i] = m_varExprFloatArray[v_](sl_,vfa_)[i];
-                   //             }
-                   //             double* out = array;
-                   //             m_varFloatArray[v_] = out; break;
-                   //         }
-                            case SupervarType::sv_bool_array: { break; }
-                            case SupervarType::sv_int: {
-                                m_varInt[v_] = m_varExprInt[v_](sl_, vi_); break;
-                            }
-                            case SupervarType::sv_bool: {
-                                m_varBool[v_] = m_varExprBool[v_](sl_, vb_); break;
-                            }
-                            case SupervarType::sv_void: {
-                                m_varExprVoid[v_](sl_, vv_); break;
-                            }
-                        }
-                    }
-
-                    // FILL more HFTs
-                    for (int w_ = 0; w_ < index_weight_sys.size(); w_++) {
-                        Superweight* weightComponents_copy = new Superweight(*m_weights);
-
-                        // Up variation
-                        m_RunSyst->weight_syst = m_sysStore[index_weight_sys[w_]].weight_syst_up; // do up variation
-                        computeWeights(nt, *m_mcWeighter, m_signalLeptons, m_baseJets, m_RunSyst, weightComponents_copy);
-                        double up_weight = weightComponents_copy->product();
-                        delete weightComponents_copy;
-
-                        weightComponents_copy = new Superweight(*m_weights);
-                        // Down variation
-                        m_RunSyst->weight_syst = m_sysStore[index_weight_sys[w_]].weight_syst_down; // do down variation
-                        computeWeights(nt, *m_mcWeighter, m_signalLeptons, m_baseJets, m_RunSyst, weightComponents_copy);
-                        double down_weight = weightComponents_copy->product();
-
-                        delete weightComponents_copy;
-                        weightComponents_copy = nullptr;
-
-                        if (up_weight < nom_eventweight && down_weight > nom_eventweight) {
-                            double temp = up_weight; // reason to swap these
-                            up_weight = down_weight;
-                            down_weight = temp;
-                        }
-                        if (nom_eventweight > m_epsilon) {
-                            up_weight = up_weight / nom_eventweight;
-                            down_weight = down_weight / nom_eventweight;
-                        }
-                        else {
-                            up_weight = 1.0;
-                            down_weight = 1.0;
-                        }
-
-                        *(m_varFloat + m_weight_leaf_offset + 2 * w_) = up_weight; // put in TBranch
-                        *(m_varFloat + m_weight_leaf_offset + 2 * w_ + 1) = down_weight;
-                    }
-                    m_RunSyst->weight_syst = SupersysWeight::null; // must reset this value!
-                    m_HFT->Fill();
-                }
-                delete sl_;
-                delete m_weights;
-            } break;
             default: break;
         }
         return kTRUE;
@@ -1284,22 +1037,6 @@ namespace sflow {
     }
 
     // ----------------------- Initialize Matrix Tool [BEGIN] ------------------------ //
-    bool Superflow::initMatrixTool()           
-    {
-        std::cout << "\n    ----- Initializating DileptonMatrixMethod    -----" << std::endl;
-        m_matrix = new susy::fake::DileptonMatrixMethod();
-        if(m_use2dparametrization){
-            std::cout << " ----- Using 2D-Parametrized Fake Weight Calculation ----- \n" << std::endl;
-        }
-        susy::fake::Parametrization::Value p = (m_use2dparametrization ? susy::fake::Parametrization::PT_ETA : susy::fake::Parametrization::PT);
-        std::vector<std::string> regions;
-        regions.push_back(m_fake_region);            
-        for(int i=0; i<regions.size(); ++i){
-            std::cout<< ">> Available fake-region:  " << regions[i] << std::endl;
-        }
-        return m_matrix->configure(m_matrixFilename, regions, p, p, p, p);
-    }
-    // ----------------------- Initialize Matrix Tool [END] --------------------------- //
 
     bool Superflow::computeWeights(
         Susy::SusyNtObject &ntobj,
@@ -1310,89 +1047,6 @@ namespace sflow {
         Superweight* weights_
         )
     {
-
-        if (m_runMode == SuperflowRunMode::fakes) {
-            susy::fake::Systematic::Value fake_sys = susy::fake::Systematic::Value::SYS_NOM;
-            bool do_fake_ = false;         // FAKE
-            bool do_syst_ = false;
-        
-           switch (super_sys->weight_syst) {
-               case SupersysWeight::ELFRUP: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_EL_FR_UP;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::ELFRDOWN: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_EL_FR_DOWN;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::ELREUP: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_EL_RE_UP;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::ELREDOWN: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_EL_RE_DOWN;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::MUFRUP: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_MU_FR_UP;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::MUFRDOWN: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_MU_FR_DOWN;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::MUREUP: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_MU_RE_UP;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::MUREDOWN: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_MU_RE_DOWN;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::ELFRACUP: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_EL_FRAC_UP;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::ELFRACDOWN: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_EL_FRAC_DO;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::MUFRACUP: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_MU_FRAC_UP;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::MUFRACDOWN: {
-                   fake_sys = susy::fake::Systematic::Value::SYS_MU_FRAC_DO;
-                   do_fake_ = true;
-                   do_syst_ = true;
-               }   break;
-               case SupersysWeight::null: {
-                   do_fake_ = true;
-                   do_syst_ = false;
-               } break;
-               default: break;
-           }
-                    if (do_fake_) {
-
-                        Superlink* sl_ = new Superlink();
-                        attach_superlink(sl_);
-
-                        weights_->fake = PhysicsTools::getFakeWeight(sl_, m_fake_region, fake_sys, do_syst_);
-                    }
-         //   } // end if runMode fakes
-        
-        }
 
         // MCWeighter's susynt-weight calculation
         if (ntobj.evt()->isMC) {
@@ -1526,40 +1180,7 @@ namespace sflow {
                     //weights_->btag = computeBtagWeight(jets, nt.evt(), super_sys->weight_syst);
                 }
 
-                if(m_do_qflip){ // global switch set in SuperflowQFlip executable
-                    bool do_qflip_ = false;
-            
-                    switch (super_sys->weight_syst) {
-                        case SupersysWeight::BKGMETHODUP:
-                        case SupersysWeight::BKGMETHODDOWN:
-                        case SupersysWeight::null: {
-                            do_qflip_ = true;
-                        } break;
-                        default: break;
-                    } // switch
-                    bool  isMuMu(isMM(leptons));
-                    bool  isGenSS(isGenuineSS(leptons));
-                    if(do_qflip_ && !isMuMu && !isGenSS){
-                        weights_->qflip = computeChargeFlipWeight(leptons, super_sys->weight_syst);
-                    }
-                } // end if(m_do_qflip)
 
-                // ISR uncertainty
-                bool do_isr_ = false;
-                switch (super_sys->weight_syst) {
-                    case SupersysWeight :: ISRUP : 
-                    case SupersysWeight :: ISRDOWN :
-                    case SupersysWeight :: null : {
-                        do_isr_ = true;
-                    } break;
-                    default: break;
-                } // switch
-                if(do_isr_){
-                    Superlink* sl_ = new Superlink;
-                    attach_superlink(sl_);
-                    weights_->isr = get_isr_weights(sl_, super_sys->weight_syst);
-                    delete sl_;
-                }
             }
         }
 
@@ -1619,109 +1240,6 @@ namespace sflow {
         return effFactor;
     }
 
-    float Superflow::computeChargeFlipWeight(const LeptonVector &leptons, const SupersysWeight sys)
-    {
-        float qflipProb = 1.0;
-    
-     //   if(!isGenSS && isMuMu ) return 0.0;
-     //   if(!isGenSS && !isMuMu){
-            const LeptonVector &ls = leptons;
-            Susy::Lepton* l0 = ls[0];
-            Susy::Lepton* l1 = ls[1];
-            int pdg0 = l0->isEle() ? 11 : 13;
-            int pdg1 = l1->isEle() ? 11 : 13;
-            TVector2 met(m_met->lv().Px(), m_met->lv().Py());
-            int _sys = (sys==SupersysWeight::BKGMETHODUP ? +1 :
-                        (sys==SupersysWeight::BKGMETHODDOWN ? -1 : 0)); // convert to convention used in ChargeFlip (sys==0 --> nominal)
-            bool isData=false; // this is used only in new verisions of ChargeFlip package
-            m_chargeFlip->setSeed(nt.evt()->event);
-            float flipProb(m_chargeFlip->OS2SS(pdg0, l0, pdg1, l1, _sys, isData, chargeFlip::dataonly)); // newer version
-            //float flipProb(m_chargeFlip->OS2SS(pdg0, l0, pdg1, l1, &met, syst));
-            float overlapFrac(m_chargeFlip->overlapFrac().first);
-            
-            qflipProb = flipProb*overlapFrac;
-//            if(sys==SupersysWeight::BKGMETHODUP) qflipProb *= 1.5;
-//            if(sys==SupersysWeight::BKGMETHODDOWN) qflipProb *= 0.5;
-
-//            return qflipProb;
-            // check if final qflipProb > 0.0 && < 1.0 before returning?
-//        }
-
-        return qflipProb;
-//        else{
-//            return 1.0;
-//        }
-    }
-    bool Superflow::isGenuineSS(const LeptonVector& leps)
-    {
-        bool lessThanTwo        = (leps.size()<2) ? true : false;
-        bool qFlipPresent       = hasQFlip(leps)  ? true : false;
-        float qq                = leps.at(0)->q * leps.at(1)->q;
-        bool ntOS               = (qq<0) ? true : false;
-        if(!lessThanTwo && !qFlipPresent && !ntOS ) return true;
-        else{
-            return false;
-        }
-    }
-    bool Superflow::hasQFlip(const LeptonVector& leps)
-    {
-        bool lessThanTwo        = (leps.size()<2) ? true : false;
-        const Susy::Lepton* l0  = leps.at(0);
-        const Susy::Lepton* l1  = leps.at(1);
-        bool l0_isQFlip         = l0->isEle() ? (static_cast<const Susy::Electron*>(l0))->isChargeFlip : false;
-        bool l1_isQFlip         = l1->isEle() ? (static_cast<const Susy::Electron*>(l1))->isChargeFlip : false;
-        if(!lessThanTwo && (l0_isQFlip || l1_isQFlip) ) {
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-    bool Superflow::isMM(const LeptonVector& leps)
-    {
-        return (leps.at(0)->isMu() && leps.at(1)->isMu());
-    }
-
-    double Superflow::get_isr_weights(Superlink* sl, const SupersysWeight sys)
-    {
-        double isr_weight = 1.;
-        // grab the weights file 
-        string weights_filename = gSystem->ExpandPathName("$ROOTCOREBIN/data/Superflow/FinalPtC1C1Weights.root");
-        TFile* weights_file = new TFile(weights_filename.c_str(), "READ");
-        TGraphAsymmErrors* weights = (TGraphAsymmErrors*) weights_file->Get("Weight");
-        double* EXhigh = weights->GetEXhigh();
-        double* EXlow  = weights->GetEXlow();
-        double* EYhigh = weights->GetEYhigh();
-        double* EYlow  = weights->GetEYlow();
-        double c1c1Pt = 0.0;
-        std::vector<Susy::TruthParticle> c1c1Parts;
-        for(int itp=0; itp < sl->nt->tpr()->size(); itp++){
-            if(fabs(sl->nt->tpr()->at(itp).pdgId)==1000024){
-                c1c1Parts.push_back(sl->nt->tpr()->at(itp));
-            } // if itp
-        } // tpr loop
-        if(c1c1Parts.size()==2){
-            c1c1Pt = (c1c1Parts[0] + c1c1Parts[1]).Pt();
-            for(int i=0; i < weights->GetN(); ++i){
-                double x=0.;
-                double y=0.;
-                weights->GetPoint(i, x, y);
-                if( (c1c1Pt > (x-EXlow[i])) && 
-                    ( c1c1Pt < (x+EXhigh[i])) ) {
-                    if     (sys==SupersysWeight::null)    { isr_weight = y; }
-                    else if(sys==SupersysWeight::ISRUP)   { isr_weight = y + EYhigh[i]; }
-                    else if(sys==SupersysWeight::ISRDOWN) { isr_weight = y - EYlow[i]; }
-                 //   if     (sys==SupersysWeight::null)    { isr_weight = y; cout << "ptC1C1: " << c1c1Pt << "  nom: " << isr_weight << endl; }
-                 //   else if(sys==SupersysWeight::ISRUP)   { isr_weight = y + EYhigh[i]; cout << "    up: " << isr_weight << endl; }
-                 //   else if(sys==SupersysWeight::ISRDOWN) { isr_weight = y - EYlow[i]; cout << "     down: " << isr_weight << endl; }
-                } // in pt range
-            } // i
-        } // if c1c1 found
-        weights_file->Close();
-        delete weights_file;
-        delete weights;
-        return isr_weight;
-    }
 
     void Superflow::setLumi(const float lumi) {
         m_luminosity = lumi;
@@ -1746,20 +1264,6 @@ namespace sflow {
     void Superflow::setChain(TChain* input_chain_)
     {
         m_input_chain = input_chain_;
-    }
-
-    void Superflow::setFakeRegion(string fk_reg)
-    {
-        m_fake_region = fk_reg;
-        selectBaseLineLeptons = true;
-    }
-    void Superflow::setFake2dParam(bool use2d)
-    {
-        m_use2dparametrization = use2d;
-    }
-    void Superflow::setQFlip()
-    {
-        m_do_qflip = true;
     }
 
     /////////////////////////////////////////////////////////////////////

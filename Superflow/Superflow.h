@@ -14,9 +14,9 @@
 #include "SusyNtuple/SusyDefs.h"
 #include "SusyNtuple/SusyNtAna.h"
 #include "SusyNtuple/SusyNtTools.h"
+#include "SusyNtuple/Trigger.h"
 
 #include "SusyNtuple/MCWeighter.h"
-#include "SusyNtuple/DilTrigLogic.h"
 
 #include "Superflow/DataDefinitions.h"
 
@@ -25,8 +25,6 @@
 #include "Superflow/Supervar.h"
 #include "Superflow/Supersys.h"
 
-#include "DileptonMatrixMethod/DileptonMatrixMethod.h"
-#include "ChargeFlip/chargeFlip.h"
 
 using namespace DataDefinitions;
 
@@ -38,7 +36,6 @@ namespace sflow {
         single_event_syst,
         all_syst,
         data,
-        fakes,
         null
     };
 
@@ -87,31 +84,14 @@ namespace sflow {
         void setRunMode(SuperflowRunMode run_mode_);
         void setSingleEventSyst(SusyNtSys nt_syst_);
         void setChain(TChain* input_chain_);
-        void setFakeRegion(string fk_reg);
-        void setFake2dParam(bool use2d);
-        void setQFlip();
-        float computeChargeFlipWeight(const LeptonVector &leptons, const SupersysWeight sys);
-        bool isGenuineSS(const LeptonVector& leptons);
-        bool hasQFlip(const LeptonVector& leptons); 
-        bool isMM(const LeptonVector& leptons);
 
     protected:
         string app_name;
         void attach_superlink(Superlink* sl_);
-
-        DilTrigLogic* m_trigObj; ///< trigger logic class
+        
+        Trigger* m_nttrig;
+        
         MCWeighter* m_mcWeighter; ///< tool to determine the normalization
-
-        bool m_do_qflip;
-        chargeFlip*     m_chargeFlip; ///< chargeFlip tool
-
-        // Matrix Method tool and configurables
-        susy::fake::DileptonMatrixMethod* m_matrix;
-        std::string m_matrixFilename;
-        bool m_use2dparametrization;
-        bool m_allconfigured;
-        bool initMatrixTool();
-        bool selectBaseLineLeptons;
 
         bool computeWeights(
             Susy::SusyNtObject &ntobj,
@@ -121,13 +101,9 @@ namespace sflow {
             Supersys* super_sys,
             Superweight* weightComponents);
 
-        //double computeDileptonTriggerWeight(const LeptonVector &leptons, const SusyNtSys sys);
-
         double computeBtagWeight(const JetVector& jets, const Susy::Event* evt, SupersysWeight sys);
 
         double computeLeptonEfficiencySf(const Susy::Lepton &lep, const SupersysWeight sys);
-
-        double get_isr_weights(sflow::Superlink* sl, const SupersysWeight sys);
 
         vector<double> m_RawCounter;
         vector<double> m_WeightCounter; // indexed by cut #

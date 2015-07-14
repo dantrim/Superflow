@@ -6,7 +6,6 @@
 // Root Packages
 #include "TLorentzVector.h"
 
-#include "DileptonMatrixMethod/DileptonMatrixMethod.h"
 #include "SusyNtuple/SusyNtTools.h"
 #include "Superflow/Superlink.h"
 #include "Superflow/Superflow.h"
@@ -64,9 +63,6 @@ namespace PhysicsTools {
     // ttbar re-weight (PowHeg sample 117050 only!)
     double ttbar_powheg_differentialxsec(double ttbarpt);
     
-    // calculate fake weight
-    double getFakeWeight(sflow::Superlink* sl, std::string fakeRegion, susy::fake::Systematic::Value sys, bool computeSyst);
-
     // is genuine same-sign
     bool isGenuineSS(const LeptonVector* leps);
     

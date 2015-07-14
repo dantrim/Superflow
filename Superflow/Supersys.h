@@ -5,6 +5,8 @@
 #include "SusyNtuple/SusyDefs.h"
 #include "SusyNtuple/SusyNtSys.h"
 
+using namespace std;
+
 namespace sflow {
 
     const string weight_prefix = "syst_";
@@ -19,8 +21,6 @@ namespace sflow {
     };
 
     enum class SupersysWeight {
-        BKGMETHODUP,        ///< Positive shift due to background estimation method (chargeflip, jetveto, fakeweights,...)
-        BKGMETHODDOWN,      ///< Negative shift due to background estimation method (chargeflip, jetveto, fakeweights,...)
         ETRIGREWUP,         ///< Positive shift in electron trigger weights
         ETRIGREWDOWN,       ///< Negative shift in electron trigger weights
         MTRIGREWUP,         ///< Positive shift in muon trigger weights
@@ -39,20 +39,6 @@ namespace sflow {
         PILEUPDOWN,         ///< Negative shift in pileup
         XSUP,               ///< Positive shift in xsec
         XSDOWN,             ///< Negative shift in xsec
-        ELFRUP,             ///< Positive shift in electron fake rate
-        ELFRDOWN,           ///< Negative shift in electron fake rate
-        ELREUP,             ///< Positive shift in electron real efficiency
-        ELREDOWN,           ///< Negative shift in electron real efficiency
-        MUFRUP,             ///< Positive shift in muon fake rate
-        MUFRDOWN,           ///< Negative shift in muon fake rate
-        MUREUP,             ///< Positive shift in muon real efficiency
-        MUREDOWN,           ///< Negative shift in muon real efficiency
-        ELFRACUP,           ///< Positive shift in electron fake fraction (see Davide about what this systematic is)
-        ELFRACDOWN,         ///< Negative shift in electron fake fraction
-        MUFRACUP,           ///< Positive shift in muon fake fraction
-        MUFRACDOWN,         ///< Negative shift in muon fake fraction
-        ISRUP,              ///< Positive shift in ISR uncertainties (MG5 scale variations up)
-        ISRDOWN,            ///< Negative shift in ISR uncertainties (MG5 scale variations down)
         null,               ///< Nominal value
         block               ///< Prevent (re)calculation of the weight
     };
