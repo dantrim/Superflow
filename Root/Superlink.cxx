@@ -12,7 +12,6 @@ namespace sflow {
     {
         isMC = false;
         isData = false;
-        doFake = false;
 
         tools = nullptr;
 
@@ -45,7 +44,6 @@ namespace sflow {
 
         met = nullptr;
 
-        dileptonTrigger = nullptr;
 
       //  jvfTool = nullptr;
     }
@@ -54,7 +52,6 @@ namespace sflow {
     {
         isMC = false;
         isData = false;
-        doFake = false;
 
         tools = nullptr;
 
@@ -87,7 +84,6 @@ namespace sflow {
 
         met = nullptr;
 
-        dileptonTrigger = nullptr;
 
      //   jvfTool = nullptr;
     }

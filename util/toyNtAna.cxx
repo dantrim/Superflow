@@ -376,73 +376,73 @@ int main(int argc, char* argv[])
             };
         *cutflow << SaveVar();
     }
-    *cutflow << NewVar("ele is looseLLH"); {
-        *cutflow << HFTname("el_isLooseLLH");
+    *cutflow << NewVar("ele is looseLH"); {
+        *cutflow << HFTname("el_isLooseLH");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
-            vector<double> isLooseLLH;
+            vector<double> isLooseLH;
             for(int i = 0; i < baseElectrons.size(); i++) {
-                isLooseLLH.push_back(baseElectrons.at(i)->looseLLH);
+                isLooseLH.push_back(baseElectrons.at(i)->looseLH);
             }
-            return isLooseLLH;
+            return isLooseLH;
             };
         *cutflow << SaveVar();
     }
-    *cutflow << NewVar("ele is mediumLLH"); {
-        *cutflow << HFTname("el_isMediumLLH");
+    *cutflow << NewVar("ele is mediumLH"); {
+        *cutflow << HFTname("el_isMediumLH");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
-            vector<double> isMediumLLH;
+            vector<double> isMediumLH;
             for(int i = 0; i < baseElectrons.size(); i++) {
-                    isMediumLLH.push_back(baseElectrons.at(i)->mediumLLH);
+                    isMediumLH.push_back(baseElectrons.at(i)->mediumLH);
             }
-            return isMediumLLH;
+            return isMediumLH;
             };
         *cutflow << SaveVar();
     }
-    *cutflow << NewVar("ele is tightLLH"); {
-        *cutflow << HFTname("el_isTightLLH");
+    *cutflow << NewVar("ele is tightLH"); {
+        *cutflow << HFTname("el_isTightLH");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
-            vector<double> istightLLH;
+            vector<double> istightLH;
             for(int i = 0; i < baseElectrons.size(); i++) {
-                istightLLH.push_back(baseElectrons.at(i)->tightLLH);
+                istightLH.push_back(baseElectrons.at(i)->tightLH);
             }
-            return istightLLH;
+            return istightLH;
             };
         *cutflow << SaveVar();
     }
-    *cutflow << NewVar("ele is looseLLH (no d0 cut)"); {
-        *cutflow << HFTname("el_isLooseLLH_noD0");
+    *cutflow << NewVar("ele is looseLH (no d0 cut)"); {
+        *cutflow << HFTname("el_isLooseLH_noD0");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
-            vector<double> istightLLH;
+            vector<double> istightLH;
             for(int i = 0; i < baseElectrons.size(); i++) {
-                istightLLH.push_back(baseElectrons.at(i)->looseLLH_nod0);
+                istightLH.push_back(baseElectrons.at(i)->looseLH_nod0);
             }
-            return istightLLH;
+            return istightLH;
             };
         *cutflow << SaveVar();
     }
-    *cutflow << NewVar("ele is mediumLLH (no d0 cut)"); {
-        *cutflow << HFTname("el_isMediumLLH_noD0");
+    *cutflow << NewVar("ele is mediumLH (no d0 cut)"); {
+        *cutflow << HFTname("el_isMediumLH_noD0");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
-            vector<double> istightLLH;
+            vector<double> istightLH;
             for(int i = 0; i < baseElectrons.size(); i++) {
-                istightLLH.push_back(baseElectrons.at(i)->mediumLLH_nod0);
+                istightLH.push_back(baseElectrons.at(i)->mediumLH_nod0);
             }
-            return istightLLH;
+            return istightLH;
             };
         *cutflow << SaveVar();
     }
-    *cutflow << NewVar("ele is tightLLH (no d0 cut)"); {
-        *cutflow << HFTname("el_isTightLLH_noD0");
+    *cutflow << NewVar("ele is tightLH (no d0 cut)"); {
+        *cutflow << HFTname("el_isTightLH_noD0");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
-            vector<double> istightLLH;
+            vector<double> istightLH;
             for(int i = 0; i < baseElectrons.size(); i++) {
-                istightLLH.push_back(baseElectrons.at(i)->tightLLH_nod0);
+                istightLH.push_back(baseElectrons.at(i)->tightLH_nod0);
             }
-            return istightLLH;
+            return istightLH;
             };
         *cutflow << SaveVar();
     }
-
+/*
     *cutflow << NewVar("ele passes isoGradientLoose"); {
         *cutflow << HFTname("el_isoGradientLoose");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
@@ -498,7 +498,7 @@ int main(int argc, char* argv[])
             };
         *cutflow << SaveVar();
     }
-
+*/
     // muons
     *cutflow << NewVar("mu is signal (SUSYTools 'signal' flag)"); {
         *cutflow << HFTname("mu_STsignal");
@@ -555,6 +555,7 @@ int main(int argc, char* argv[])
             };
         *cutflow << SaveVar();
     }
+/*
     *cutflow << NewVar("mu passes isoGradientLoose"); {
         *cutflow << HFTname("mu_isoGradientLoose");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
@@ -610,7 +611,7 @@ int main(int argc, char* argv[])
             };
         *cutflow << SaveVar();
     }
-    
+*/    
     *cutflow << NewVar("mll using baseline leptons"); {
         *cutflow << HFTname("mll");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
