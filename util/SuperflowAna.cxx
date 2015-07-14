@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
     Superflow* cutflow = new Superflow(); // initialize the cutflow
     cutflow->setAnaName("SuperflowAna");
     cutflow->setAnaType(AnalysisType::Ana_2Lep); 
-    cutflow->setLumi(LUMI_A_A3); // set the MC normalized to lumi periods A1-A3
+    cutflow->setLumi(LUMI_A_A4); // set the MC normalized to lumi periods A1-A3
     cutflow->setSampleName(sample_);
     cutflow->setRunMode(run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows

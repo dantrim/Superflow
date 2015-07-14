@@ -159,6 +159,7 @@ namespace sflow {
         bool m_CutStore_Name_Exists;
 
         std::function<double(Superlink*, var_float*)> m_nullExprFloat;
+        std::function<double(Superlink*, var_float_array*)> m_nullExprFloatArray;
         std::function<double(Superlink*, var_double*)> m_nullExprDouble;
         std::function<int(Superlink*, var_int*)> m_nullExprInt;
         std::function<bool(Superlink*, var_bool*)> m_nullExprBool;
