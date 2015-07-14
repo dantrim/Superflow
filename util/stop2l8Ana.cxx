@@ -711,7 +711,7 @@ int main(int argc, char* argv[])
     // GAP //
     // GAP //
     // GAP //
-
+/*
     // START Setup systematics
     // START Setup systematics
     // START Setup systematics
@@ -916,7 +916,7 @@ int main(int argc, char* argv[])
          *cutflow << TreeName("JVFDOWN");
          *cutflow << SaveSystematic();
      }
-
+*/
     // END Setup systematics
     // END Setup systematics
     // END Setup systematics
@@ -1030,7 +1030,7 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
     }
 
     map <string, SusyNtSys> event_syst_map;
-    event_syst_map["EESZUP"] = NtSys::EES_Z_UP;
+/*    event_syst_map["EESZUP"] = NtSys::EES_Z_UP;
     event_syst_map["EESZDOWN"] = NtSys::EES_Z_DN;
     event_syst_map["EESMATUP"] = NtSys::EES_MAT_UP;
     event_syst_map["EESMATDOWN"] = NtSys::EES_MAT_DN;
@@ -1058,7 +1058,7 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
     event_syst_map["TESDOWN"] = NtSys::TES_DN;
     event_syst_map["JVFUP"] = NtSys::JVF_UP;
     event_syst_map["JVFDOWN"] = NtSys::JVF_DN;
-
+*/
     if (single_event_syst_) {
         if (event_syst_map.count(systematic_) == 1) {
             nt_sys = event_syst_map[systematic_];

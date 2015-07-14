@@ -14,9 +14,9 @@
 #include "SusyNtuple/SusyDefs.h"
 #include "SusyNtuple/SusyNtAna.h"
 #include "SusyNtuple/SusyNtTools.h"
-#include "SusyNtuple/Trigger.h"
 
 #include "SusyNtuple/MCWeighter.h"
+#include "SusyNtuple/Trigger.h"
 
 #include "Superflow/DataDefinitions.h"
 
@@ -60,6 +60,8 @@ namespace sflow {
 
         Superflow& operator<<(std::function<double(Superlink*, var_float*)> var_);
         Superflow& operator<<(std::function<double(Superlink*, var_double*)> var_);
+        Superflow& operator<<(std::function<vector<double>(Superlink*, var_float_array*)> var_);
+        Superflow& operator<<(std::function<vector<bool>(Superlink*, var_bool_array*)> var_);
         Superflow& operator<<(std::function<int(Superlink*, var_int*)> var_);
         Superflow& operator<<(std::function<bool(Superlink*, var_bool*)> var_);
         Superflow& operator<<(std::function<void(Superlink*, var_void*)> var_);
@@ -111,6 +113,7 @@ namespace sflow {
         bool m_countWeights;
         float m_luminosity;
 
+
         Superweight* m_weights;
 
         string m_outputFileName;
@@ -135,19 +138,24 @@ namespace sflow {
         bool m_CutStore_Name_Exists;
 
         std::function<double(Superlink*, var_float*)> m_nullExprFloat;
-        std::function<double(Superlink*, var_float_array*)> m_nullExprFloatArray;
+        std::function<vector<double>(Superlink*, var_float_array*)> m_nullExprFloatArray;
+        std::function<vector<bool>(Superlink*, var_bool_array*)> m_nullExprBoolArray;
         std::function<double(Superlink*, var_double*)> m_nullExprDouble;
         std::function<int(Superlink*, var_int*)> m_nullExprInt;
         std::function<bool(Superlink*, var_bool*)> m_nullExprBool;
         std::function<void(Superlink*, var_void*)> m_nullExprVoid;
 
         vector<std::function<double(Superlink*, var_float*)>> m_varExprFloat;
+        vector<std::function<vector<double>(Superlink*, var_float_array*)>> m_varExprFloatArray;
+        vector<std::function<vector<bool>(Superlink*, var_bool_array*)>> m_varExprBoolArray;
         vector<std::function<double(Superlink*, var_double*)>> m_varExprDouble;
         vector<std::function<int(Superlink*, var_int*)>> m_varExprInt;
         vector<std::function<bool(Superlink*, var_bool*)>> m_varExprBool;
         vector<std::function<void(Superlink*, var_void*)>> m_varExprVoid;
 
         Float_t* m_varFloat;
+        vector<vector<double>> m_varFloatArray;
+        vector<vector<bool>> m_varBoolArray;
         Double_t* m_varDouble;
         Int_t* m_varInt;
         Bool_t* m_varBool;

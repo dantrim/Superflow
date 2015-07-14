@@ -8,6 +8,7 @@
 #include "SusyNtuple/SusyNtObject.h"
 #include "SusyNtuple/SusyNtTools.h"
 #include "SusyNtuple/AnalysisType.h"
+#include "SusyNtuple/Trigger.h"
 
 #include "Superflow/Supersys.h"
 #include "Superflow/DataDefinitions.h"
@@ -28,6 +29,8 @@ namespace sflow {
         bool isData;
         
         SusyNtTools* tools;
+
+        Trigger* ntTrig;
 
         AnalysisType anaType;
 
