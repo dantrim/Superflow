@@ -9,6 +9,7 @@
 #include "SusyNtuple/SusyNtTools.h"
 #include "SusyNtuple/DilTrigLogic.h"
 #include "SusyNtuple/AnalysisType.h"
+#include "SusyNtuple/Trigger.h"
 
 #include "Superflow/Supersys.h"
 #include "Superflow/DataDefinitions.h"
@@ -31,6 +32,8 @@ namespace sflow {
         bool doFake;
 
         SusyNtTools* tools;
+
+        Trigger* ntTrig;
 
         AnalysisType anaType;
 
