@@ -26,6 +26,7 @@
 #include "Mt2/mt2_bisect.h"
 
 
+
 using namespace std;
 using namespace sflow;
 
@@ -36,6 +37,7 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
 
 int main(int argc, char* argv[])
 {
+    cout << "main" << endl;
     // START read-in
     int n_skip_ = 0;
     int num_events_ = -1;
