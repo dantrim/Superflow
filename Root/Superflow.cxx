@@ -1021,6 +1021,7 @@ namespace sflow {
 
     bool Superflow::initMcWeighter(TTree *tree)
     {
+        cout << app_name << "initMcWeighter Initializing MCWeighter" << endl;
         bool success = false;
         if (tree) {
             string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc15_13TeV/");
@@ -1175,8 +1176,7 @@ namespace sflow {
                     default: break;
                 }
                 if (do_btag_) {
-                    weights_->btag = 1.0;
-                    #warning fixing btag weight to 1.0!
+                    weights_->btag = (jets.size() ? jets.at(0)->effscalefact : 1.0);
                     //weights_->btag = computeBtagWeight(jets, nt.evt(), super_sys->weight_syst);
                 }
 
