@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     Superflow* cutflow = new Superflow(); // initialize the cutflow
     cutflow->setAnaName("SuperflowAna");
     cutflow->setAnaType(AnalysisType::Ana_2Lep); 
-    cutflow->setLumi(LUMI_A_A4); // set the MC normalized to lumi periods A1-A3
+    cutflow->setLumi(6.6); // set the MC normalized to lumi periods A1-A3
     cutflow->setSampleName(sample_);
     cutflow->setRunMode(run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows
@@ -297,6 +297,17 @@ int main(int argc, char* argv[])
             };
         *cutflow << SaveVar();
     }
+    *cutflow << NewVar("lepton d0sig (BSCorr)"); {
+        *cutflow << HFTname("l_d0sigBSCorr");
+        *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
+            vector<double> d0sigBSCorr;
+            for(int i = 0; i < leptons.size(); i++) {
+                d0sigBSCorr.push_back(leptons.at(i)->d0sigBSCorr);
+            }
+            return d0sigBSCorr;
+            };
+        *cutflow << SaveVar();
+    }
     *cutflow << NewVar("lepton z0"); {
         *cutflow << HFTname("l_z0");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
@@ -358,6 +369,28 @@ int main(int argc, char* argv[])
             vector<double> out;
             for(int i = 0; i < leptons.size(); i++) {
                 out.push_back(leptons.at(i)->ptvarcone30);
+            }
+            return out;
+            };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar("lepton etconetopo20"); {
+        *cutflow << HFTname("l_etconetopo20");
+        *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
+            vector<double> out;
+            for(int i = 0; i < leptons.size(); i++) {
+                out.push_back(leptons.at(i)->etconetopo20);
+            }
+            return out;
+            };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar("lepton etconetopo30"); {
+        *cutflow << HFTname("l_etconetopo30");
+        *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
+            vector<double> out;
+            for(int i = 0; i < leptons.size(); i++) {
+                out.push_back(leptons.at(i)->etconetopo30);
             }
             return out;
             };

@@ -50,13 +50,16 @@ using namespace sflow;
 //
 //MC Backgrounds + DATA
 //
-#define DIR_DATA "/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0206pup/Jun30_signal/data/Processed/"
+#define DIR_DATA "/scratch/dantrim/n0209/"
 #define DATA_FILE "data15_13TeV.root"
 
-#define DIR_MC "/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0206pup/Jun30_signal/mc/Processed/"
+//#define DIR_MC "/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0206pup/Jun30_signal/mc/Processed/"
+#define DIR_MC "/scratch/dantrim/n0209/"
 #define MC_FILE "mc15_13TeV.root"
 
-#define DIR_1 "/gdata/atlas/dantrim/SusyAna/userSusyNt/plots_Jul2/"
+#define TT_FILE "ttbar_wjets_mc15_13TeV.root"
+
+#define DIR_1 "/gdata/atlas/dantrim/SusyAna/n0209val/plots/"
 
 
 const string m_central = "CENTRAL";
