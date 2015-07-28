@@ -127,8 +127,8 @@ int main(int argc, char* argv[])
     *cutflow << CutName("tau veto") << [](Superlink* sl) -> bool {
         return sl->taus->size() == 0;
     };
-    *cutflow << CutName("exactly 2 signal leptons") << [](Superlink* sl) -> bool {
-        return sl->leptons->size() == 2;
+    *cutflow << CutName("at least 1 signal lepton") << [](Superlink* sl) -> bool {
+        return sl->leptons->size() >= 1;
     };
 
     ////////////////////////////////////////////////////////////
@@ -227,19 +227,6 @@ int main(int argc, char* argv[])
                 lep_flav.push_back(leptons.at(i)->isEle() ? 0 : 1);
             }
             return lep_flav;
-            };
-        *cutflow << SaveVar();
-    }
-    *cutflow << NewVar("dilepton event type (0: EE, 1: MM, 2: EM + ME)"); {
-        *cutflow << HFTname("dilEvtType");
-        *cutflow << [&](Superlink* sl, var_int*) -> int {
-            int type = -1;
-            Lepton* l0 = leptons.at(0);
-            Lepton* l1 = leptons.at(1);
-            if(l0->isEle() && l1->isEle()) type = 1;
-            else if (!l0->isEle() && !l1->isEle()) type = 2;
-            else if ( (l0->isEle() && !l1->isEle()) || (!l0->isEle() && l1->isele())) type = 3;
-            return type;
             };
         *cutflow << SaveVar();
     }
@@ -546,6 +533,17 @@ int main(int argc, char* argv[])
     }
 */
     // muons
+    *cutflow << NewVar("mu is signal (SUSYTools 'signal' flag)"); {
+        *cutflow << HFTname("mu_STsignal");
+        *cutflow << [&](Superlink* sl, var_bool_array*) -> vector<bool> {
+            vector<bool> out;
+            for(int i = 0; i < muons.size(); i++) {
+                out.push_back(muons.at(i)->isSignal);
+            }
+            return out;
+            };
+        *cutflow << SaveVar();
+    }
     *cutflow << NewVar("mu passes veryLoose"); {
         *cutflow << HFTname("mu_isVeryLoose");
         *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
@@ -674,6 +672,34 @@ int main(int argc, char* argv[])
         };
         *cutflow << SaveVar();
     }
+
+    *cutflow << NewVar("delta phi between two leptons"); {
+        *cutflow << HFTname("dphi_ll");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            double dphi = -999.0;
+            if(leptons.size()==2) {
+                Lepton l0 = *leptons.at(0);
+                Lepton l1 = *leptons.at(1);
+                dphi = l0.DeltaPhi(l1);
+            }
+            return dphi;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("delta eta between two leptons"); {
+        *cutflow << HFTname("deta_ll");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            double deta = -999.0;
+            if(leptons.size()==2) {
+                Lepton l0 = *leptons.at(0);
+                Lepton l1 = *leptons.at(1);
+                deta = l0.Eta() - l1.Eta();
+            }
+            return deta;
+        };
+        *cutflow << SaveVar();
+    }
 /*
     Trigger* trigtool = new Trigger(chain, true);
     *cutflow << NewVar("m_mumu - invariant mass of di-muon events with muons matched to HLT_mu14"); {
@@ -744,6 +770,57 @@ int main(int argc, char* argv[])
             if(passPt && passEta && !isBjet) { sjets.push_back(j); }
         }
     };
+    
+    *cutflow << NewVar("dphi between lead jet and dilepton system (Z-balance)"); {
+        *cutflow << HFTname("phi_balance");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            double balance = -99.0;
+            if(leptons.size()==2 && jets.size()>0) {
+                Lepton* l0 = leptons.at(0);
+                Lepton* l1 = leptons.at(1);
+                TLorentzVector ll = *l0 + *l1;
+                Jet* j0 = jets.at(0);
+
+                balance = j0->DeltaPhi(ll);
+            }
+            return balance;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("pT balance (pT-leadJet / pTll)"); {
+        *cutflow << HFTname("pT_balance");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            double balance = -99.0;
+            if(leptons.size()==2 && jets.size()>0) {
+                Lepton* l0 = leptons.at(0);
+                Lepton* l1 = leptons.at(1);
+                TLorentzVector ll = *l0 + *l1;
+                Jet* j0 = jets.at(0);
+
+                balance = (j0->Pt() / ll.Pt()) * 1.0;
+            }
+            return balance;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("pT balance of sub-lead (pT-sublead /pTll)"); {
+        *cutflow << HFTname("pT_sublead_balance");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            double balance = -99.0;
+            if(leptons.size()==2 && jets.size()>1) {
+                Lepton* l0 = leptons.at(0);
+                Lepton* l1 = leptons.at(1);
+                TLorentzVector ll = *l0 + *l1;
+                Jet* j1 = jets.at(1);
+
+                balance = (j1->Pt() / ll.Pt()) * 1.0;
+            }
+            return balance;
+        };
+        *cutflow << SaveVar();
+    }
     
     *cutflow << NewVar("number of jets"); {
         *cutflow << HFTname("nJets");
@@ -1026,6 +1103,22 @@ int main(int argc, char* argv[])
         *cutflow << SaveVar();
     }
 
+    *cutflow << NewVar("phi coord. of Etmiss"); {
+        *cutflow << HFTname("metPhi");
+        *cutflow << [&](Superlink* sl, var_float*) -> double { return met.lv().Phi(); };
+        *cutflow << SaveVar();
+    }
+    
+    *cutflow << NewVar("x-coord. of Etmiss"); {
+        *cutflow << HFTname("metX");
+        *cutflow << [&](Superlink* sl, var_float*) -> double { return (met.lv().Pt() * cos(met.lv().Phi())); };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar("y-coord. of Etmiss"); {
+        *cutflow << HFTname("metY");
+        *cutflow << [&](Superlink* sl, var_float*) -> double { return (met.lv().Pt() * sin(met.lv().Phi())); };
+        *cutflow << SaveVar();
+    }
 
     *cutflow << NewVar("met rel"); {
         *cutflow << HFTname("Etmiss rel");
@@ -1035,6 +1128,54 @@ int main(int argc, char* argv[])
         *cutflow << SaveVar();
     }
 
+    *cutflow << NewVar("Ref electron term et"); {
+        *cutflow << HFTname("refEle_et");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refEle_et;
+        };
+        *cutflow << SaveVar();
+    }
+    
+    *cutflow << NewVar("Ref gamma term et"); {
+        *cutflow << HFTname("refGamma_et");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refGamma_et;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref tau term et"); {
+        *cutflow << HFTname("refTau_et");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refTau_et;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref jet term et"); {
+        *cutflow << HFTname("refJet_et");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refJet_et;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Met soft term et"); {
+        *cutflow << HFTname("softTerm_et");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.softTerm_et;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref muon term et"); {
+        *cutflow << HFTname("refMuo_et");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refMuo_et;
+        };
+        *cutflow << SaveVar();
+    }
+    
     *cutflow << NewVar("sumet"); {
         *cutflow << HFTname("sumet");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
@@ -1043,9 +1184,185 @@ int main(int argc, char* argv[])
         *cutflow << SaveVar();
     }
 
-    ///////////////////////////////////////
+    *cutflow << NewVar("Ref electron term sumet"); {
+        *cutflow << HFTname("refEle_sumet");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refEle_sumet;
+        };
+        *cutflow << SaveVar();
+    }
+    
+    *cutflow << NewVar("Ref gamma term sumet"); {
+        *cutflow << HFTname("refGamma_sumet");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refGamma_sumet;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref tau term sumet"); {
+        *cutflow << HFTname("refTau_sumet");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refTau_sumet;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref jet term sumet"); {
+        *cutflow << HFTname("refJet_sumet");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refJet_sumet;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Met soft term sumet"); {
+        *cutflow << HFTname("softTerm_sumet");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.softTerm_sumet;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref muon term sumet"); {
+        *cutflow << HFTname("refMuo_sumet");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refMuo_sumet;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref electron term phi"); {
+        *cutflow << HFTname("refEle_phi");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refEle_phi;
+        };
+        *cutflow << SaveVar();
+    }
+    
+    *cutflow << NewVar("Ref gamma term phi"); {
+        *cutflow << HFTname("refGamma_phi");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refGamma_phi;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref tau term phi"); {
+        *cutflow << HFTname("refTau_phi");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refTau_phi;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref jet term phi"); {
+        *cutflow << HFTname("refJet_phi");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refJet_phi;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Met soft term phi"); {
+        *cutflow << HFTname("softTerm_phi");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.softTerm_phi;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("Ref muon term phi"); {
+        *cutflow << HFTname("refMuo_phi");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.refMuo_phi;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("dphi met ref ele"); {
+        *cutflow << HFTname("dphi_met_eleTerm");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            TLorentzVector refTLV;
+            float et  = met.refEle_et;
+            float phi = met.refEle_phi;
+            refTLV.SetPtEtaPhiE(et, 0, phi, et);
+            return met.lv().DeltaPhi(refTLV);
+        };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar("dphi met ref gamma"); {
+        *cutflow << HFTname("dphi_met_gammaTerm");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            TLorentzVector refTLV;
+            float et  = met.refGamma_et;
+            float phi = met.refGamma_phi;
+            refTLV.SetPtEtaPhiE(et, 0, phi, et);
+            return met.lv().DeltaPhi(refTLV);
+        };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar( "dphi met ref tau"); {
+        *cutflow << HFTname("dphi_met_tauTerm");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            TLorentzVector refTLV;
+            float et  = met.refTau_et;
+            float phi = met.refTau_phi;
+            refTLV.SetPtEtaPhiE(et, 0, phi, et);
+            return met.lv().DeltaPhi(refTLV);
+        };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar( "dphi met ref jet"); {
+        *cutflow << HFTname("dphi_met_jetTerm");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            TLorentzVector refTLV;
+            float et  = met.refJet_et;
+            float phi = met.refJet_phi;
+            refTLV.SetPtEtaPhiE(et, 0, phi, et);
+            return met.lv().DeltaPhi(refTLV);
+        };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar( "dphi met ref soft"); {
+        *cutflow << HFTname("dphi_met_softTerm");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            TLorentzVector refTLV;
+            float et  = met.softTerm_et;
+            float phi = met.softTerm_phi;
+            refTLV.SetPtEtaPhiE(et, 0, phi, et);
+            return met.lv().DeltaPhi(refTLV);
+        };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar( "dphi met ref muon"); {
+        *cutflow << HFTname("dphi_met_muonTerm");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            TLorentzVector refTLV;
+            float et  = met.refMuo_et;
+            float phi = met.refMuo_phi;
+            refTLV.SetPtEtaPhiE(et, 0, phi, et);
+            return met.lv().DeltaPhi(refTLV);
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("transverse mass"); {
+        *cutflow << HFTname("mT0");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            double mT = -999;
+            if(leptons.size()>0) {
+                mT = sqrt(2 * leptons.at(0)->Pt() * met.Et * (1 - cos(leptons.at(0)->DeltaPhi((met.lv())))));
+            }
+            return mT;
+        };
+        *cutflow << SaveVar();
+    }
+
+
+    ////////////////////////////////////////
     // WW-like analysis variables
-    ///////////////////////////////////////
+    ////////////////////////////////////////
     double meff = 0.0;
     *cutflow << NewVar("meff : scalar sum pt of all jets, leptons, and met"); {
         *cutflow << HFTname("meff");
@@ -1081,8 +1398,10 @@ int main(int argc, char* argv[])
         *cutflow << HFTname("R2");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
             double R2 = -99.0;
-            double denom = met.lv().Pt() + leptons.at(0)->Pt() + leptons.at(1)->Pt();
-            R2 = met.lv().Pt() / denom * 1.0;
+            if(leptons.size()==2){
+                double denom = met.lv().Pt() + leptons.at(0)->Pt() + leptons.at(1)->Pt();
+                R2 = met.lv().Pt() / denom * 1.0;
+            }
             return R2;
         };
         *cutflow << SaveVar();
@@ -1091,12 +1410,143 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("deltaX: pz0 + pz1 / sqrt(s)"); {
         *cutflow << HFTname("deltaX");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
-            double sqrtS= 13000.0;
-            double num = leptons.at(0)->Pz() + leptons.at(1)->Pz();
-            return num / sqrtS * 1.0;
+            double deltaX = -999.0;
+            if(leptons.size()==2){
+                double sqrtS= 13000.0;
+                double num = leptons.at(0)->Pz() + leptons.at(1)->Pz();
+                deltaX = num / sqrtS * 1.0;
+            }
+            return deltaX;
         };
         *cutflow << SaveVar();
     }
+
+    *cutflow << NewVar("cosine(Theta_b)"); {
+        *cutflow << HFTname("cosThetaB");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            double cosThetaB = -999.0;
+            if(leptons.size()==2){
+                TLorentzVector ll = *leptons.at(0) + *leptons.at(1);
+                TVector3& boost = ll.Vect();
+
+                // boost the dilepton system
+                ll.Boost(-boost);
+                cosThetaB = ll.CosTheta();
+            }
+            return cosThetaB;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("stransverse mass (mT2)"); {
+        *cutflow << HFTname("mt2");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            double mt2 = -999.0;
+            if(leptons.size()==2) {
+                mt2_bisect::mt2 mt2_event;
+                double *pa, *pb, *pmiss;
+                pa = new double[3]; pa[0] = sl->leptons->at(0)->M(); pa[1] = sl->leptons->at(0)->Px(), pa[2] = sl->leptons->at(0)->Py();
+                pb = new double[3]; pb[0] = sl->leptons->at(1)->M(); pb[1] = sl->leptons->at(1)->Px(), pb[2] = sl->leptons->at(1)->Py();
+                pmiss = new double[3]; pmiss[0] = 0.0; pmiss[1] = sl->met->Et * cos(sl->met->phi); pmiss[2] = sl->met->Et * sin(sl->met->phi);
+ 
+                mt2_event.set_momenta(pa, pb, pmiss);
+                mt2_event.set_mn(0.0); // LSP mass = 0 is Generic
+ 
+                mt2 = mt2_event.get_mt2();
+ 
+                delete[] pa;
+                delete[] pb;
+                delete[] pmiss;
+            }
+            return mt2;
+        };
+        *cutflow << SaveVar();
+    }
+
+    TLorentzVector pb_ll;
+    *cutflow << NewVar("pb_ll"); {
+        *cutflow << HFTname("pBll");
+        *cutflow << [&](Superlink* sl, var_double*) -> double {
+            double pBll_pt = -999.0;
+            if(leptons.size()==2) {
+                pb_ll = (met.lv() + *leptons.at(0) + *leptons.at(1));
+                pBll_pt = pb_ll.Pt();
+            }
+            return pBll_pt;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("dphi pBll-mET"); {
+        *cutflow << HFTname("dphi_met_pbll");
+        *cutflow << [&](Superlink* sl, var_double*) -> double {
+            TLorentzVector met_tlv = met.lv();
+            double dphi = -999.0;
+            if(leptons.size()==2) {
+                dphi = fabs(met_tlv.DeltaPhi(pb_ll));
+            }
+            return dphi;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("delta phi between met and closest jet"); {
+        *cutflow << HFTname("dphi_met_j");
+        *cutflow << [&](Superlink* sl, var_double*) -> double {
+            TLorentzVector met_tlv = met.lv();
+            double dR = -999;
+            unsigned int closest_jet_index;
+            for(unsigned int ij = 0; ij < jets.size(); ij++){
+                Jet j = *jets.at(ij);
+                if(fabs(met_tlv.DeltaR(j)) < dR) {
+                    dR = fabs(met_tlv.DeltaR(j));
+                    closest_jet_index = ij;
+                }
+            }
+            return fabs(met_tlv.DeltaPhi(*jets.at(closest_jet_index)));
+        };
+        *cutflow << SaveVar();
+    }
+                
+
+    // dilepton super-razor variables
+    double MDR, shatr, cosThetaRp1, DPB, dphi_l1_l2, gamma_r = -999.0;
+    double dphi_vBeta_R_vBeta_T = -999.0;
+    TVector3 vBeta_z, pT_CM, vBeta_T_CMtoR, vBeta_r;
+    *cutflow << NewVar("Super-razor variables -- shatr"); {
+        *cutflow << HFTname("shatr");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            if(leptons.size()==2){
+                sl->tools->superRazor(leptons, met, vBeta_z, pT_CM,
+                                  vBeta_T_CMtoR, vBeta_r, shatr, DPB,
+                                  dphi_l1_l2, gamma_r, dphi_vBeta_R_vBeta_T,
+                                  MDR, cosThetaRp1);
+            }
+            return shatr;
+        };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar("Super-razor variables -- MDR"); {
+        *cutflow << HFTname("MDR");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return MDR;
+        };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar("Super-razor variables -- CosThetaR+1"); {
+        *cutflow << HFTname("cosThetaRp1");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return cosThetaRp1;
+        };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar("Super-razor variables -- DPB"); {
+        *cutflow << HFTname("DPB");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return DPB;
+        };
+        *cutflow << SaveVar();
+    } 
 
 
     *cutflow << [&](Superlink* sl, var_void*) { leptons.clear(); };
