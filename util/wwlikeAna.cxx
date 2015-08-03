@@ -1521,7 +1521,7 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("Super-razor variables -- shatr"); {
         *cutflow << HFTname("shatr");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
-            MDR, shatr, cosThetaRp1, DPB, dphi_l1_l2, gamma_r = -999.0;
+            MDR = shatr = cosThetaRp1 = DPB = dphi_l1_l2 = gamma_r = -999.0;
             dphi_vBeta_R_vBeta_T = -999.0;
             if(leptons.size()==2){
                 sl->tools->superRazor(leptons, &met, vBeta_z, pT_CM,
@@ -1568,6 +1568,17 @@ int main(int argc, char* argv[])
     //  Output Ntuple Setup
     //      > Setup the output systematic ntuples
     ////////////////////////////////////////////////////////////
+
+    //
+    //// Weight variation systematics
+    //
+
+    *cutflow << NewSystematic("shift in data mu"); {
+        *cutflow << WeightSystematic(SupersysWeight::PILEUPUP, SupersysWeight::PILEUPDOWN);
+        *cutflow << TreeName("PILEUP");
+        *cutflow << SaveSystematic();
+    }
+
 /*
     //
     // Weight variation systematics
