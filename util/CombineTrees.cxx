@@ -20,13 +20,13 @@ void list_files(vector<string>& list, string dir);
 map<string, string> get_listnames();
 
 // MC_TEXT_DIR : directory containing the filelists
-const string MC_TEXT_DIR     = "/gdata/atlas/dantrim/SusyAna/userSusyNt/Superflow/run/filelists/n0206pup/";
+const string MC_TEXT_DIR     = "/gdata/atlas/dantrim/SusyAna/n0209val/Superflow/run/filelists/n0209/";
 // RAW_SAMPLES_DIR : directory where the "raw" ntuples are located
-const string RAW_SAMPLES_DIR = "/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0206pup/Jul7_signal/mc/Raw/";
+const string RAW_SAMPLES_DIR = "/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0209/stop2l/data/Raw/";
 // NEW_SAMPLES_DIR : output location for the merged ntuple
-const string NEW_SAMPLES_DIR = "/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0206pup/Jul7_signal/mc/Processed/";
+const string NEW_SAMPLES_DIR = "/scratch/dantrim/n0209/wwlike/";
 // OUT_FILENAME : name of output, merged ntuple
-const string OUT_FILENAME    = "mc15_13TeV.root";
+const string OUT_FILENAME    = "data15_perC_13TeV.root";
 
 struct hft_process {
     string in_file_string;
@@ -37,20 +37,46 @@ vector<hft_process> defineTrees(bool do_data) {
     hft_process process;
    
     if(!do_data) { 
-        process.in_file_string   = "powhegpythia_W_n0206pup.txt";
-        process.output_tree_name = "W";
+
+        process.in_file_string   = "singletop_n0209.txt";
+        process.output_tree_name = "ST";
         out_process.push_back(process);
-        
-        process.in_file_string   = "powhegpythia_Z_n0206pup.txt";
-        process.output_tree_name = "Z";
+       
+        process.in_file_string   = "ttbar_n0209.txt";
+        process.output_tree_name = "TTbar";
         out_process.push_back(process);
-        
-        process.in_file_string   = "powheg_ttbar_n0206pup.txt";
-        process.output_tree_name = "ttbar";
+
+        process.in_file_string   = "wjets_n0209.txt";
+        process.output_tree_name = "Wjets";
         out_process.push_back(process);
+
+        process.in_file_string   = "ww_n0209.txt";
+        process.output_tree_name = "WW";
+        out_process.push_back(process);
+
+        process.in_file_string   = "wz_n0209.txt";
+        process.output_tree_name = "WZ";
+        out_process.push_back(process);
+
+        process.in_file_string   = "zz_n0209.txt";
+        process.output_tree_name = "ZZ";
+        out_process.push_back(process);
+
+        process.in_file_string   = "zmm_n0209.txt";
+        process.output_tree_name = "Zmm";
+        out_process.push_back(process);
+
+        process.in_file_string   = "ztt_n0209.txt";
+        process.output_tree_name = "Ztt";
+        out_process.push_back(process);
+
+        process.in_file_string   = "zee_n0209.txt";
+        process.output_tree_name = "Zee";
+        out_process.push_back(process); 
+ 
     }
     else if(do_data) {
-        process.in_file_string   = "dummy_n0206pup.txt";
+        process.in_file_string   = "data15_perC_n0209.txt";
         process.output_tree_name = "Data";
         out_process.push_back(process);
     }

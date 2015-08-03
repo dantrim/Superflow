@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -p atlas_slow
+#SBATCH -p atlas_all
 # #SBATCH --distribution=cyclic
 ###SBATCH --exclude=c-12-19,c-12-23,c-12-35,c-12-15
 ##SBATCH --exclude=c-12-35,c-12-39,c-12-15,c-12-23,c-12-27,c-12-31

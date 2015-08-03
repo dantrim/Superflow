@@ -1363,10 +1363,11 @@ int main(int argc, char* argv[])
     ////////////////////////////////////////
     // WW-like analysis variables
     ////////////////////////////////////////
-    double meff = 0.0;
+    double meff;
     *cutflow << NewVar("meff : scalar sum pt of all jets, leptons, and met"); {
         *cutflow << HFTname("meff");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
+            meff = 0.0;
             // met
             meff += met.lv().Pt();
             // jets
@@ -1426,12 +1427,16 @@ int main(int argc, char* argv[])
         *cutflow << [&](Superlink* sl, var_float*) -> double {
             double cosThetaB = -999.0;
             if(leptons.size()==2){
+                // ask giacomo, et al. how exactly they calculate the variable
+                // in the referenced papers they are crap
+                TLorentzVector l0 = *leptons.at(0);
+                TLorentzVector l1 = *leptons.at(1);
                 TLorentzVector ll = *leptons.at(0) + *leptons.at(1);
-                TVector3& boost = ll.Vect();
-
-                // boost the dilepton system
-                ll.Boost(-boost);
-                cosThetaB = ll.CosTheta();
+                TVector3 boost = (1./(l0.E()+l1.E()))*(l0+l1).Vect();
+                boost.SetX(0.0);
+                boost.SetY(0.0);
+                l0.Boost(-boost);
+                cosThetaB = l0.CosTheta();
             }
             return cosThetaB;
         };
@@ -1493,31 +1498,33 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("delta phi between met and closest jet"); {
         *cutflow << HFTname("dphi_met_j");
         *cutflow << [&](Superlink* sl, var_double*) -> double {
+            double dphi = -999.0;
             TLorentzVector met_tlv = met.lv();
-            double dR = -999;
-            unsigned int closest_jet_index;
+            double dR = 999;
             for(unsigned int ij = 0; ij < jets.size(); ij++){
                 Jet j = *jets.at(ij);
                 if(fabs(met_tlv.DeltaR(j)) < dR) {
                     dR = fabs(met_tlv.DeltaR(j));
-                    closest_jet_index = ij;
+                    dphi = fabs(met_tlv.DeltaPhi(j));
                 }
             }
-            return fabs(met_tlv.DeltaPhi(*jets.at(closest_jet_index)));
+            return dphi;
         };
         *cutflow << SaveVar();
     }
                 
 
     // dilepton super-razor variables
-    double MDR, shatr, cosThetaRp1, DPB, dphi_l1_l2, gamma_r = -999.0;
-    double dphi_vBeta_R_vBeta_T = -999.0;
+    double MDR, shatr, cosThetaRp1, DPB, dphi_l1_l2, gamma_r;
+    double dphi_vBeta_R_vBeta_T;
     TVector3 vBeta_z, pT_CM, vBeta_T_CMtoR, vBeta_r;
     *cutflow << NewVar("Super-razor variables -- shatr"); {
         *cutflow << HFTname("shatr");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
+            MDR, shatr, cosThetaRp1, DPB, dphi_l1_l2, gamma_r = -999.0;
+            dphi_vBeta_R_vBeta_T = -999.0;
             if(leptons.size()==2){
-                sl->tools->superRazor(leptons, met, vBeta_z, pT_CM,
+                sl->tools->superRazor(leptons, &met, vBeta_z, pT_CM,
                                   vBeta_T_CMtoR, vBeta_r, shatr, DPB,
                                   dphi_l1_l2, gamma_r, dphi_vBeta_R_vBeta_T,
                                   MDR, cosThetaRp1);

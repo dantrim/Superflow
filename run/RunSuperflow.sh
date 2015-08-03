@@ -1,21 +1,20 @@
 #!/bin/bash
 
-R_ANA_NAME='toyNtAnaSignal'
-R_START_DIR='/gdata/atlas/dantrim/SusyAna/userSusyNt/'
-R_OUTPUT_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0206pup/Jul7_signal/mc/Raw/'
-R_LOG_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0206pup/Jul7_signal/mc/logs/'
+R_ANA_NAME='wwlikeAna'
+R_START_DIR='/gdata/atlas/dantrim/SusyAna/n0209val/'
+R_OUTPUT_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0209/stop2l/data/Raw/'
+R_LOG_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0209/stop2l/data/logs/'
 
 R_WORK_BASE='/scratch/dantrim/'
 
-R_RUN='/gdata/atlas/dantrim/SusyAna/userSusyNt/Superflow/run/'
+R_RUN='/gdata/atlas/dantrim/SusyAna/n0209val/Superflow/run/'
 R_GEN=${R_RUN}
-R_LIST_DIR=${R_GEN}"filelists/n0206pup/"
-R_LIST_POST='_n0206pup.txt'
+R_LIST_DIR=${R_GEN}"filelists/n0209/"
+R_LIST_POST='_n0209.txt'
 
-#R_SAMPLES_LIST=("powhegpythia_W ztt")
-#R_SAMPLES_LIST=("powhegpythia_W powheg_ttbar") # ztt")
-R_SAMPLES_LIST=("zmm")
-#R_SAMPLES_LIST=("data15")
+#R_SAMPLES_LIST=("ttbar wjets ww wz zz singletop zee zmm ztt")
+#R_SAMPLES_LIST=("zee")
+R_SAMPLES_LIST=("data15_perC")
 #R_SAMPLES_LIST=("powheg_ttbar")
 #R_SAMPLES_LIST=("data15_A1ok")
 #R_SAMPLES_LIST=("data15_perA")
@@ -50,6 +49,6 @@ for file_ in ${R_SAMPLES_LIST[@]}; do
 		
 		echo $strip_two
 		
-		sbatch -J 'zmm '${strip_two} -o ${R_LOG_DIR}${lFileName}_slurm-%j.log ${R_RUN}Superflow.sh 
+		sbatch -J 'data '${strip_two} -o ${R_LOG_DIR}${lFileName}_slurm-%j.log ${R_RUN}Superflow.sh 
 	done
 done
