@@ -21,6 +21,24 @@ namespace sflow {
     };
 
     enum class SupersysWeight {
+        EL_EFF_ID_UP,
+        EL_EFF_ID_DOWN,
+        EL_EFF_RECO_UP,
+        EL_EFF_RECO_DOWN,
+        MUON_EFF_STAT_UP,
+        MUON_EFF_STAT_DOWN,
+        MUON_EFF_SYST_UP,
+        MUON_EFF_SYST_DOWN,
+        PILEUP_UP,
+        PILEUP_DOWN,
+        null,
+        block
+    };
+    
+
+/*
+ // run 1 sys
+    enum class SupersysWeight {
         ETRIGREWUP,         ///< Positive shift in electron trigger weights
         ETRIGREWDOWN,       ///< Negative shift in electron trigger weights
         MTRIGREWUP,         ///< Positive shift in muon trigger weights
@@ -42,7 +60,7 @@ namespace sflow {
         null,               ///< Nominal value
         block               ///< Prevent (re)calculation of the weight
     };
-
+*/
     class Supersys {
     public:
         Supersys();

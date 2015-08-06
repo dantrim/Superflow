@@ -794,17 +794,14 @@ namespace sflow {
                                 case SupervarType::sv_double: {
                                     m_varDouble_array[i][v_] = m_varExprDouble[v_](sl_, vd_); break;
                                 }
-                                case SupervarType::sv_float_array: { break; } 
-                     //               double array[25] = { 0.0 };
-                     //               for (int i = 0; i<25; i++) {
-                     //                   double* blah = m_varExprFloatArray[v_](sl_,vfa_);
-                     //               }
-                     //               double* out = array;
-                     //               m_varFloatArray[v_] = out; break;
-                     //               //    m_varFloatArray[v_][i] = m_varExprFloatArray[v_](sl_,vfa_)[i]; break;
-                     //               //}
-                     //           }
-                                case SupervarType::sv_bool_array: { break; }
+                                case SupervarType::sv_float_array: { 
+                                    m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
+                                    break;
+                                }
+                                case SupervarType::sv_bool_array: {
+                                    m_varBoolArray[v_] = m_varExprBoolArray[v_](sl_,vba_);
+                                    break;
+                                }
                                 case SupervarType::sv_int: {
                                     m_varInt_array[i][v_] = m_varExprInt[v_](sl_, vi_); break;
                                 }
@@ -869,15 +866,14 @@ namespace sflow {
                             case SupervarType::sv_double: {
                                 m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_); break;
                             }
-                            case SupervarType::sv_float_array: { break; } 
-               //                 double array[25] = { 0.0 };
-               //                 for (int i = 0; i<25; i++) {
-               //                     array[i] = m_varExprFloatArray[v_](sl_,vfa_)[i];
-               //                 }
-               //                 double* out = array;
-               //                 m_varFloatArray[v_] = out; break;
-               //             }
-                            case SupervarType::sv_bool_array: { break; }
+                            case SupervarType::sv_float_array: { 
+                                m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
+                                break;
+                            }
+                            case SupervarType::sv_bool_array: {
+                                m_varBoolArray[v_] = m_varExprBoolArray[v_](sl_,vba_);
+                                break;
+                            }
                             case SupervarType::sv_int: {
                                 m_varInt[v_] = m_varExprInt[v_](sl_, vi_); break;
                             }
@@ -1057,22 +1053,12 @@ namespace sflow {
             bool do_susynt_w = false;
 
             switch (super_sys->weight_syst) {
-                case SupersysWeight::XSUP: {
-                    wSys = MCWeighter::Sys_XSEC_UP;
-                    do_susynt_w = true;
-                    break;
-                }
-                case SupersysWeight::XSDOWN: {
-                    wSys = MCWeighter::Sys_XSEC_DN;
-                    do_susynt_w = true;
-                    break;
-                }
-                case SupersysWeight::PILEUPUP: {
+                case SupersysWeight::PILEUP_UP: {
                     wSys = MCWeighter::Sys_PILEUP_UP;
                     do_susynt_w = true;
                     break;
                 }
-                case SupersysWeight::PILEUPDOWN: {
+                case SupersysWeight::PILEUP_DOWN: {
                     wSys = MCWeighter::Sys_PILEUP_DN;
                     do_susynt_w = true;
                     break;
@@ -1089,23 +1075,28 @@ namespace sflow {
             if(leptons.size()>=1) {
                 bool do_lepSf_ = false;
                 switch(super_sys->weight_syst) {
-                    case SupersysWeight::ESFUP:
-                    case SupersysWeight::ESFDOWN:
-                    case SupersysWeight::MEFFUP:
-                    case SupersysWeight::MEFFDOWN:
-                    case SupersysWeight::null: {
+                    case SupersysWeight::EL_EFF_ID_UP :
+                    case SupersysWeight::EL_EFF_ID_DOWN :
+                    case SupersysWeight::EL_EFF_RECO_UP :
+                    case SupersysWeight::EL_EFF_RECO_DOWN :
+                    case SupersysWeight::MUON_EFF_STAT_UP :
+                    case SupersysWeight::MUON_EFF_STAT_DOWN :
+                    case SupersysWeight::MUON_EFF_SYST_UP :
+                    case SupersysWeight::MUON_EFF_SYST_DOWN :
+                    case SupersysWeight::null : {
                         do_lepSf_ = true;
                     }; break;
-                    default: break;
-                }
+                    default : break;
+                } // switch
                 if(do_lepSf_) {
-                    #warning hard coding lepton sf to nominal value
-                    double lep_sf = 1.0;
-                    for(int i = 0; i < leptons.size(); i++) {
-                        lep_sf *= leptons.at(i)->effSF;
+                    float outSF = 1.;
+                    for(unsigned int iL = 0; iL < leptons.size(); iL++) {
+                        const Lepton &lep = *(leptons[iL]);
+                        outSF *= computeLeptonEfficiencySf(lep, super_sys->weight_syst);
                     }
-                    weights_->lepSf = lep_sf;
-                }
+                    weights_->lepSf = outSF;
+                } // do_lepSf
+
 /*
             // Other weight systematic variations
             if (leptons.size() > 1) {
@@ -1164,24 +1155,27 @@ namespace sflow {
                 bool do_btag_ = false; // do_btag_
 
                 switch (super_sys->weight_syst) {
-                    case SupersysWeight::BJETUP:
-                    case SupersysWeight::BJETDOWN:
-                    case SupersysWeight::CJETUP:
-                    case SupersysWeight::CJETDOWN:
-                    case SupersysWeight::BMISTAGUP:
-                    case SupersysWeight::BMISTAGDOWN:
+              //      case SupersysWeight::BJETUP:
+              //      case SupersysWeight::BJETDOWN:
+              //      case SupersysWeight::CJETUP:
+              //      case SupersysWeight::CJETDOWN:
+              //      case SupersysWeight::BMISTAGUP:
+              //      case SupersysWeight::BMISTAGDOWN:
                     case SupersysWeight::null: {
                         do_btag_ = true;
                     } break;
                     default: break;
                 }
                 if (do_btag_) {
-                    weights_->btag = (jets.size() ? jets.at(0)->effscalefact : 1.0);
+                    double btagSF = 1.0;
+                    for(unsigned int ij = 0; ij < jets.size(); ij++) {
+                        btagSF *= jets.at(ij)->effscalefact;
+                    }
+                    weights_->btag = btagSF;
                     //weights_->btag = computeBtagWeight(jets, nt.evt(), super_sys->weight_syst);
                 }
 
-
-            }
+            } // leptons >= 1
         }
 
         return true;
@@ -1220,21 +1214,35 @@ namespace sflow {
         double delta = 0.0;
 
         if (lep.isEle()) {
-            if (sys == SupersysWeight::ESFUP) {
-                delta = (+lep.errEffSF);
+            const Electron* el = dynamic_cast<const Electron*> (&lep);
+            if (sys == SupersysWeight::EL_EFF_ID_UP) {
+                delta = el->errEffSF_id_corr_up;    // we store the signed errEffSF
             }
-            else if (sys == SupersysWeight::ESFDOWN) {
-                delta = (-lep.errEffSF);
+            else if (sys == SupersysWeight::EL_EFF_ID_DOWN) {
+                delta = el->errEffSF_id_corr_dn;    // we store the signed errEffSF
             }
-        }
+            else if (sys == SupersysWeight::EL_EFF_RECO_UP) {
+                delta = el->errEffSF_reco_corr_up;  // we store the signed errEffSF
+            }
+            else if (sys == SupersysWeight::EL_EFF_RECO_DOWN) {
+                delta = el->errEffSF_reco_corr_dn;  // we store the signed errEffSF
+            }
+        } // isEle
         else if (lep.isMu()) {
-            if (sys == SupersysWeight::MEFFUP) {
-                delta = (+lep.errEffSF);
+            const Muon* mu = dynamic_cast<const Muon*> (&lep);
+            if ( sys == SupersysWeight::MUON_EFF_STAT_UP ) {
+                delta = mu->errEffSF_stat_up;
             }
-            else if (sys == SupersysWeight::MEFFDOWN) {
-                delta = (-lep.errEffSF);
+            else if (sys == SupersysWeight::MUON_EFF_STAT_DOWN ) {
+                delta = mu->errEffSF_stat_dn;
             }
-        }
+            else if ( sys == SupersysWeight::MUON_EFF_SYST_UP ) {
+                delta = mu->errEffSF_syst_up;
+            }
+            else if ( sys == SupersysWeight::MUON_EFF_SYST_DOWN ) {
+                delta = mu->errEffSF_syst_dn;
+            }
+        } // isMu
 
         effFactor = (sf + delta); // ?? Seems odd.
         return effFactor;

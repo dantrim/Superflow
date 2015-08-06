@@ -57,9 +57,9 @@ int main(int argc, char* argv[])
     //  > Superflow inherits from SusyNtAna : TSelector
     ////////////////////////////////////////////////////////////
     Superflow* cutflow = new Superflow(); // initialize the cutflow
-    cutflow->setAnaName("SuperflowAna");
+    cutflow->setAnaName("wwlikeAna");
     cutflow->setAnaType(AnalysisType::Ana_2Lep); 
-    cutflow->setLumi(6.6); // set the MC normalized to lumi periods A1-A3
+    cutflow->setLumi(84.64); // set the MC normalized to lumi periods A1-A3
     cutflow->setSampleName(sample_);
     cutflow->setRunMode(run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows
@@ -1427,21 +1427,40 @@ int main(int argc, char* argv[])
         *cutflow << [&](Superlink* sl, var_float*) -> double {
             double cosThetaB = -999.0;
             if(leptons.size()==2){
-                // ask giacomo, et al. how exactly they calculate the variable
-                // in the referenced papers they are crap
-                TLorentzVector l0 = *leptons.at(0);
-                TLorentzVector l1 = *leptons.at(1);
-                TLorentzVector ll = *leptons.at(0) + *leptons.at(1);
-                TVector3 boost = (1./(l0.E()+l1.E()))*(l0+l1).Vect();
-                boost.SetX(0.0);
-                boost.SetY(0.0);
-                l0.Boost(-boost);
-                cosThetaB = l0.CosTheta();
+                TLorentzVector lp;
+                TLorentzVector lm;
+                for(unsigned int iL = 0; iL < leptons.size(); iL++){
+                    if(leptons.at(iL)->q < 0) lm = *leptons.at(iL);
+                    else if (leptons.at(iL)->q > 0) lp = *leptons.at(iL);
+                }
+                TLorentzVector ll = lp + lm;
+                TVector3 boost = ll.BoostVector();
+                lp.Boost(-boost);
+                lm.Boost(-boost);
+                cosThetaB = tanh((lp.Eta()-lm.Eta())/2.);
             }
             return cosThetaB;
         };
         *cutflow << SaveVar();
     }
+    *cutflow << NewVar("cosine(Theta)_ll"); {
+        *cutflow << HFTname("cosThetaLL");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            double cosThetaLL = -999.0;
+            if(leptons.size()==2){
+                TLorentzVector lp;
+                TLorentzVector lm;
+                for(unsigned int iL = 0; iL < leptons.size(); iL++){
+                    if(leptons.at(iL)->q < 0) lm = *leptons.at(iL);
+                    else if (leptons.at(iL)->q > 0) lp = *leptons.at(iL);
+                }
+                cosThetaLL = tanh((lp.Eta()-lm.Eta())/2.);
+            }
+            return cosThetaLL;
+        };
+        *cutflow << SaveVar();
+    }
+
 
     *cutflow << NewVar("stransverse mass (mT2)"); {
         *cutflow << HFTname("mt2");
@@ -1573,11 +1592,36 @@ int main(int argc, char* argv[])
     //// Weight variation systematics
     //
 
-    *cutflow << NewSystematic("shift in data mu"); {
-        *cutflow << WeightSystematic(SupersysWeight::PILEUPUP, SupersysWeight::PILEUPDOWN);
+    *cutflow << NewSystematic("shift in data mu by +/- 10 %"); {
+        *cutflow << WeightSystematic(SupersysWeight::PILEUP_UP, SupersysWeight::PILEUP_DOWN);
         *cutflow << TreeName("PILEUP");
         *cutflow << SaveSystematic();
     }
+
+    *cutflow << NewSystematic("shift in electron ID -SF"); {
+        *cutflow << WeightSystematic(SupersysWeight::EL_EFF_ID_UP, SupersysWeight::EL_EFF_ID_DOWN);
+        *cutflow << TreeName("ELEFFID");
+        *cutflow << SaveSystematic();
+    }
+
+    *cutflow << NewSystematic("shift in electron reco - SF"); {
+        *cutflow << WeightSystematic(SupersysWeight::EL_EFF_RECO_UP, SupersysWeight::EL_EFF_RECO_DOWN);
+        *cutflow << TreeName("ELEFFRECO");
+        *cutflow << SaveSystematic();
+    }
+
+    *cutflow << NewSystematic("shift in muon eff - stat"); {
+        *cutflow << WeightSystematic(SupersysWeight::MUON_EFF_STAT_UP, SupersysWeight::MUON_EFF_STAT_DOWN);
+        *cutflow << TreeName("MUEFFSTAT");
+        *cutflow << SaveSystematic();
+    }
+
+    *cutflow << NewSystematic("shift in muon eff - syst"); {
+        *cutflow << WeightSystematic(SupersysWeight::MUON_EFF_SYST_UP, SupersysWeight::MUON_EFF_SYST_DOWN);
+        *cutflow << TreeName("MUEFFSYST");
+        *cutflow << SaveSystematic();
+    }
+
 
 /*
     //

@@ -91,12 +91,12 @@ namespace sflow {
         BTagSys bsys = BTag_NOM;
 
         switch (sys) {
-            case SupersysWeight::BJETUP: bsys = BTag_BJet_UP; break;
-            case SupersysWeight::BJETDOWN: bsys = BTag_BJet_DN; break;
-            case SupersysWeight::CJETUP: bsys = BTag_CJet_UP; break;
-            case SupersysWeight::CJETDOWN: bsys = BTag_CJet_DN; break;
-            case SupersysWeight::BMISTAGUP: bsys = BTag_LJet_UP; break;
-            case SupersysWeight::BMISTAGDOWN: bsys = BTag_LJet_DN; break;
+          //  case SupersysWeight::BJETUP: bsys = BTag_BJet_UP; break;
+          //  case SupersysWeight::BJETDOWN: bsys = BTag_BJet_DN; break;
+          //  case SupersysWeight::CJETUP: bsys = BTag_CJet_UP; break;
+          //  case SupersysWeight::CJETDOWN: bsys = BTag_CJet_DN; break;
+          //  case SupersysWeight::BMISTAGUP: bsys = BTag_LJet_UP; break;
+          //  case SupersysWeight::BMISTAGDOWN: bsys = BTag_LJet_DN; break;
             default: break;
         }
         return bsys;

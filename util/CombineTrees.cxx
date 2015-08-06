@@ -20,13 +20,15 @@ void list_files(vector<string>& list, string dir);
 map<string, string> get_listnames();
 
 // MC_TEXT_DIR : directory containing the filelists
-const string MC_TEXT_DIR     = "/gdata/atlas/dantrim/SusyAna/n0209val/Superflow/run/filelists/n0209/";
+const string MC_TEXT_DIR     = "/gdata/atlas/dantrim/SusyAna/n0211val/Superflow/run/filelists/";
 // RAW_SAMPLES_DIR : directory where the "raw" ntuples are located
-const string RAW_SAMPLES_DIR = "/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0209/stop2l/data/Raw/";
+const string RAW_SAMPLES_DIR = "/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0211/mc/Raw/";
+//const string RAW_SAMPLES_DIR = "/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0211/noPRW/mc/Raw/";
 // NEW_SAMPLES_DIR : output location for the merged ntuple
-const string NEW_SAMPLES_DIR = "/scratch/dantrim/n0209/wwlike/";
+const string NEW_SAMPLES_DIR = "/scratch/dantrim/n0211/";
 // OUT_FILENAME : name of output, merged ntuple
-const string OUT_FILENAME    = "data15_perC_13TeV.root";
+const string OUT_FILENAME    = "mc15_13TeV_wjets_sherpa.root";
+//const string OUT_FILENAME    = "sigOpt_mc15_noPRW.root";
 
 struct hft_process {
     string in_file_string;
@@ -38,45 +40,45 @@ vector<hft_process> defineTrees(bool do_data) {
    
     if(!do_data) { 
 
-        process.in_file_string   = "singletop_n0209.txt";
-        process.output_tree_name = "ST";
-        out_process.push_back(process);
-       
-        process.in_file_string   = "ttbar_n0209.txt";
-        process.output_tree_name = "TTbar";
-        out_process.push_back(process);
+//        process.in_file_string   = "singletop_n0211.txt";
+//        process.output_tree_name = "ST";
+//        out_process.push_back(process);
+//       
+//        process.in_file_string   = "ttbar_n0211.txt";
+//        process.output_tree_name = "TTbar";
+//        out_process.push_back(process);
 
-        process.in_file_string   = "wjets_n0209.txt";
+///        process.in_file_string   = "bwn_250_160_n0211.txt";
+///        process.output_tree_name = "bwn_250_160";
+///        out_process.push_back(process);
+///
+///        process.in_file_string   = "bwn_300_180_n0211.txt";
+///        process.output_tree_name = "bwn_300_180";
+///        out_process.push_back(process);
+
+        process.in_file_string   = "wjets_sherpa_n0211.txt";
         process.output_tree_name = "Wjets";
         out_process.push_back(process);
 
-        process.in_file_string   = "ww_n0209.txt";
-        process.output_tree_name = "WW";
-        out_process.push_back(process);
+//        process.in_file_string   = "ww_powheg_n0211.txt";
+//        process.output_tree_name = "WW";
+//        out_process.push_back(process);
+//
+//        process.in_file_string   = "wz_powheg_n0211.txt";
+//        process.output_tree_name = "WZ";
+//        out_process.push_back(process);
+//
+//        process.in_file_string   = "zz_powheg_n0211.txt";
+//        process.output_tree_name = "ZZ";
+//        out_process.push_back(process);
+//
+//        process.in_file_string   = "zjets_powheg_n0211.txt";
+//        process.output_tree_name = "Zjets";
+//        out_process.push_back(process);
 
-        process.in_file_string   = "wz_n0209.txt";
-        process.output_tree_name = "WZ";
-        out_process.push_back(process);
-
-        process.in_file_string   = "zz_n0209.txt";
-        process.output_tree_name = "ZZ";
-        out_process.push_back(process);
-
-        process.in_file_string   = "zmm_n0209.txt";
-        process.output_tree_name = "Zmm";
-        out_process.push_back(process);
-
-        process.in_file_string   = "ztt_n0209.txt";
-        process.output_tree_name = "Ztt";
-        out_process.push_back(process);
-
-        process.in_file_string   = "zee_n0209.txt";
-        process.output_tree_name = "Zee";
-        out_process.push_back(process); 
- 
     }
     else if(do_data) {
-        process.in_file_string   = "data15_perC_n0209.txt";
+        process.in_file_string   = "datalist_n0211.txt";
         process.output_tree_name = "Data";
         out_process.push_back(process);
     }

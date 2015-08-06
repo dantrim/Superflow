@@ -1,27 +1,25 @@
 #!/bin/bash
 
 R_ANA_NAME='wwlikeAna'
-R_START_DIR='/gdata/atlas/dantrim/SusyAna/n0209val/'
-R_OUTPUT_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0209/stop2l/data/Raw/'
-R_LOG_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0209/stop2l/data/logs/'
+R_START_DIR='/gdata/atlas/dantrim/SusyAna/n0211val/'
+R_OUTPUT_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0211/mc/Raw/'
+R_LOG_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0211/mc/logs/'
+#R_OUTPUT_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0211/data/Raw/'
+#R_LOG_DIR='/gdata/atlas/dantrim/SusyAna/histoAna/run2early/n0211/data/logs/'
 
 R_WORK_BASE='/scratch/dantrim/'
 
-R_RUN='/gdata/atlas/dantrim/SusyAna/n0209val/Superflow/run/'
+R_RUN='/gdata/atlas/dantrim/SusyAna/n0211val/Superflow/run/'
 R_GEN=${R_RUN}
-R_LIST_DIR=${R_GEN}"filelists/n0209/"
-R_LIST_POST='_n0209.txt'
+R_LIST_DIR=${R_GEN}"filelists/"
+R_LIST_POST='_n0211.txt'
 
 #R_SAMPLES_LIST=("ttbar wjets ww wz zz singletop zee zmm ztt")
-#R_SAMPLES_LIST=("zee")
-R_SAMPLES_LIST=("data15_perC")
-#R_SAMPLES_LIST=("powheg_ttbar")
-#R_SAMPLES_LIST=("data15_A1ok")
-#R_SAMPLES_LIST=("data15_perA")
-#R_SAMPLES_LIST=("test_z")
-#R_SAMPLES_LIST=("test_zmm")
-#R_SAMPLES_LIST=("data15_267639")
-#R_SAMPLES_LIST=("dummy")
+#R_SAMPLES_LIST=("singletop" "ttbar" "wjets_sherpa" "ww_powheg" "wz_powheg" "zz_powheg" "zjets_powheg")
+#R_SAMPLES_LIST=("ww_powheg" "ttbar")
+R_SAMPLES_LIST=("wjets_sherpa")
+#R_SAMPLES_LIST=("bwn")
+#R_SAMPLES_LIST=("datalist")
 
 
 for file_ in ${R_SAMPLES_LIST[@]}; do
@@ -30,7 +28,7 @@ for file_ in ${R_SAMPLES_LIST[@]}; do
 	
 	for line in $FILE_LINES ; do
         export S_ANA_NAME=${R_ANA_NAME}
-        export S_MODE='c'
+        export S_MODE='a'
 		export S_STARTDIR=${R_START_DIR}
 		
 		sleep 0.1
@@ -49,6 +47,6 @@ for file_ in ${R_SAMPLES_LIST[@]}; do
 		
 		echo $strip_two
 		
-		sbatch -J 'data '${strip_two} -o ${R_LOG_DIR}${lFileName}_slurm-%j.log ${R_RUN}Superflow.sh 
+		sbatch -J 'wjets '${strip_two} -o ${R_LOG_DIR}${lFileName}_slurm-%j.log ${R_RUN}Superflow.sh 
 	done
 done
