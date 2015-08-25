@@ -1,6 +1,7 @@
 // SuperflowAna.cxx
 //
 
+// std
 #include <cstdlib>
 #include <cmath>
 #include <fstream> 
@@ -8,13 +9,17 @@
 #include <string>
 #include <getopt.h>
 
+// ROOT
 #include "TChain.h"
 #include "TVectorD.h"
 
+// SusyNtuple
 #include "SusyNtuple/ChainHelper.h"
 #include "SusyNtuple/string_utils.h"
 #include "SusyNtuple/SusyNtSys.h"
+#include "SusyNtuple/KinematicTools.h"
 
+// Superflow
 #include "Superflow/Superflow.h"
 #include "Superflow/Superlink.h"
 #include "Superflow/Cut.h"
@@ -22,7 +27,7 @@
 #include "Superflow/PhysicsTools.h"
 #include "Superflow/LeptonTruthDefinitions.h"
 
-
+// Mt2
 #include "Mt2/mt2_bisect.h"
 
 
@@ -332,9 +337,7 @@ int main(int argc, char* argv[])
         *cutflow << HFTname("nCentralLightJets");
         *cutflow << [&](Superlink* sl, var_int*) -> int {
             for (int i = 0; i < sl->jets->size(); i++) {
-                # warning need to add in SusyNtTools method to grab isCLJet
                 if( sl->tools->m_jetSelector.isCentralLightJet(sl->jets->at(i))){
-                //if (sl->tools->isCentralLightJet(sl->jets->at(i), sl->jvfTool, sl->nt_sys, sl->anaType)) {
                     central_light_jets.push_back(sl->jets->at(i));
                 }
             }
@@ -423,7 +426,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("Etmiss Rel"); {
         *cutflow << HFTname("metrel");
-        *cutflow << [](Superlink* sl, var_float*) -> double { return sl->tools->getMetRel(sl->met, *sl->leptons, *sl->jets); };
+        *cutflow << [](Superlink* sl, var_float*) -> double { return kin::getMetRel(sl->met, *sl->leptons, *sl->jets); };
         *cutflow << SaveVar();
     }
 
@@ -528,7 +531,7 @@ int main(int argc, char* argv[])
             TVector3 pT_CM;
             TVector3 vBETA_T_CMtoR;
             TVector3 vBETA_R;
-            sl->tools->superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
+            kin::superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
                                     mDeltaR, cosThetaRp1);
@@ -551,7 +554,7 @@ int main(int argc, char* argv[])
             TVector3 pT_CM;
             TVector3 vBETA_T_CMtoR;
             TVector3 vBETA_R;
-            sl->tools->superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
+            kin::superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
                                     mDeltaR, cosThetaRp1);
@@ -574,7 +577,7 @@ int main(int argc, char* argv[])
             TVector3 pT_CM;
             TVector3 vBETA_T_CMtoR;
             TVector3 vBETA_R;
-            sl->tools->superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
+            kin::superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
                                     mDeltaR, cosThetaRp1);
@@ -597,7 +600,7 @@ int main(int argc, char* argv[])
             TVector3 pT_CM;
             TVector3 vBETA_T_CMtoR;
             TVector3 vBETA_R;
-            sl->tools->superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
+            kin::superRazor(*sl->leptons, sl->met, vBETA_z, pT_CM,
                                     vBETA_T_CMtoR, vBETA_R, SHATR, dphi_LL_vBETA_T,
                                     dphi_L1_L2, gamma_R, dphi_vBETA_R_vBETA_T,
                                     mDeltaR, cosThetaRp1);

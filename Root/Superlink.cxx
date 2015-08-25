@@ -25,6 +25,7 @@ namespace sflow {
 
         preElectrons = nullptr;
         preMuons = nullptr;
+        preTaus = nullptr;
         preJets = nullptr;
         baseElectrons = nullptr;
         baseMuons = nullptr;
@@ -37,15 +38,10 @@ namespace sflow {
         leptons = nullptr;
         taus = nullptr;
         jets = nullptr;
-        jets2Lep = nullptr;
-
-        mediumTaus = nullptr;
-        tightTaus = nullptr;
 
         met = nullptr;
+        trackMet = nullptr;
 
-
-      //  jvfTool = nullptr;
     }
 
     Superlink::~Superlink()
@@ -65,6 +61,7 @@ namespace sflow {
 
         preElectrons = nullptr;
         preMuons = nullptr;
+        preTaus = nullptr;
         preJets = nullptr;
         baseElectrons = nullptr;
         baseMuons = nullptr;
@@ -77,14 +74,8 @@ namespace sflow {
         leptons = nullptr;
         taus = nullptr;
         jets = nullptr;
-        jets2Lep = nullptr;
-
-        mediumTaus = nullptr;
-        tightTaus = nullptr;
 
         met = nullptr;
-
-
-     //   jvfTool = nullptr;
+        trackMet = nullptr;
     }
 }

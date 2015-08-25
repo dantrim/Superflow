@@ -1,25 +1,27 @@
 #pragma once
 
+// std
 #include <vector>
 
+// ROOT
 #include "TSystem.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TBranch.h"
 #include "TEntryList.h"
 #include "TGraphAsymmErrors.h"
-
 #include "TVector2.h"
 
+// SusyNtuple
 #include "SusyNtuple/SusyDefs.h"
 #include "SusyNtuple/SusyNtAna.h"
 #include "SusyNtuple/SusyNtTools.h"
-
+#include "SusyNtuple/TauId.h"
 #include "SusyNtuple/MCWeighter.h"
-#include "SusyNtuple/Trigger.h"
+#include "SusyNtuple/TriggerTools.h"
 
+// Superflow
 #include "Superflow/DataDefinitions.h"
-
 #include "Superflow/Cut.h"
 #include "Superflow/Superlink.h"
 #include "Superflow/Supervar.h"
@@ -91,7 +93,7 @@ namespace sflow {
         string app_name;
         void attach_superlink(Superlink* sl_);
         
-        Trigger* m_nttrig;
+        TriggerTools* m_nttrig;
         
         MCWeighter* m_mcWeighter; ///< tool to determine the normalization
 
@@ -102,8 +104,6 @@ namespace sflow {
             const JetVector& jets,
             Supersys* super_sys,
             Superweight* weightComponents);
-
-        double computeBtagWeight(const JetVector& jets, const Susy::Event* evt, SupersysWeight sys);
 
         double computeLeptonEfficiencySf(const Susy::Lepton &lep, const SupersysWeight sys);
 

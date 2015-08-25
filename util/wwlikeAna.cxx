@@ -1,6 +1,7 @@
 // SuperflowAna.cxx
 //
 
+// std
 #include <cstdlib>
 #include <cmath>
 #include <fstream> 
@@ -8,14 +9,18 @@
 #include <string>
 #include <getopt.h>
 
+// ROOT
 #include "TChain.h"
 #include "TVectorD.h"
 
+// SusyNtuple
 #include "SusyNtuple/ChainHelper.h"
 #include "SusyNtuple/string_utils.h"
 #include "SusyNtuple/SusyNtSys.h"
-#include "SusyNtuple/Trigger.h"
+#include "SusyNtuple/TriggerTools.h"
+#include "SusyNtuple/KinematicTools.h"
 
+// Superflow
 #include "Superflow/Superflow.h"
 #include "Superflow/Superlink.h"
 #include "Superflow/Cut.h"
@@ -23,7 +28,7 @@
 #include "Superflow/PhysicsTools.h"
 #include "Superflow/LeptonTruthDefinitions.h"
 
-
+// Mt2
 #include "Mt2/mt2_bisect.h"
 
 
@@ -34,6 +39,7 @@ using namespace sflow;
 void print_usage(const char *exeName);
 void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_events_, string& sample_, SuperflowRunMode& run_mode_, SusyNtSys& nt_sysnt_);
 
+const string analysis_name = "wwlikeAna";
 
 int main(int argc, char* argv[])
 {
@@ -57,15 +63,20 @@ int main(int argc, char* argv[])
     //  > Superflow inherits from SusyNtAna : TSelector
     ////////////////////////////////////////////////////////////
     Superflow* cutflow = new Superflow(); // initialize the cutflow
-    cutflow->setAnaName("wwlikeAna");
+    cutflow->setAnaName(analysis_name);
     cutflow->setAnaType(AnalysisType::Ana_2Lep); 
-    cutflow->setLumi(84.64); // set the MC normalized to lumi periods A1-A3
+    cutflow->setLumi(78.3); // set the MC normalized to lumi periods A1-A3
     cutflow->setSampleName(sample_);
     cutflow->setRunMode(run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows
     cutflow->setChain(chain);
 
-    cout << "Analysis    Total Entries: " << chain->GetEntries() << endl;
+    cout << analysis_name <<"    Total Entries   : " << chain->GetEntries() << endl;
+    if(num_events_ > 0) {
+    cout << analysis_name <<"    Process Entries : " << num_events_ << endl;
+    } else {
+    cout << analysis_name <<"    Process Entries : " << chain->GetEntries() << endl;
+    }
 
     if (run_mode == SuperflowRunMode::single_event_syst) cutflow->setSingleEventSyst(nt_sys_);
 
@@ -701,14 +712,14 @@ int main(int argc, char* argv[])
         *cutflow << SaveVar();
     }
 /*
-    Trigger* trigtool = new Trigger(chain, true);
+    TriggerTools* trigtool = new TriggerTools(chain, true);
     *cutflow << NewVar("m_mumu - invariant mass of di-muon events with muons matched to HLT_mu14"); {
         *cutflow << HFTname("m_mumu_mu14");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
             MuonVector matchedMuons;
             for(int i = 0; i < muons.size(); i++){
                 Muon* mu = muons.at(i);
-                if(sl->ntTrig->passTrigger(mu->trigBits, "HLT_mu14")) { matchedMuons.push_back(mu); }
+                if(sl->ntTrig->passTriggerTools(mu->trigBits, "HLT_mu14")) { matchedMuons.push_back(mu); }
             }
             double mll = -999.0;
             if(matchedMuons.size()==2) {
@@ -726,7 +737,7 @@ int main(int argc, char* argv[])
             MuonVector matchedMuons;
             for(int i = 0; i < muons.size(); i++){
                 Muon* mu = muons.at(i);
-                if(sl->ntTrig->passTrigger(mu->trigBits, "HLT_mu26_imedium")) { matchedMuons.push_back(mu); }
+                if(sl->ntTrig->passTriggerTools(mu->trigBits, "HLT_mu26_imedium")) { matchedMuons.push_back(mu); }
             }
             double mll = -999.0;
             if(matchedMuons.size()==2) {
@@ -1123,7 +1134,7 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("met rel"); {
         *cutflow << HFTname("Etmiss rel");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
-            return sl->tools->getMetRel(&met, *sl->leptons, *sl->jets);
+            return kin::getMetRel(&met, *sl->leptons, *sl->jets);
         };
         *cutflow << SaveVar();
     }
@@ -1543,7 +1554,7 @@ int main(int argc, char* argv[])
             MDR = shatr = cosThetaRp1 = DPB = dphi_l1_l2 = gamma_r = -999.0;
             dphi_vBeta_R_vBeta_T = -999.0;
             if(leptons.size()==2){
-                sl->tools->superRazor(leptons, &met, vBeta_z, pT_CM,
+                kin::superRazor(leptons, &met, vBeta_z, pT_CM,
                                   vBeta_T_CMtoR, vBeta_r, shatr, DPB,
                                   dphi_l1_l2, gamma_r, dphi_vBeta_R_vBeta_T,
                                   MDR, cosThetaRp1);
@@ -1902,7 +1913,7 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
             systematic_ = argv[++i];
         }
         else {
-            cout << "Analysis    Error (fatal): Bad arguments." << endl;
+            cout << analysis_name <<"    Error (fatal): Bad arguments." << endl;
             exit(1);
         }
     }
@@ -1912,21 +1923,21 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
     bool inputIsDir = Susy::utils::endswith(input, "/");
     bool validInput(inputIsFile || inputIsList || inputIsDir);
     if (!validInput) {
-        cout << "Analysis    invalid input '" << input << "'" << endl;
+        cout << analysis_name <<"    invalid input '" << input << "'" << endl;
         exit(1);
     }
     if (inputIsFile) {
         ChainHelper::addFile(chain, input);
-        cout << "Analysis    file: " << input << endl;
-        cout << "Analysis    file: " << input << endl;
-        cout << "Analysis    file: " << input << endl;
+        cout << analysis_name <<"    file: " << input << endl;
+        cout << analysis_name <<"    file: " << input << endl;
+        cout << analysis_name <<"    file: " << input << endl;
         sample_ = input;
     }
     if (inputIsList) {
         ChainHelper::addFileList(chain, input);
-        cout << "Analysis    list: " << input << endl;
-        cout << "Analysis    list: " << input << endl;
-        cout << "Analysis    list: " << input << endl;
+        cout << analysis_name << "    list: " << input << endl;
+        cout << analysis_name << "    list: " << input << endl;
+        cout << analysis_name << "    list: " << input << endl;
         ifstream infile(input.c_str());
         if (infile.good()) {
             string sLine;
@@ -1940,9 +1951,9 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
     }
     if (inputIsDir) {
         ChainHelper::addFileDir(chain, input);
-        cout << "Analysis    dir: " << input << endl;
-        cout << "Analysis    dir: " << input << endl;
-        cout << "Analysis    dir: " << input << endl;
+        cout << analysis_name << "    dir: " << input << endl;
+        cout << analysis_name << "    dir: " << input << endl;
+        cout << analysis_name << "    dir: " << input << endl;
         sample_ = input;
     }
     Long64_t tot_num_events = chain->GetEntries();
@@ -1951,20 +1962,20 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
 
     if (nominal_) {
         run_mode_ = SuperflowRunMode::nominal;
-        cout << "Analysis    run mode: SuperflowRunMode::nominal" << endl;
+        cout << analysis_name <<"    run mode: SuperflowRunMode::nominal" << endl;
     }
     if (nominal_and_weight_syst_) {
         run_mode_ = SuperflowRunMode::nominal_and_weight_syst;
-        cout << "Analysis    run mode: SuperflowRunMode::nominal_and_weight_syst" << endl;
+        cout << analysis_name <<"    run mode: SuperflowRunMode::nominal_and_weight_syst" << endl;
     }
     if (single_event_syst_) {
         run_mode_ = SuperflowRunMode::single_event_syst;
-        cout << "Analysis    run mode: SuperflowRunMode::single_event_syst" << endl;
+        cout << analysis_name <<"    run mode: SuperflowRunMode::single_event_syst" << endl;
     }
 
     if (all_syst_) {
         run_mode_ = SuperflowRunMode::all_syst;
-        cout << "Analysis    run mode: SuperflowRunMode::all_syst" << endl;
+        cout << analysis_name <<"    run mode: SuperflowRunMode::all_syst" << endl;
     }
 
     map <string, SusyNtSys> event_syst_map;
@@ -2002,7 +2013,7 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
             nt_sys = event_syst_map[systematic_];
         }
         else {
-            cout << "Analysis" << "    ERROR (fatal): Event systematic option /s " << systematic_ << " -> not found." << endl;
+            cout << analysis_name << " ERROR (fatal)    Event systematic option /s " << systematic_ << " -> not found." << endl;
             exit(1);
         }
     }

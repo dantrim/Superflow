@@ -1,6 +1,7 @@
 // SuperflowAna.cxx
 //
 
+// std
 #include <cstdlib>
 #include <cmath>
 #include <fstream> 
@@ -8,13 +9,17 @@
 #include <string>
 #include <getopt.h>
 
+// ROOT
 #include "TChain.h"
 #include "TVectorD.h"
 
+// SusyNtuple
 #include "SusyNtuple/ChainHelper.h"
 #include "SusyNtuple/string_utils.h"
 #include "SusyNtuple/SusyNtSys.h"
+#include "SusyNtuple/KinematicTools.h"
 
+// Superflow
 #include "Superflow/Superflow.h"
 #include "Superflow/Superlink.h"
 #include "Superflow/Cut.h"
@@ -22,7 +27,7 @@
 #include "Superflow/PhysicsTools.h"
 #include "Superflow/LeptonTruthDefinitions.h"
 
-
+// Mt2
 #include "Mt2/mt2_bisect.h"
 
 
@@ -787,7 +792,7 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("met rel"); {
         *cutflow << HFTname("Etmiss rel");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
-            return sl->tools->getMetRel(&met, *sl->leptons, *sl->jets);
+            return kin::getMetRel(&met, *sl->leptons, *sl->jets);
         };
         *cutflow << SaveVar();
     }

@@ -1,6 +1,7 @@
 // Superflow.cxx
 //
 
+// std
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
@@ -8,9 +9,8 @@
 #include <string>
 #include <sstream>
 #include <random>
-#include "TGraphAsymmErrors.h"
 
-
+// Superflow
 #include "Superflow/Superflow.h"
 #include "Superflow/StringTools.h"
 #include "Superflow/PhysicsTools.h"
@@ -189,6 +189,7 @@ namespace sflow {
 
         sl_->preElectrons = &m_preElectrons;
         sl_->preMuons = &m_preMuons;
+        sl_->preTaus = &m_preTaus;
         sl_->preJets = &m_preJets;
 
         sl_->baseLeptons = &m_baseLeptons;
@@ -200,15 +201,12 @@ namespace sflow {
         sl_->leptons = &m_signalLeptons;
         sl_->electrons = &m_signalElectrons;
         sl_->muons = &m_signalMuons;
-
         sl_->taus = &m_signalTaus;
         sl_->jets = &m_signalJets;
 
         sl_->met = m_met;
+        sl_->trackMet = m_trackMet;
 
-    # warning not setting jvftool
-      //  sl_->jvfTool = m_jvfTool;
-    
         if (nt.evt()->isMC) {
             sl_->isMC = true;
         }
@@ -223,22 +221,24 @@ namespace sflow {
     ///////////////////////////////////////////////////////////////////////////////
     void Superflow::Begin(TTree* /*tree*/)
     {
-        cout << app_name << m_sample << endl;
-        cout << app_name << m_sample << endl;
-        cout << app_name << m_sample << endl;
+        cout << app_name << "Superflow::Begin" << endl;
+        SusyNtAna::Begin(0);
+
+        cout << app_name << "Superflow::Begin    Input sample: "<< endl;
+        cout << app_name << "Superflow::Begin    " << m_sample << endl;
 
         if (m_runMode == SuperflowRunMode::null) {
-            cout << app_name << "ERROR (Fatal): Missing call to Superflow::setRunMode()." << endl;
+            cout << app_name << "Superflow::Begin ERROR (Fatal)    Missing call to Superflow::setRunMode()." << endl;
             exit(1);
         }
 
         if (m_varState != SupervarState::closed || m_sysState != SupersysState::closed) {
-            cout << app_name << "ERROR (Fatal): Close the Var using SaveVar()." << endl;;
+            cout << app_name << "Superflow::Begin ERROR (Fatal)    Close the Var using SaveVar()." << endl;;
             exit(1);
         }
 
         if (m_runMode == SuperflowRunMode::single_event_syst && m_singleEventSyst == Susy::NtSys::NOM) {
-            cout << app_name << "ERROR (Fatal): SuperflowRunMode::single_event_syst: Call setSingleEventSyst(SusyNtSys nt_syst_)." << endl;
+            cout << app_name << "Superflow::Begin ERROR (Fatal)    SuperflowRunMode::single_event_syst: Call setSingleEventSyst(SusyNtSys nt_syst_)." << endl;
             exit(1);
         }
 
@@ -272,14 +272,12 @@ namespace sflow {
             }
         } // end if run mode single_event_syst
 
-        cout << app_name << "in Begin()" << endl;
-        SusyNtAna::Begin(0);
 
         //string period = "Moriond";
         //bool useReweightUtils = false;
 
         // -------------- Configure SusyNtuple Trigger Tool [BEGIN] --------------- //
-        m_nttrig = new Trigger(m_input_chain, true);
+        m_nttrig = new TriggerTools(m_input_chain, true);
         // -------------- Configure SusyNtuple Trigger Tool [BEGIN] --------------- //
     } // end Superflow::Begin()
 
@@ -290,11 +288,23 @@ namespace sflow {
     ///////////////////////////////////////////////////////////////////////////////
     void Superflow::Init(TTree* tree)
     {
-        cout << app_name << "in Init()" << endl;
+        cout << app_name << "Superflow::Init" << endl;
         SusyNtAna::Init(tree);
 
+        TString input_sample = m_input_chain->GetFile()->Get("inputContainerName")->GetTitle();
+        TString output_sample = m_input_chain->GetFile()->Get("outputContainerName")->GetTitle();
+        TString nt_tag = m_input_chain->GetFile()->Get("productionTag")->GetTitle();
+        TString prod_command = m_input_chain->GetFile()->Get("productionCommand")->GetTitle();
+        cout << endl;
+        cout << app_name << "Superflow::Init    ================ Sample Information ==============" << endl;
+        cout << app_name << "Superflow::Init     Input container name  : " << input_sample  << endl;
+        cout << app_name << "Superflow::Init     Output container name : " << output_sample << endl;
+        cout << app_name << "Superflow::Init     SusyNt production tag : " << nt_tag << endl;
+        cout << app_name << "Superflow::Init     SusyNt production cmd : " << prod_command << endl; 
+        cout << app_name << "Superflow::Init    ==================================================" << endl;
+
         if (!nt.evt()->isMC) {
-            cout << app_name << "    Switching run mode to SuperflowRunMode::data" << endl;
+            cout << app_name << "Superflow::Init    Switching run mode to SuperflowRunMode::data" << endl;
             m_runMode = SuperflowRunMode::data; // Changing the run mode!!
         }
         else if (nt.evt()->isMC) {
@@ -306,66 +316,56 @@ namespace sflow {
 
         // determine output file name
         if (m_runMode == SuperflowRunMode::data) {
-            m_countWeights = false;
+            m_countWeights = true;
 
             // output file name
             stringstream sfile_name_;
             sfile_name_ << "CENTRAL_";
 
-            size_t find_data = m_sample.find("data15_13TeV.");
-            if (find_data != string::npos) {
-                unsigned int ndata_run_ = nt.evt()->run;
-                string data_run_ = "";
-                ostringstream convert;
-                convert << ndata_run_;
-                data_run_ = convert.str();
-                if(data_run_ != "") {
-                    size_t find_Main = m_sample.find("physics_Main");
-                    if(find_Main != string::npos) {
-                        cout << app_name << "Determined data stream: Main" << endl;
-                        m_stream = ATLAS_stream::Main;
-                    }
-                    else {
-                        cout << app_name << "ERROR    Could not determine data stream for sample " << endl;
-                        cout << app_name << "ERROR    \t" << m_sample << endl;
-                        cout << app_name << "ERROR    The only supported stream is 'Main' ('physics_main')." << endl;
-                        cout << app_name << "ERROR    Exitting." << endl;
-                        exit(1);
-                    }
-                }
+            if(input_sample.Contains("data15_13TeV")){
+                TString data_run; data_run.Form("%d",nt.evt()->run);
+                if(input_sample.Contains("physics_Main")) {
+                    cout << app_name << "Superflow::Init    ====== Determined input data specifications ====== " << endl;
+                    cout << app_name << "Superflow::Init     stream: Main " << endl;
+                    cout << app_name << "Superflow::Init     run   : " << data_run << endl;
+                    cout << app_name << "Superflow::Init    ==================================================" << endl;
+                    cout << endl;
+                    m_stream = ATLAS_stream::Main;
+                } // if main
                 else {
-                    cout << app_name << "ERROR    Could not determine data run for sample " << endl;
-                    cout << app_name << "ERROR    \t" << m_sample << endl;
-                    cout << app_name << "ERROR    Check that the sample name is in the expected format: " << endl;
-                    cout << app_name << "ERROR    \tfoo.data15_13TeV.<run-number>.physics_Main.bar.susyNt.root" << endl;
-                    cout << app_name << "ERROR    Exitting." << endl;
+                    cout << app_name << "Superflow::Init ERROR    Could not determine data stream for sample from the input container: " << endl;
+                    cout << app_name << "Superflow::Init ERROR    \t" << input_sample << endl;
+                    cout << app_name << "Superflow::Init ERROR    The only supported stream is 'Main' ('physics_Main')." << endl;
+                    cout << app_name << "Superflow::Init ERROR    >>> Exiting." << endl;
                     exit(1);
-                }
-                
-                sfile_name_ << m_data_stream2string[m_stream] << "_" << data_run_ << ".root";
-                cout << app_name << "Setting output file name to: " << sfile_name_.str() << endl;
+                } 
+                sfile_name_ << m_data_stream2string[m_stream] << "_" << data_run << ".root";
+                cout << app_name << "Superflow::Init    Setting output file name to: " << sfile_name_.str() << endl;
                 
                 m_outputFileName = sfile_name_.str();
-                m_entry_list_FileName += m_data_stream2string[m_stream] + "_" + data_run_ + ".root";
+                m_entry_list_FileName += m_data_stream2string[m_stream] + "_" + data_run + ".root";
+
             }
             else {
-                cout << app_name << "ERROR    Failed to recognize data sample format." << endl;
-                cout << app_name << "ERROR     > Looking for 'data15_13Tev' sub-string." << endl;
-                cout << app_name << "ERROR     > Try to specify the full path. Exitting." << endl;
+                cout << app_name << "Superflow::Init ERROR    The input container name does not appear to be a data sample." << endl;
+                cout << app_name << "Superflow::Init ERROR    It does not contain the 'data15_13TeV' grouping and the run mode is" << endl;
+                cout << app_name << "Superflow::Init ERROR    set for data (SuperflowRunMode::data). " << endl;
+                cout << app_name << "Superflow::Init ERROR    >>> Exiting." << endl;
                 exit(1);
-            }
+            } 
+
         }
         else if (m_runMode == SuperflowRunMode::single_event_syst) {
             if (m_NtSys_to_string.count(m_singleEventSyst) != 0) {
                 stringstream sfile_name_; // output file name
                 sfile_name_ << m_NtSys_to_string[m_singleEventSyst] << "_" << nt.evt()->mcChannel << ".root";
-                cout << app_name << "Run mode: SuperflowRunMode::single_event_syst" << endl;
-                cout << app_name << "Setting output file name to: " << sfile_name_.str() << endl;
+                cout << app_name << "Superflow::Init    Run mode: SuperflowRunMode::single_event_syst" << endl;
+                cout << app_name << "Superflow::Init    Setting output file name to: " << sfile_name_.str() << endl;
                 m_outputFileName = sfile_name_.str();
                 m_entry_list_FileName += sfile_name_.str() + ".root";
             }
             else {
-                cout << app_name << "ERROR (Fatal): Unknown event systematic! Code: " << static_cast<int>(m_singleEventSyst) << endl;
+                cout << app_name << "Superflow::Init ERROR (Fatal)    Unknown event systematic! Code: " << static_cast<int>(m_singleEventSyst) << endl;
                 exit(1);
             }
         }
@@ -373,32 +373,36 @@ namespace sflow {
             stringstream sfile_name_; // output file name
             sfile_name_ << "CENTRAL_" << nt.evt()->mcChannel << ".root";
             if (m_runMode == SuperflowRunMode::nominal_and_weight_syst) {
-                cout << app_name << "Run mode: SuperflowRunMode::nominal_and_weight_syst" << endl;
+                cout << app_name << "Superflow::Init    Run mode: SuperflowRunMode::nominal_and_weight_syst" << endl;
             }
             else {
-                cout << app_name << "Run mode: SuperflowRunMode::nominal (weighted)" << endl;
+                cout << app_name << "Superflow::Init    Run mode: SuperflowRunMode::nominal (weighted)" << endl;
             }
-            cout << app_name << "Setting output file name to: " << sfile_name_.str() << endl;
+            cout << app_name << "Superflow::Init    Setting output file name to: " << sfile_name_.str() << endl;
             m_outputFileName = sfile_name_.str();
             m_entry_list_FileName += to_string(nt.evt()->mcChannel) + ".root";
         }
         else {
-            cout << app_name << "ERROR (Fatal): Inconsistent setup." << endl;
+            cout << app_name << "Superflow::Init ERROR (Fatal)    Inconsistent setup." << endl;
             exit(1);
         }
 
         m_outputFile = new TFile(m_outputFileName.data(), "RECREATE");
 
-        // output tree name
+        /////////////////////////////////////////////
+        // Set the output tree name
+        /////////////////////////////////////////////
+    //    stringstream tree_name;
+    //    if (m_runMode == SuperflowRunMode::data) {
+    //        tree_name << "id_" << m_data_stream2string[m_stream];
+    //    }
+    //    else {
+    //        tree_name << "id_" << nt.evt()->mcChannel;
+    //    }
         stringstream tree_name;
-        if (m_runMode == SuperflowRunMode::data) {
-            tree_name << "id_" << m_data_stream2string[m_stream];
-        }
-        else {
-            tree_name << "id_" << nt.evt()->mcChannel;
-        }
+        tree_name << "superNt";
+        cout << app_name << "Superflow::Init    Setting output tree name to: " << tree_name.str() << endl; 
 
-        cout << app_name << "Tree name: " << tree_name.str() << endl;
         m_tree_name_auto = tree_name.str();
 
         // initialize total entry list (also see Notify();)
@@ -562,6 +566,7 @@ namespace sflow {
     ///////////////////////////////////////////////////////////////////////////////
     Bool_t Superflow::Notify()
     {
+        cout << app_name << "Superflow::Notify" << endl;
         static int tree_counter;
 
         if (m_entry_list_single_tree != nullptr) m_entry_list_total->Add(m_entry_list_single_tree);
@@ -592,37 +597,36 @@ namespace sflow {
 
         m_chainEntry++; // SusyNtAna counter
 
+        //////////////////////////////////////////////
+        // process counter
+        //////////////////////////////////////////////
         if (m_chainEntry % 50000 == 0) {
-            cout << app_name << "**** Processing entry " << setw(6) << m_chainEntry
+            cout << app_name << "Superflow::Process    **** Processing entry " << setw(6) << m_chainEntry
                 << " run "   << setw(6) << nt.evt()->run
                 << " event " << setw(7) << nt.evt()->eventNumber << " ****" << endl;
         }
 
         // these are flags
-        var_float* vf_  = nullptr;
-        var_double* vd_ = nullptr;
-        var_float_array* vfa_ = nullptr;
-        var_bool_array* vba_ = nullptr;
-        var_int* vi_    = nullptr;
-        var_bool* vb_   = nullptr;
-        var_void* vv_   = nullptr;
+        var_float* vf_          = nullptr;
+        var_double* vd_         = nullptr;
+        var_float_array* vfa_   = nullptr;
+        var_bool_array* vba_    = nullptr;
+        var_int* vi_            = nullptr;
+        var_bool* vb_           = nullptr;
+        var_void* vv_           = nullptr;
 
         /////////////////////////////////////////////////////////////
         // Now select the objects, etc... depending on which 
         // run mode you are in
         /////////////////////////////////////////////////////////////
         
-        // select baseline and signal objects
-        #warning removeLepsFromIso is obsolete!
-        bool removeLepsFromIso = false;
-
         switch (m_runMode) {
             /////////////////////////
             // run mode data
             /////////////////////////
             case SuperflowRunMode::data: {
-                clearObjects();
-                selectObjects(m_RunSyst->event_syst, removeLepsFromIso, TauID_medium); // always select with nominal? (to compute event flags)
+                SusyNtAna::clearObjects();
+                SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium); // always select with nominal? (to compute event flags)
 
                 m_weights = new Superweight();
                 Superlink* sl_ = new Superlink;
@@ -688,8 +692,8 @@ namespace sflow {
             case SuperflowRunMode::nominal:
             case SuperflowRunMode::single_event_syst: {
 
-                clearObjects();
-                selectObjects(m_RunSyst->event_syst, removeLepsFromIso, TauID_medium); // always select with nominal? (to compute event flags)
+                SusyNtAna::clearObjects();
+                SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium); // always select with nominal? (to compute event flags)
 
                 m_weights = new Superweight();
                 Superlink* sl_ = new Superlink;
@@ -760,11 +764,11 @@ namespace sflow {
             } break;
             case SuperflowRunMode::all_syst: {
                 for (int i = 0; i < index_event_sys.size(); i++) { // loop over event systematics
-                    clearObjects();
+                    SusyNtAna::clearObjects();
                     delete m_RunSyst;
 
                     m_RunSyst = &m_sysStore[index_event_sys[i]]; // don't delete!!
-                    selectObjects(m_RunSyst->event_syst, removeLepsFromIso, TauID_medium); // always select with nominal? (to compute event flags)
+                    SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium); // always select with nominal? (to compute event flags)
 
                     m_weights = new Superweight();
                     Superlink* sl_ = new Superlink;
@@ -825,8 +829,8 @@ namespace sflow {
                 delete m_RunSyst;
                 m_RunSyst = new Supersys(SupersysType::central);
 
-                clearObjects();
-                selectObjects(m_RunSyst->event_syst, removeLepsFromIso, TauID_medium);
+                SusyNtAna::clearObjects();
+                SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium);
 
                 m_weights = new Superweight();
                 Superlink* sl_ = new Superlink;
@@ -939,11 +943,11 @@ namespace sflow {
     ///////////////////////////////////////////////////////////////////////////////
     void Superflow::Terminate()
     {
-        cout << app_name << "in Terminate()" << endl;
+        cout << app_name << "Superflow::Terminate" << endl;
 
-        cout << app_name << "Raw" << endl;
-        cout << app_name << "Raw" << endl;
-        cout << app_name << "Raw" << endl;
+        cout << app_name << "------------------------------ ------------------------------" << endl;
+        cout << app_name << " Raw cutflow " << endl;
+        cout << app_name << "----------------------------- -------------------------------" << endl;
         cout << std::fixed;
         cout << std::setprecision(0);
         for (int i = 0; i < m_CutStore.size(); i++) {
@@ -951,9 +955,9 @@ namespace sflow {
         }
         cout << app_name << endl << app_name << endl;
 
-        cout << app_name << "Weighted" << endl;
-        cout << app_name << "Weighted" << endl;
-        cout << app_name << "Weighted" << endl;
+        cout << app_name << "------------------------------ ------------------------------" << endl;
+        cout << app_name << " Weighted cutflow " << endl;
+        cout << app_name << "------------------------------- -----------------------------" << endl;
         cout << std::resetiosflags(std::ios::floatfield);
         cout << std::resetiosflags(std::ios::adjustfield);
         cout << std::setprecision(6);
@@ -1017,23 +1021,25 @@ namespace sflow {
 
     bool Superflow::initMcWeighter(TTree *tree)
     {
-        cout << app_name << "initMcWeighter Initializing MCWeighter" << endl;
+        cout << app_name << "Superflow::initMcWeighter    Initializing MCWeighter" << endl;
         bool success = false;
         if (tree) {
             string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc15_13TeV/");
             m_mcWeighter = new MCWeighter(tree, xsecDir);
             if (m_dbg) {
-                cout << app_name << "MCWeighter has been initialized." << endl;
-                cout << app_name << "MCWeighter using cross-section directory: " << xsecDir << endl;
+                cout << app_name << "Superflow::initMcWeighter    MCWeighter has been initialized." << endl;
+                cout << app_name << "Superflow::initMcWeighter    MCWeighter using cross-section directory: " << xsecDir << endl;
             }
         }
         else {
-            cout << app_name << "ERROR: Invalid input tree, cannot initialize MCWeighter." << endl;
+            cout << app_name << "Superflow::initMcWeighter ERROR    Invalid input tree, cannot initialize MCWeighter." << endl;
+            cout << app_name << "Superflow::initMcWeighter ERROR    >>> Exiting." << endl;
+            exit(1);
         }
         return success;
     }
 
-    // ----------------------- Initialize Matrix Tool [BEGIN] ------------------------ //
+    // -------------------------------- WEIGHTS COMPUTATION ----------------------------- //
 
     bool Superflow::computeWeights(
         Susy::SusyNtObject &ntobj,
@@ -1097,30 +1103,6 @@ namespace sflow {
                     weights_->lepSf = outSF;
                 } // do_lepSf
 
-/*
-            // Other weight systematic variations
-            if (leptons.size() > 1) {
-                // vars.hasFiredTrig = m_trigObj->passDilEvtTrig(leptons, m_met->Et, nt.evt());
-                // vars.hasTrigMatch = m_trigObj->passDilTrigMatch(leptons, m_met->Et, nt.evt());
-                const Lepton &l0 = *(leptons[0]);
-                const Lepton &l1 = *(leptons[1]);
-
-                bool do_lepSf_ = false; // do_lepSf_
-
-                switch (super_sys->weight_syst) {
-                    case SupersysWeight::ESFUP:
-                    case SupersysWeight::ESFDOWN:
-                    case SupersysWeight::MEFFUP:
-                    case SupersysWeight::MEFFDOWN:
-                    case SupersysWeight::null: {
-                        do_lepSf_ = true;
-                    } break;
-                    default: break;
-                }
-                if (do_lepSf_) {
-                    weights_->lepSf = (computeLeptonEfficiencySf(l0, super_sys->weight_syst) * computeLeptonEfficiencySf(l1, super_sys->weight_syst));
-                }
-  */              
                 #warning removing lepton trigger systematic vaiations
                 /*
                 bool do_lep_triggers_ = false; // do_lep_triggers_
@@ -1168,11 +1150,8 @@ namespace sflow {
                 }
                 if (do_btag_) {
                     double btagSF = 1.0;
-                    for(unsigned int ij = 0; ij < jets.size(); ij++) {
-                        btagSF *= jets.at(ij)->effscalefact;
-                    }
+                    if(jets.size()>0) { btagSF = m_nttools.bTagSF(jets); } 
                     weights_->btag = btagSF;
-                    //weights_->btag = computeBtagWeight(jets, nt.evt(), super_sys->weight_syst);
                 }
 
             } // leptons >= 1
@@ -1181,77 +1160,73 @@ namespace sflow {
         return true;
     }
 
-    #warning removing DileptonTrigger re-weighting
-    //double Superflow::computeDileptonTriggerWeight(const LeptonVector &leptons, const SusyNtSys sys)
-    //{
-    //    double trigW = 1.0;
-    //    if (leptons.size() == 2) {
-
-    //        trigW = m_trigObj->getTriggerWeight(leptons, nt.evt()->isMC, m_met->Et, m_signalJets.size(), nt.evt()->nVtx, sys);
-    //        bool twIsInvalid = !(trigW >= 0) || trigW < 0.0;
-    //        trigW = twIsInvalid ? 0.0 : trigW;
-    //    }
-    //    return trigW;
-    //}
-
-    double Superflow::computeBtagWeight(const JetVector& jets, const Susy::Event* evt, SupersysWeight sys)
-    {
-        // cout << app_name << "in computeBtagWeight" << endl;
-        //JetVector taggableJets = SusyNtTools::getBTagSFJets2Lep(jets);
-        //return SusyNtTools::bTagSF(evt, taggableJets, evt->mcChannel, supersys_to_btagsys(sys));
-        Superlink* sl_ = new Superlink();
-        attach_superlink(sl_);
-        JetVector taggableJets = sl_->tools->getBTagSFJets2Lep(jets);
-        double btagsf = sl_->tools->bTagSF(evt, taggableJets, evt->mcChannel, supersys_to_btagsys(sys));
-        delete sl_;
-        return btagsf;
-    }
-
     double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const SupersysWeight sys)
     {
-        double effFactor = 1.0;
-        double sf = lep.effSF;
+        double out_SF = 1.0;
+        double sf = 1.0;
         double delta = 0.0;
+
+        AnalysisType currentAnaType = nttools().getAnaType();
 
         if (lep.isEle()) {
             const Electron* el = dynamic_cast<const Electron*> (&lep);
+
+            // get the ElectronId for the analysis type to select the correct errSF
+            ElectronId id;
+            if(currentAnaType==AnalysisType::Ana_Stop2L) { id = ElectronId::MediumLH; }
+            else { id = ElectronId::TightLH; }
+
+            // select the nominal SF
+            sf = el->eleEffSF[id];
+
             if (sys == SupersysWeight::EL_EFF_ID_UP) {
-                delta = el->errEffSF_id_corr_up;    // we store the signed errEffSF
+                delta = el->errEffSF_id_corr_up[id];    // we store the signed errEffSF
             }
             else if (sys == SupersysWeight::EL_EFF_ID_DOWN) {
-                delta = el->errEffSF_id_corr_dn;    // we store the signed errEffSF
+                delta = el->errEffSF_id_corr_dn[id];    // we store the signed errEffSF
             }
             else if (sys == SupersysWeight::EL_EFF_RECO_UP) {
-                delta = el->errEffSF_reco_corr_up;  // we store the signed errEffSF
+                delta = el->errEffSF_reco_corr_up[id];  // we store the signed errEffSF
             }
             else if (sys == SupersysWeight::EL_EFF_RECO_DOWN) {
-                delta = el->errEffSF_reco_corr_dn;  // we store the signed errEffSF
+                delta = el->errEffSF_reco_corr_dn[id];  // we store the signed errEffSF
             }
         } // isEle
         else if (lep.isMu()) {
             const Muon* mu = dynamic_cast<const Muon*> (&lep);
+
+            // get the MuonId for the analysis type to select the correct errSF
+            MuonId id;
+            if(currentAnaType==AnalysisType::Ana_Stop2L) { id = MuonId::Loose; }
+            else { id = MuonId::Medium; }
+
+            // select the nominal SF
+            sf = mu->muoEffSF[id];
+
             if ( sys == SupersysWeight::MUON_EFF_STAT_UP ) {
-                delta = mu->errEffSF_stat_up;
+                delta = mu->errEffSF_stat_up[id];
             }
             else if (sys == SupersysWeight::MUON_EFF_STAT_DOWN ) {
-                delta = mu->errEffSF_stat_dn;
+                delta = mu->errEffSF_stat_dn[id];
             }
             else if ( sys == SupersysWeight::MUON_EFF_SYST_UP ) {
-                delta = mu->errEffSF_syst_up;
+                delta = mu->errEffSF_syst_up[id];
             }
             else if ( sys == SupersysWeight::MUON_EFF_SYST_DOWN ) {
-                delta = mu->errEffSF_syst_dn;
+                delta = mu->errEffSF_syst_dn[id];
             }
         } // isMu
 
-        effFactor = (sf + delta); // ?? Seems odd.
-        return effFactor;
+        out_SF = (sf + delta);
+        return out_SF;
     }
 
 
     void Superflow::setLumi(const float lumi) {
         m_luminosity = lumi;
-        cout << app_name << "Setting MC normalization (luminosity) to " << m_luminosity << " pb^-1." << endl;
+        cout << app_name << "------------------------------ ------------------------------" << endl;
+        cout << app_name << " Setting MC normalization (luminosity) to " << m_luminosity << " pb^-1." << endl;
+        cout << app_name << "----------------------------- -------------------------------" << endl;
     }
 
     void Superflow::setCountWeights(bool value) ///> public function, if set true it prints the weighted cutflow
