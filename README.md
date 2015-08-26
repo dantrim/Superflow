@@ -1,6 +1,8 @@
 # Superflow
 #... where 'SusyNtuple' is a doing word
 
+[![Join the chat at https://gitter.im/dantrim/Superflow](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dantrim/Superflow?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Pre-Requisites
 
 **Superflow** is a package that analyzes susyNt so it is assumed that the **SusyNtuple** package is already checked out in your working directory. 
