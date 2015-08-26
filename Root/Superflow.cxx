@@ -275,10 +275,6 @@ namespace sflow {
 
         //string period = "Moriond";
         //bool useReweightUtils = false;
-
-        // -------------- Configure SusyNtuple Trigger Tool [BEGIN] --------------- //
-        m_nttrig = new TriggerTools(m_input_chain, true);
-        // -------------- Configure SusyNtuple Trigger Tool [BEGIN] --------------- //
     } // end Superflow::Begin()
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -291,6 +287,7 @@ namespace sflow {
         cout << app_name << "Superflow::Init" << endl;
         SusyNtAna::Init(tree);
 
+        m_nttrig = new TriggerTools(m_input_chain, m_dbg);
         TString input_sample = m_input_chain->GetFile()->Get("inputContainerName")->GetTitle();
         TString output_sample = m_input_chain->GetFile()->Get("outputContainerName")->GetTitle();
         TString nt_tag = m_input_chain->GetFile()->Get("productionTag")->GetTitle();
