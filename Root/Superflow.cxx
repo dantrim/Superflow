@@ -1506,7 +1506,7 @@ namespace sflow {
             m_varExprBool.push_back(m_nullExprBool);
             m_varExprVoid.push_back(m_nullExprVoid);
 
-            m_varType.push_back(SupervarType::sv_float_array);
+            m_varType.push_back(SupervarType::sv_bool_array);
             m_superVar_hasFunction = true;
         }
         else {
