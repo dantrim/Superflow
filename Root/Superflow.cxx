@@ -33,7 +33,6 @@ namespace sflow {
         /////////////////////////
         // SusyNtuple/Trigger 
         /////////////////////////
-        m_nttrig = nullptr;
 
         m_CutStore_Name_Exists = false;
         m_CutStoreUntitled     = 1;
@@ -179,8 +178,6 @@ namespace sflow {
         //sl_->tools = this;
         sl_->tools = &m_nttools; // from SusyNtAna
 
-        sl_->ntTrig = m_nttrig;
-
         sl_->anaType = m_nttools.getAnaType();
 
         sl_->nt = &nt; // SusyNt
@@ -286,8 +283,7 @@ namespace sflow {
     {
         cout << app_name << "Superflow::Init" << endl;
         SusyNtAna::Init(tree);
-
-        m_nttrig = new TriggerTools(m_input_chain, m_dbg);
+        
         TString input_sample = m_input_chain->GetFile()->Get("inputContainerName")->GetTitle();
         TString output_sample = m_input_chain->GetFile()->Get("outputContainerName")->GetTitle();
         TString nt_tag = m_input_chain->GetFile()->Get("productionTag")->GetTitle();
