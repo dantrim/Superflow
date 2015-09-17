@@ -93,8 +93,6 @@ namespace sflow {
         string app_name;
         void attach_superlink(Superlink* sl_);
         
-        TriggerTools* m_nttrig;
-        
         MCWeighter* m_mcWeighter; ///< tool to determine the normalization
 
         bool computeWeights(

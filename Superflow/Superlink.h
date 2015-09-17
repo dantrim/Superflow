@@ -29,8 +29,6 @@ namespace sflow {
         
         SusyNtTools* tools;
 
-        TriggerTools* ntTrig;
-
         AnalysisType anaType;
 
         Susy::SusyNtObject* nt;
