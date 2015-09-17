@@ -1917,45 +1917,8 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
             exit(1);
         }
     }
-
-    bool inputIsFile = Susy::utils::endswith(input, ".root");
-    bool inputIsList = Susy::utils::endswith(input, ".txt");
-    bool inputIsDir = Susy::utils::endswith(input, "/");
-    bool validInput(inputIsFile || inputIsList || inputIsDir);
-    if (!validInput) {
-        cout << analysis_name <<"    invalid input '" << input << "'" << endl;
-        exit(1);
-    }
-    if (inputIsFile) {
-        ChainHelper::addFile(chain, input);
-        cout << analysis_name <<"    file: " << input << endl;
-        cout << analysis_name <<"    file: " << input << endl;
-        cout << analysis_name <<"    file: " << input << endl;
-        sample_ = input;
-    }
-    if (inputIsList) {
-        ChainHelper::addFileList(chain, input);
-        cout << analysis_name << "    list: " << input << endl;
-        cout << analysis_name << "    list: " << input << endl;
-        cout << analysis_name << "    list: " << input << endl;
-        ifstream infile(input.c_str());
-        if (infile.good()) {
-            string sLine;
-            getline(infile, sLine);
-            sample_ = sLine;
-        }
-        else {
-            sample_ = input;
-        }
-        infile.close();
-    }
-    if (inputIsDir) {
-        ChainHelper::addFileDir(chain, input);
-        cout << analysis_name << "    dir: " << input << endl;
-        cout << analysis_name << "    dir: " << input << endl;
-        cout << analysis_name << "    dir: " << input << endl;
-        sample_ = input;
-    }
+    bool verbose = true;
+    ChainHelper::addInput(chain, input, verbose);
     Long64_t tot_num_events = chain->GetEntries();
     num_events_ = (num_events_ < 0 ? tot_num_events : num_events_);
     // if (debug) chain->ls();
