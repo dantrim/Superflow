@@ -337,7 +337,7 @@ int main(int argc, char* argv[])
         *cutflow << HFTname("nCentralLightJets");
         *cutflow << [&](Superlink* sl, var_int*) -> int {
             for (int i = 0; i < sl->jets->size(); i++) {
-                if( sl->tools->m_jetSelector.isCentralLightJet(sl->jets->at(i))){
+                if( sl->tools->jetSelector().isCentralLight(sl->jets->at(i))){
                     central_light_jets.push_back(sl->jets->at(i));
                 }
             }
