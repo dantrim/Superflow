@@ -28,9 +28,6 @@
 #include "Superflow/PhysicsTools.h"
 #include "Superflow/LeptonTruthDefinitions.h"
 
-// Mt2
-#include "Mt2/mt2_bisect.h"
-
 
 using namespace std;
 using namespace sflow;
@@ -235,7 +232,7 @@ int main(int argc, char* argv[])
         *cutflow << [&](Superlink* sl, var_bool_array*) -> vector<bool> {
             vector<bool> out;
             for(uint imu=0; imu<muons.size(); imu++){
-                if(sl->ntTrig->passTrigger(muons[imu]->trigBits, "HLT_mu24_iloose_L1MU15")) { out.push_back(true); }
+                if(sl->tools->triggerTool().passTrigger(muons[imu]->trigBits, "HLT_mu24_iloose_L1MU15")) { out.push_back(true); }
                 else { out.push_back(false); }
             }
             return out;
@@ -547,8 +544,8 @@ int main(int argc, char* argv[])
     *cutflow << [&](Superlink* sl, var_void*) {
         for(int i = 0; i < jets.size(); i++) {
             Jet* j = jets[i];
-            if(sl->tools->m_jetSelector.isBJet(j)) bjets.push_back(j);
-            if(!sl->tools->m_jetSelector.isBJet(j)) sjets.push_back(j);
+            if( sl->tools->jetSelector().isB(j)) bjets.push_back(j);
+            if(!sl->tools->jetSelector().isB(j)) sjets.push_back(j);
         } // i
     };
  
@@ -1283,20 +1280,23 @@ int main(int argc, char* argv[])
         *cutflow << [&](Superlink* sl, var_float*) -> double {
             double mt2 = -999.0;
             if(leptons.size()==2) {
-                mt2_bisect::mt2 mt2_event;
-                double *pa, *pb, *pmiss;
-                pa = new double[3]; pa[0] = sl->leptons->at(0)->M(); pa[1] = sl->leptons->at(0)->Px(), pa[2] = sl->leptons->at(0)->Py();
-                pb = new double[3]; pb[0] = sl->leptons->at(1)->M(); pb[1] = sl->leptons->at(1)->Px(), pb[2] = sl->leptons->at(1)->Py();
-                pmiss = new double[3]; pmiss[0] = 0.0; pmiss[1] = sl->met->Et * cos(sl->met->phi); pmiss[2] = sl->met->Et * sin(sl->met->phi);
+
+                mt2 = kin::getMT2(*sl->leptons, *sl->met);
+
+                //mt2_bisect::mt2 mt2_event;
+                //double *pa, *pb, *pmiss;
+                //pa = new double[3]; pa[0] = sl->leptons->at(0)->M(); pa[1] = sl->leptons->at(0)->Px(), pa[2] = sl->leptons->at(0)->Py();
+                //pb = new double[3]; pb[0] = sl->leptons->at(1)->M(); pb[1] = sl->leptons->at(1)->Px(), pb[2] = sl->leptons->at(1)->Py();
+                //pmiss = new double[3]; pmiss[0] = 0.0; pmiss[1] = sl->met->Et * cos(sl->met->phi); pmiss[2] = sl->met->Et * sin(sl->met->phi);
  
-                mt2_event.set_momenta(pa, pb, pmiss);
-                mt2_event.set_mn(0.0); // LSP mass = 0 is Generic
+                //mt2_event.set_momenta(pa, pb, pmiss);
+                //mt2_event.set_mn(0.0); // LSP mass = 0 is Generic
  
-                mt2 = mt2_event.get_mt2();
+                //mt2 = mt2_event.get_mt2();
  
-                delete[] pa;
-                delete[] pb;
-                delete[] pmiss;
+                //delete[] pa;
+                //delete[] pb;
+                //delete[] pmiss;
             }
             return mt2;
         };

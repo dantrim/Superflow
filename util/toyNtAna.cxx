@@ -27,9 +27,6 @@
 #include "Superflow/PhysicsTools.h"
 #include "Superflow/LeptonTruthDefinitions.h"
 
-// Mt2
-#include "Mt2/mt2_bisect.h"
-
 
 using namespace std;
 using namespace sflow;

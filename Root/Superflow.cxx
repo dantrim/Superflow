@@ -1190,7 +1190,7 @@ namespace sflow {
 
             // get the MuonId for the analysis type to select the correct errSF
             MuonId id;
-            if(currentAnaType==AnalysisType::Ana_Stop2L) { id = MuonId::Loose; }
+            if(currentAnaType==AnalysisType::Ana_Stop2L) { id = MuonId::Medium; }
             else { id = MuonId::Medium; }
 
             // select the nominal SF

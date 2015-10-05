@@ -28,9 +28,6 @@
 #include "Superflow/PhysicsTools.h"
 #include "Superflow/LeptonTruthDefinitions.h"
 
-// Mt2
-#include "Mt2/mt2_bisect.h"
-
 
 using namespace std;
 using namespace sflow;
@@ -556,21 +553,23 @@ int main(int argc, char* argv[])
         *cutflow << HFTname("MT2");
         *cutflow << [](Superlink* sl, var_float*) -> double {
 
-            mt2_bisect::mt2 mt2_event;
-            double *pa, *pb, *pmiss;
-            pa = new double[3]; pa[0] = sl->leptons->at(0)->M(); pa[1] = sl->leptons->at(0)->Px(), pa[2] = sl->leptons->at(0)->Py();
-            pb = new double[3]; pb[0] = sl->leptons->at(1)->M(); pb[1] = sl->leptons->at(1)->Px(), pb[2] = sl->leptons->at(1)->Py();
-            pmiss = new double[3]; pmiss[0] = 0.0; pmiss[1] = sl->met->Et * cos(sl->met->phi); pmiss[2] = sl->met->Et * sin(sl->met->phi);
+            double mt2_ = kin::getMT2(*sl->leptons, *sl->met);
 
-            mt2_event.set_momenta(pa, pb, pmiss);
-            mt2_event.set_mn(0.0); // LSP mass = 0 is Generic
+           // mt2_bisect::mt2 mt2_event;
+           // double *pa, *pb, *pmiss;
+           // pa = new double[3]; pa[0] = sl->leptons->at(0)->M(); pa[1] = sl->leptons->at(0)->Px(), pa[2] = sl->leptons->at(0)->Py();
+           // pb = new double[3]; pb[0] = sl->leptons->at(1)->M(); pb[1] = sl->leptons->at(1)->Px(), pb[2] = sl->leptons->at(1)->Py();
+           // pmiss = new double[3]; pmiss[0] = 0.0; pmiss[1] = sl->met->Et * cos(sl->met->phi); pmiss[2] = sl->met->Et * sin(sl->met->phi);
 
-            double mt2_ = mt2_event.get_mt2();
-            // SUPRESSED messages "Deltasq_high not found at event 0" (~1 per 10000 events)
+           // mt2_event.set_momenta(pa, pb, pmiss);
+           // mt2_event.set_mn(0.0); // LSP mass = 0 is Generic
 
-            delete[] pa;
-            delete[] pb;
-            delete[] pmiss;
+           // double mt2_ = mt2_event.get_mt2();
+           // // SUPRESSED messages "Deltasq_high not found at event 0" (~1 per 10000 events)
+
+           // delete[] pa;
+           // delete[] pb;
+           // delete[] pmiss;
 
             return mt2_;
         };
