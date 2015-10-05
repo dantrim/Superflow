@@ -397,8 +397,8 @@ int main(int argc, char* argv[])
         *cutflow << HFTname("nCentralLightJets");
         *cutflow << [&](Superlink* sl, var_int*) -> int {
             for (int i = 0; i < sl->jets->size(); i++) {
-                if( sl->tools->m_jetSelector.isCentralLightJet(sl->jets->at(i))){
-                //if (sl->tools->isCentralLightJet(sl->jets->at(i), sl->jvfTool, sl->nt_sys, sl->anaType)) {
+                if( sl->tools->jetSelector().isCentralLight(sl->jets->at(i))){
+                //if (sl->tools->isCentralLight(sl->jets->at(i), sl->jvfTool, sl->nt_sys, sl->anaType)) {
                     central_light_jets.push_back(sl->jets->at(i));
                 }
             }
@@ -945,44 +945,8 @@ void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_
         }
     }
 
-    bool inputIsFile = Susy::utils::endswith(input, ".root");
-    bool inputIsList = Susy::utils::endswith(input, ".txt");
-    bool inputIsDir  = Susy::utils::endswith(input, "/");
-    bool validInput(inputIsFile || inputIsList || inputIsDir);
-    if (!validInput) {
-        cout << "Analysis    invalid input '" << input << "'" << endl;
-        exit(1);
-    }
-    if (inputIsFile) {
-        ChainHelper::addFile(chain, input);
-        cout << "Analysis    file: " << input << endl;
-        cout << "Analysis    file: " << input << endl;
-        cout << "Analysis    file: " << input << endl;
-        sample_ = input;
-    }
-    if (inputIsList) {
-        ChainHelper::addFileList(chain, input);
-        cout << "Analysis    list: " << input << endl;
-        cout << "Analysis    list: " << input << endl;
-        cout << "Analysis    list: " << input << endl;
-        ifstream infile(input.c_str());
-        if (infile.good()) {
-            string sLine;
-            getline(infile, sLine);
-            sample_ = sLine;
-        }
-        else {
-            sample_ = input;
-        }
-        infile.close();
-    }
-    if (inputIsDir) {
-        ChainHelper::addFileDir(chain, input);
-        cout << "Analysis    dir: " << input << endl;
-        cout << "Analysis    dir: " << input << endl;
-        cout << "Analysis    dir: " << input << endl;
-        sample_ = input;
-    }
+    bool verbose = true;
+    ChainHelper::addInput(chain, input, verbose);
     Long64_t tot_num_events = chain->GetEntries();
     num_events_ = (num_events_ < 0 ? tot_num_events : num_events_);
     // if (debug) chain->ls();

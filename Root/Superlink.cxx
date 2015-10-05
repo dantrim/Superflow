@@ -15,8 +15,6 @@ namespace sflow {
 
         tools = nullptr;
 
-        ntTrig = nullptr;
-
         anaType = Susy::AnalysisType::Ana_2Lep;
 
         nt = nullptr;
@@ -50,8 +48,6 @@ namespace sflow {
         isData = false;
 
         tools = nullptr;
-
-        ntTrig = nullptr;
 
         anaType = Susy::AnalysisType::Ana_2Lep;
 
