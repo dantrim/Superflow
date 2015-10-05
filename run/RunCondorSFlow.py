@@ -6,13 +6,15 @@ import subprocess
 import glob
 
 
-ana_name = "wwlikeAna" # name of executable (i.e. your executable running Superflow)
-start_dir = "/home/dantrim/n0216val/"  
-log_dir = "/home/dantrim/test_condor/histoAna/data/logs/" # output directory for your job and condor logs
-out_dir = "/home/dantrim/test_condor/histoAna/data/Raw/" # output directory for your output ntuples
+ana_name = "restframesAna" # name of executable (i.e. your executable running Superflow)
+start_dir = "/data/uclhc/uci/user/dantrim/n0216val/"
+log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0216/zee/data/logs/" # output directory for your job and condor logs
+out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0216/zee/data/raw/" # output directory for your output ntuples
 
-filelist_dir = "/home/dantrim/test_condor/" # head directory that contains the condor filelists
-samples = ["condor_lists"] # name of filelist inside of 'filelist_dir' for samples to run 
+filelist_dir = "/data/uclhc/uci/user/dantrim/n0216val/filelists/data/"
+#filelist_dir = "/data/uclhc/uci/user/dantrim/n0216val/filelists/mc/"
+samples = ["data"] # name of filelist inside of 'filelist_dir' for samples to run 
+#samples = ["zee_sherpa"] # name of filelist inside of 'filelist_dir' for samples to run 
 
 def main() :
     print "RunCondorSFlow"
@@ -80,7 +82,7 @@ def get_sub_script(ana = "", file_ = None, name = "", dataset = "", startdir = "
     file_.write("+sdsc = true\n")       # run at SDSC Comet Cluster
     file_.write("+uc = true\n")         # run outside to all UC's
     file_.write("executable = CondorSFlow.sh\n")
-    file_.write("arguments = %s %s %s\n"%(ana, dataset, startdir, outputdir))
+    file_.write("arguments = %s %s %s %s\n"%(ana, dataset, startdir, outputdir))
     file_.write("should_transfer_files = YES\n")
     file_.write("when_to_transfer_output = ON_EXIT\n")
     file_.write("log = %s/%s.log\n"%(log_dir, name))
