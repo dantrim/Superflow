@@ -7,17 +7,16 @@ echo "Starting at ${PWD}"
 
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh
-#echo "source susynt-read/bash/setup_root.sh"
-#source susynt-read/bash/setup_root.sh
-lsetup root
+echo "source susynt-read/bash/setup_root.sh"
+source susynt-read/bash/setup_root.sh
 echo "source RootCore/scripts/setup.sh"
 source RootCore/scripts/setup.sh
 echo "rc find_packages"
 rc find_packages
 ##echo "rc compile"
 ##rc compile
-echo "source RestFrames/setup_RestFrames.sh"
-source RestFrames/setup_RestFrames.sh
+#echo "source RestFrames/libexec/setup_RestFrames.sh"
+#source RestFrames/libexec/setup_RestFrames.sh
 
 echo "cd ${4}"
 cd ${4} # outdir

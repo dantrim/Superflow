@@ -6,12 +6,13 @@ import subprocess
 import glob
 
 
-ana_name = "restframesAna" # name of executable (i.e. your executable running Superflow)
+ana_name = "wwlikeAna" # name of executable (i.e. your executable running Superflow)
 start_dir = "/data/uclhc/uci/user/dantrim/n0216val/"
-log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0216/zee/data/logs/" # output directory for your job and condor logs
-out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0216/zee/data/raw/" # output directory for your output ntuples
+log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0216/validation/data/logs/" # output directory for your job and condor logs
+out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0216/validation/data/Raw/" # output directory for your output ntuples
 
-filelist_dir = "/data/uclhc/uci/user/dantrim/n0216val/filelists/data/"
+filelist_dir = "/data/uclhc/uci/user/dantrim/n0216val/filelists/"
+in_job_filelist_dir = "/n0216val/filelists/"
 #filelist_dir = "/data/uclhc/uci/user/dantrim/n0216val/filelists/mc/"
 samples = ["data"] # name of filelist inside of 'filelist_dir' for samples to run 
 #samples = ["zee_sherpa"] # name of filelist inside of 'filelist_dir' for samples to run 
@@ -25,6 +26,9 @@ def main() :
         suffix_ = ""
         if not s.endswith("/") : suffix_+= "/"
         sample_lists = glob.glob(filelist_dir + s + suffix_ + "*.txt")
+        if len(sample_lists) == 0 :
+            print "No samples lists in filelist_dir!"%(filelist_dir + s)
+            sys.exit()
         for dataset in sample_lists :
             print "    > %s"%dataset
             name  = dataset.split("/")

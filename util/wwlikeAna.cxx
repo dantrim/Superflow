@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
     Superflow* cutflow = new Superflow(); // initialize the cutflow
     cutflow->setAnaName(analysis_name);
     cutflow->setAnaType(AnalysisType::Ana_Stop2L); 
-    cutflow->setLumi(78.3); // set the MC normalized to lumi periods A1-A3
+    cutflow->setLumi(1702); // set the MC normalized to lumi periods A1-A3
     cutflow->setSampleName(sample_);
     cutflow->setRunMode(run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows
@@ -226,19 +226,6 @@ int main(int argc, char* argv[])
     *cutflow << [&](Superlink* sl, var_void*) { leptons = *sl->leptons; };
     *cutflow << [&](Superlink* sl, var_void*) { electrons = *sl->electrons; };
     *cutflow << [&](Superlink* sl, var_void*) { muons = *sl->muons; };
-
-    *cutflow << NewVar("mu passes HLT_mu24_iloose_L1MU15"); {
-        *cutflow << HFTname("muPass_mu24_iloose_L1MU15");
-        *cutflow << [&](Superlink* sl, var_bool_array*) -> vector<bool> {
-            vector<bool> out;
-            for(uint imu=0; imu<muons.size(); imu++){
-                if(sl->tools->triggerTool().passTrigger(muons[imu]->trigBits, "HLT_mu24_iloose_L1MU15")) { out.push_back(true); }
-                else { out.push_back(false); }
-            }
-            return out;
-            };
-        *cutflow << SaveVar();
-    }
 
     *cutflow << NewVar("number of leptons"); {
         *cutflow << HFTname("nLeptons");
@@ -489,48 +476,6 @@ int main(int argc, char* argv[])
         };
         *cutflow << SaveVar();
     }
-/*
-    TriggerTools* trigtool = new TriggerTools(chain, true);
-    *cutflow << NewVar("m_mumu - invariant mass of di-muon events with muons matched to HLT_mu14"); {
-        *cutflow << HFTname("m_mumu_mu14");
-        *cutflow << [&](Superlink* sl, var_float*) -> double {
-            MuonVector matchedMuons;
-            for(int i = 0; i < muons.size(); i++){
-                Muon* mu = muons.at(i);
-                if(sl->ntTrig->passTriggerTools(mu->trigBits, "HLT_mu14")) { matchedMuons.push_back(mu); }
-            }
-            double mll = -999.0;
-            if(matchedMuons.size()==2) {
-                Muon* mu0 = matchedMuons.at(0);
-                Muon* mu1 = matchedMuons.at(1);
-                mll = (*mu0 + *mu1).M();
-            }
-            return mll;
-        };
-        *cutflow << SaveVar();
-    }
-    *cutflow << NewVar("m_mumu - invariant mass of di-muon events with muons matched to HLT_mu26_imedium"); {
-        *cutflow << HFTname("m_mumu_mu26");
-        *cutflow << [&](Superlink* sl, var_float*) -> double {
-            MuonVector matchedMuons;
-            for(int i = 0; i < muons.size(); i++){
-                Muon* mu = muons.at(i);
-                if(sl->ntTrig->passTriggerTools(mu->trigBits, "HLT_mu26_imedium")) { matchedMuons.push_back(mu); }
-            }
-            double mll = -999.0;
-            if(matchedMuons.size()==2) {
-                Muon* mu0 = matchedMuons.at(0);
-                Muon* mu1 = matchedMuons.at(1);
-                mll = (*mu0 + *mu1).M();
-            }
-            return mll;
-        };
-        *cutflow << SaveVar();
-    }
-    delete trigtool;
-*/
-/*
-*/
 
     // JETS
     // JETS
@@ -1280,23 +1225,7 @@ int main(int argc, char* argv[])
         *cutflow << [&](Superlink* sl, var_float*) -> double {
             double mt2 = -999.0;
             if(leptons.size()==2) {
-
                 mt2 = kin::getMT2(*sl->leptons, *sl->met);
-
-                //mt2_bisect::mt2 mt2_event;
-                //double *pa, *pb, *pmiss;
-                //pa = new double[3]; pa[0] = sl->leptons->at(0)->M(); pa[1] = sl->leptons->at(0)->Px(), pa[2] = sl->leptons->at(0)->Py();
-                //pb = new double[3]; pb[0] = sl->leptons->at(1)->M(); pb[1] = sl->leptons->at(1)->Px(), pb[2] = sl->leptons->at(1)->Py();
-                //pmiss = new double[3]; pmiss[0] = 0.0; pmiss[1] = sl->met->Et * cos(sl->met->phi); pmiss[2] = sl->met->Et * sin(sl->met->phi);
- 
-                //mt2_event.set_momenta(pa, pb, pmiss);
-                //mt2_event.set_mn(0.0); // LSP mass = 0 is Generic
- 
-                //mt2 = mt2_event.get_mt2();
- 
-                //delete[] pa;
-                //delete[] pb;
-                //delete[] pmiss;
             }
             return mt2;
         };
