@@ -59,7 +59,7 @@ def main() :
 
             if not (str(os.path.abspath(out_dir)) == str(os.environ['PWD'])) :
                 print "You must call this script from the output directory where the ntuples will be stored!"
-                print " >>> %s"%os.path.abspath(out_dir)
+                print " >>> Expected submission directory : %s"%os.path.abspath(out_dir)
                 sys.exit()
 
             run_cmd = "ARGS="
