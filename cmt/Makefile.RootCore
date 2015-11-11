@@ -7,7 +7,7 @@
 
 PACKAGE          = Superflow
 PACKAGE_PRELOAD  = Tree
-PACKAGE_CXXFLAGS = -Wno-sign-compare -Wno-parentheses -O3 -ffast-math 
+PACKAGE_CXXFLAGS = -Wno-sign-compare -Wno-parentheses -O3 -ffast-math
 PACKAGE_OBJFLAGS = 
 PACKAGE_LDFLAGS  = 
 PACKAGE_BINFLAGS = -lXMLParser -lEG

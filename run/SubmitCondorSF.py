@@ -4,21 +4,25 @@ import sys
 import glob
 import subprocess
 
-ana_name = "wwlikeAna"
+ana_name = "rjigsawAna"
 tar_location = "/data/uclhc/uci/user/dantrim/"
-log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0216/validation/mc/logs/"
-out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0216/validation/mc/Raw/"
+out_dir = "/data/uclhc/uci/user/dantrim/ntuples/rjigsaw/mc/Raw/"
+log_dir = "/data/uclhc/uci/user/dantrim/ntuples/rjigsaw/mc/logs/"
 
 filelist_dir = "/data/uclhc/uci/user/dantrim/n0216val/filelists/"
 in_job_filelist_dir = "/n0216val/filelists/"
-samples = ["sherpaVV"]
+#samples = ["sherpaVV", "singletop",  "ttbar",  "wjets",  "zjets"]
+#samples = ["data"]
+samples = ["bchargino"]
+#samples = ["bwn"]
+#samples = ["c1c1", "bwn"]
 
 #retry_list = "/data/uclhc/uci/user/dantrim/n0216val/Superflow/run/retry.txt"
 
-doBrick = True
-doLocal = False
-doSDSC  = False
-doUC    = False
+doBrick = False
+doLocal = True 
+doSDSC  = True 
+doUC    = True 
 
 def main() :
     print "SubmitCondorSF"
@@ -39,6 +43,7 @@ def main() :
         if len(sample_lists) == 0 :
             print "No sample lists in filelist dir!"
             sys.exit()
+
         for dataset in sample_lists :
             fullname = str(os.path.abspath(dataset))
             print "    > %s"%dataset
