@@ -154,8 +154,6 @@ def look_for_condor_executable() :
     f.write('ls -ltrh\n')
     f.write('lsetup fax\n')
     f.write('source susynt-read/bash/setup_root.sh\n')
-    f.write('echo "Calling : source RestFrames/setup_RestFrames.sh"\n')
-    f.write('source RestFrames/setup_RestFrames.sh\n')
     f.write('echo "Calling : source RootCore/local_setup.sh"\n')
     f.write('source RootCore/local_setup.sh\n')
     f.write('echo "Calling : cd ${work_dir}"\n')
