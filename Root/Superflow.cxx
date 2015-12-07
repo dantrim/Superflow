@@ -1485,13 +1485,13 @@ namespace sflow {
     {
         if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
             m_varExprFloat.push_back(var_); // fill
-            m_varExprFloatArray.push_back(m_nullExprFloatArray);
-            m_varExprBoolArray.push_back(m_nullExprBoolArray);
-            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprDouble.push_back(m_nullExprDouble);
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(m_nullExprBool);
             m_varExprVoid.push_back(m_nullExprVoid);
+            m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
+            m_varExprFloatArray.push_back(m_nullExprFloatArray);
 
             m_varType.push_back(SupervarType::sv_float);
             m_superVar_hasFunction = true;
@@ -1508,12 +1508,12 @@ namespace sflow {
         if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
             m_varExprFloat.push_back(m_nullExprFloat);
             m_varExprDouble.push_back(m_nullExprDouble);
-            m_varExprBoolArray.push_back(m_nullExprBoolArray);
-            m_varExprIntArray.push_back(m_nullExprIntArray);
-            m_varExprFloatArray.push_back(var_);
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(m_nullExprBool);
             m_varExprVoid.push_back(m_nullExprVoid);
+            m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
+            m_varExprFloatArray.push_back(var_);
 
             m_varType.push_back(SupervarType::sv_float_array);
             m_superVar_hasFunction = true;
@@ -1530,12 +1530,12 @@ namespace sflow {
         if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
             m_varExprFloat.push_back(m_nullExprFloat);
             m_varExprDouble.push_back(m_nullExprDouble);
-            m_varExprBoolArray.push_back(var_);
-            m_varExprIntArray.push_back(m_nullExprIntArray);
-            m_varExprFloatArray.push_back(m_nullExprFloatArray);
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(m_nullExprBool);
             m_varExprVoid.push_back(m_nullExprVoid);
+            m_varExprBoolArray.push_back(var_);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
+            m_varExprFloatArray.push_back(m_nullExprFloatArray);
 
             m_varType.push_back(SupervarType::sv_bool_array);
             m_superVar_hasFunction = true;
@@ -1552,12 +1552,12 @@ namespace sflow {
         if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
             m_varExprFloat.push_back(m_nullExprFloat);
             m_varExprDouble.push_back(m_nullExprDouble);
-            m_varExprBoolArray.push_back(m_nullExprBoolArray);
-            m_varExprIntArray.push_back(var_);
-            m_varExprFloatArray.push_back(m_nullExprFloatArray);
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(m_nullExprBool);
             m_varExprVoid.push_back(m_nullExprVoid);
+            m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(var_);
+            m_varExprFloatArray.push_back(m_nullExprFloatArray);
 
             m_varType.push_back(SupervarType::sv_int_array);
             m_superVar_hasFunction = true;
@@ -1573,13 +1573,13 @@ namespace sflow {
     {
         if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
             m_varExprFloat.push_back(m_nullExprFloat);
-            m_varExprFloatArray.push_back(m_nullExprFloatArray);
-            m_varExprBoolArray.push_back(m_nullExprBoolArray);
-            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprDouble.push_back(var_); // fill
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(m_nullExprBool);
             m_varExprVoid.push_back(m_nullExprVoid);
+            m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
+            m_varExprFloatArray.push_back(m_nullExprFloatArray);
 
             m_varType.push_back(SupervarType::sv_double);
             m_superVar_hasFunction = true;
@@ -1596,12 +1596,12 @@ namespace sflow {
         if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
             m_varExprFloat.push_back(m_nullExprFloat);
             m_varExprDouble.push_back(m_nullExprDouble);
-            m_varExprFloatArray.push_back(m_nullExprFloatArray);
-            m_varExprBoolArray.push_back(m_nullExprBoolArray);
-            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprInt.push_back(var_); // fill
             m_varExprBool.push_back(m_nullExprBool);
             m_varExprVoid.push_back(m_nullExprVoid);
+            m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
+            m_varExprFloatArray.push_back(m_nullExprFloatArray);
 
             m_varType.push_back(SupervarType::sv_int);
             m_superVar_hasFunction = true;
@@ -1618,12 +1618,12 @@ namespace sflow {
         if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
             m_varExprFloat.push_back(m_nullExprFloat);
             m_varExprDouble.push_back(m_nullExprDouble);
-            m_varExprFloatArray.push_back(m_nullExprFloatArray);
-            m_varExprBoolArray.push_back(m_nullExprBoolArray);
-            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(var_); // fill
             m_varExprVoid.push_back(m_nullExprVoid);
+            m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
+            m_varExprFloatArray.push_back(m_nullExprFloatArray);
 
             m_varType.push_back(SupervarType::sv_bool);
             m_superVar_hasFunction = true;
@@ -1639,12 +1639,12 @@ namespace sflow {
     {
         m_varExprFloat.push_back(m_nullExprFloat);
         m_varExprDouble.push_back(m_nullExprDouble);
-        m_varExprFloatArray.push_back(m_nullExprFloatArray);
-        m_varExprBoolArray.push_back(m_nullExprBoolArray);
-        m_varExprIntArray.push_back(m_nullExprIntArray);
         m_varExprInt.push_back(m_nullExprInt);
         m_varExprBool.push_back(m_nullExprBool);
         m_varExprVoid.push_back(var_);// fill
+        m_varExprBoolArray.push_back(m_nullExprBoolArray);
+        m_varExprIntArray.push_back(m_nullExprIntArray);
+        m_varExprFloatArray.push_back(m_nullExprFloatArray);
 
         m_varNiceName.push_back("void");
         m_varHFTName.push_back("void");
