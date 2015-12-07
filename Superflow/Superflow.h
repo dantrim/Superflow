@@ -64,6 +64,7 @@ namespace sflow {
         Superflow& operator<<(std::function<double(Superlink*, var_double*)> var_);
         Superflow& operator<<(std::function<vector<double>(Superlink*, var_float_array*)> var_);
         Superflow& operator<<(std::function<vector<bool>(Superlink*, var_bool_array*)> var_);
+        Superflow& operator<<(std::function<vector<int> (Superlink*, var_int_array*) > var_);
         Superflow& operator<<(std::function<int(Superlink*, var_int*)> var_);
         Superflow& operator<<(std::function<bool(Superlink*, var_bool*)> var_);
         Superflow& operator<<(std::function<void(Superlink*, var_void*)> var_);
@@ -138,6 +139,7 @@ namespace sflow {
         std::function<double(Superlink*, var_float*)> m_nullExprFloat;
         std::function<vector<double>(Superlink*, var_float_array*)> m_nullExprFloatArray;
         std::function<vector<bool>(Superlink*, var_bool_array*)> m_nullExprBoolArray;
+        std::function<vector<int>(Superlink*, var_int_array*)> m_nullExprIntArray;
         std::function<double(Superlink*, var_double*)> m_nullExprDouble;
         std::function<int(Superlink*, var_int*)> m_nullExprInt;
         std::function<bool(Superlink*, var_bool*)> m_nullExprBool;
@@ -146,6 +148,7 @@ namespace sflow {
         vector<std::function<double(Superlink*, var_float*)>> m_varExprFloat;
         vector<std::function<vector<double>(Superlink*, var_float_array*)>> m_varExprFloatArray;
         vector<std::function<vector<bool>(Superlink*, var_bool_array*)>> m_varExprBoolArray;
+        vector<std::function<vector<int>(Superlink*, var_int_array*)>> m_varExprIntArray;
         vector<std::function<double(Superlink*, var_double*)>> m_varExprDouble;
         vector<std::function<int(Superlink*, var_int*)>> m_varExprInt;
         vector<std::function<bool(Superlink*, var_bool*)>> m_varExprBool;
@@ -154,6 +157,7 @@ namespace sflow {
         Float_t* m_varFloat;
         vector<vector<double>> m_varFloatArray;
         vector<vector<bool>> m_varBoolArray;
+        vector<vector<int>> m_varIntArray;
         Double_t* m_varDouble;
         Int_t* m_varInt;
         Bool_t* m_varBool;

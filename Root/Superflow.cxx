@@ -72,6 +72,13 @@ namespace sflow {
                 }
                 return null;
         };
+        m_nullExprIntArray = [](Superlink* sl, var_int_array*) -> vector<int> {
+                vector<int> null;
+                for(int i = 0; i < 25; i++) {
+                    null.push_back(0.0);
+                }
+                return null;
+        };
         m_nullExprDouble = [](Superlink* sl, var_double*) -> double { return 0.0; };
         m_nullExprInt    = [](Superlink* sl, var_int*) -> int { return 0; };
         m_nullExprBool   = [](Superlink* sl, var_bool*) -> bool { return false; };
@@ -427,8 +434,10 @@ namespace sflow {
         for (int i = 0; i < m_varType.size(); i++) { //m_varFloatArray[i] = 1.0; }
             vector<double> null(25, -999);
             vector<bool> f(25, false);
+            vector<int> vi(25, 0);
             m_varFloatArray.push_back(null);
             m_varBoolArray.push_back(f);
+            m_varIntArray.push_back(vi);
         }
 
         for (int i = 0; i < m_varType.size(); i++) {
@@ -462,6 +471,10 @@ namespace sflow {
                 }
                 case SupervarType::sv_bool_array: {
                     m_HFT->Branch(m_varHFTName[i].data(), &m_varBoolArray[i]);
+                    break;
+                }
+                case SupervarType::sv_int_array: {
+                    m_HFT->Branch(m_varHFTName[i].data(), &m_varIntArray[i]);
                     break;
                 }
             }
@@ -523,6 +536,7 @@ namespace sflow {
                             m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varFloat_array[i] + j, leaflist_.data(), 65536);
                             break;
                         }
+                        #warning VECTOR VARIABLES ARE NOT READY FOR EVENT SYSTEMATICS!!!!!!
                         case SupervarType::sv_float_array: { 
                             m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varFloatArray[i]);
                             //m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varDouble_array[i] + j, leaflist_.data(), 65536);
@@ -530,6 +544,10 @@ namespace sflow {
                         }
                         case SupervarType::sv_bool_array: {
                             m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varBoolArray[i]);
+                            break;
+                        }
+                        case SupervarType::sv_int_array: {
+                            m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varIntArray[i]);
                             break;
                         }
                         case SupervarType::sv_double: {
@@ -604,6 +622,7 @@ namespace sflow {
         var_double* vd_         = nullptr;
         var_float_array* vfa_   = nullptr;
         var_bool_array* vba_    = nullptr;
+        var_int_array*  via_    = nullptr;
         var_int* vi_            = nullptr;
         var_bool* vb_           = nullptr;
         var_void* vv_           = nullptr;
@@ -658,6 +677,10 @@ namespace sflow {
                             }
                             case SupervarType::sv_bool_array: {
                                 m_varBoolArray[v_] = m_varExprBoolArray[v_](sl_,vba_);
+                                break;
+                            }
+                            case SupervarType::sv_int_array: {
+                                m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
                                 break;
                             }
                             case SupervarType::sv_int: {
@@ -735,6 +758,10 @@ namespace sflow {
                                 m_varBoolArray[v_] = m_varExprBoolArray[v_](sl_,vba_);
                                 break;
                             }
+                            case SupervarType::sv_int_array: {
+                                m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
+                                break;
+                            }
                             case SupervarType::sv_double: {
                                 m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_); break;
                             }
@@ -797,6 +824,10 @@ namespace sflow {
                                 }
                                 case SupervarType::sv_bool_array: {
                                     m_varBoolArray[v_] = m_varExprBoolArray[v_](sl_,vba_);
+                                    break;
+                                }
+                                case SupervarType::sv_int_array: {
+                                    m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
                                     break;
                                 }
                                 case SupervarType::sv_int: {
@@ -869,6 +900,10 @@ namespace sflow {
                             }
                             case SupervarType::sv_bool_array: {
                                 m_varBoolArray[v_] = m_varExprBoolArray[v_](sl_,vba_);
+                                break;
+                            }
+                            case SupervarType::sv_int_array: {
+                                m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
                                 break;
                             }
                             case SupervarType::sv_int: {
@@ -1452,6 +1487,7 @@ namespace sflow {
             m_varExprFloat.push_back(var_); // fill
             m_varExprFloatArray.push_back(m_nullExprFloatArray);
             m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprDouble.push_back(m_nullExprDouble);
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(m_nullExprBool);
@@ -1473,6 +1509,7 @@ namespace sflow {
             m_varExprFloat.push_back(m_nullExprFloat);
             m_varExprDouble.push_back(m_nullExprDouble);
             m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprFloatArray.push_back(var_);
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(m_nullExprBool);
@@ -1494,6 +1531,7 @@ namespace sflow {
             m_varExprFloat.push_back(m_nullExprFloat);
             m_varExprDouble.push_back(m_nullExprDouble);
             m_varExprBoolArray.push_back(var_);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprFloatArray.push_back(m_nullExprFloatArray);
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(m_nullExprBool);
@@ -1508,8 +1546,28 @@ namespace sflow {
         }
         return *this;
     }
+    // vector<int> function
+    Superflow& Superflow::operator<<(std::function<vector<int>(Superlink*, var_int_array*)> var_)
+    {
+        if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
+            m_varExprFloat.push_back(m_nullExprFloat);
+            m_varExprDouble.push_back(m_nullExprDouble);
+            m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(var_);
+            m_varExprFloatArray.push_back(m_nullExprFloatArray);
+            m_varExprInt.push_back(m_nullExprInt);
+            m_varExprBool.push_back(m_nullExprBool);
+            m_varExprVoid.push_back(m_nullExprVoid);
 
-        
+            m_varType.push_back(SupervarType::sv_int_array);
+            m_superVar_hasFunction = true;
+        }
+        else {
+            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
+            exit(1);
+        }
+        return *this;
+    }
     // double function
     Superflow& Superflow::operator<<(std::function<double(Superlink*, var_double*)> var_)
     {
@@ -1517,6 +1575,7 @@ namespace sflow {
             m_varExprFloat.push_back(m_nullExprFloat);
             m_varExprFloatArray.push_back(m_nullExprFloatArray);
             m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprDouble.push_back(var_); // fill
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(m_nullExprBool);
@@ -1539,6 +1598,7 @@ namespace sflow {
             m_varExprDouble.push_back(m_nullExprDouble);
             m_varExprFloatArray.push_back(m_nullExprFloatArray);
             m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprInt.push_back(var_); // fill
             m_varExprBool.push_back(m_nullExprBool);
             m_varExprVoid.push_back(m_nullExprVoid);
@@ -1560,6 +1620,7 @@ namespace sflow {
             m_varExprDouble.push_back(m_nullExprDouble);
             m_varExprFloatArray.push_back(m_nullExprFloatArray);
             m_varExprBoolArray.push_back(m_nullExprBoolArray);
+            m_varExprIntArray.push_back(m_nullExprIntArray);
             m_varExprInt.push_back(m_nullExprInt);
             m_varExprBool.push_back(var_); // fill
             m_varExprVoid.push_back(m_nullExprVoid);
@@ -1580,6 +1641,7 @@ namespace sflow {
         m_varExprDouble.push_back(m_nullExprDouble);
         m_varExprFloatArray.push_back(m_nullExprFloatArray);
         m_varExprBoolArray.push_back(m_nullExprBoolArray);
+        m_varExprIntArray.push_back(m_nullExprIntArray);
         m_varExprInt.push_back(m_nullExprInt);
         m_varExprBool.push_back(m_nullExprBool);
         m_varExprVoid.push_back(var_);// fill

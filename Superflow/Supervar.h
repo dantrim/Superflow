@@ -47,6 +47,11 @@ namespace sflow {
         // in operator overloading
     };
 
+    class var_int_array {
+        // this class is used for type identification
+        // in operator overloading
+    };
+
     enum class SupervarState {
         closed,
         open
@@ -59,7 +64,8 @@ namespace sflow {
         sv_bool,
         sv_void,
         sv_float_array,
-        sv_bool_array
+        sv_bool_array,
+        sv_int_array
     };
 
     class NewVar {
