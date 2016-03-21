@@ -83,6 +83,8 @@ namespace sflow {
         m_varInt    = nullptr;
         m_varBool   = nullptr;
 
+        m_varFloatArray_array.clear();
+        m_varBoolArray_array.clear();
         m_varFloat_array  = nullptr;
         m_varDouble_array = nullptr;
         m_varInt_array    = nullptr;
@@ -107,29 +109,29 @@ namespace sflow {
 
         m_input_chain = nullptr;
 
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::A] = "periodA.physics_Egamma.PhysCont";
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::B] = "periodB.physics_Egamma.PhysCont";
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::C] = "periodC.physics_Egamma.PhysCont";
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::D] = "periodD.physics_Egamma.PhysCont";
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::E] = "periodE.physics_Egamma.PhysCont";
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::G] = "periodG.physics_Egamma.PhysCont";
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::H] = "periodH.physics_Egamma.PhysCont";
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::I] = "periodI.physics_Egamma.PhysCont";
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::J] = "periodJ.physics_Egamma.PhysCont";
-        m_data_periods[ATLAS_stream::Egamma][ATLAS_period::L] = "periodL.physics_Egamma.PhysCont";
-
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::A] = "periodA.physics_Muons.PhysCont";
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::B] = "periodB.physics_Muons.PhysCont";
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::C] = "periodC.physics_Muons.PhysCont";
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::D] = "periodD.physics_Muons.PhysCont";
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::E] = "periodE.physics_Muons.PhysCont";
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::G] = "periodG.physics_Muons.PhysCont";
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::H] = "periodH.physics_Muons.PhysCont";
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::I] = "periodI.physics_Muons.PhysCont";
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::J] = "periodJ.physics_Muons.PhysCont";
-        m_data_periods[ATLAS_stream::Muons][ATLAS_period::L] = "periodL.physics_Muons.PhysCont";
-
         m_data_stream2string[ATLAS_stream::Main] = "physics_Main";
+
+        m_NtSys_to_string[Susy::NtSys::EG_RESOLUTION_ALL_DN]        = "EG_RESOLUTION_ALL_DN";
+        m_NtSys_to_string[Susy::NtSys::EG_RESOLUTION_ALL_UP]        = "EG_RESOLUTION_ALL_UP";
+        m_NtSys_to_string[Susy::NtSys::EG_SCALE_ALL_DN]             = "EG_SCALE_ALL_DN"; 
+        m_NtSys_to_string[Susy::NtSys::EG_SCALE_ALL_UP]             = "EG_SCALE_ALL_UP"; 
+        m_NtSys_to_string[Susy::NtSys::JET_GroupedNP_1_UP]          = "JET_GroupedNP_1_UP"; 
+        m_NtSys_to_string[Susy::NtSys::JET_GroupedNP_1_DN]          = "JET_GroupedNP_1_DN"; 
+        m_NtSys_to_string[Susy::NtSys::JET_GroupedNP_2_UP]          = "JET_GroupedNP_2_UP"; 
+        m_NtSys_to_string[Susy::NtSys::JET_GroupedNP_2_DN]          = "JET_GroupedNP_2_DN"; 
+        m_NtSys_to_string[Susy::NtSys::JET_GroupedNP_3_UP]          = "JET_GroupedNP_3_UP";
+        m_NtSys_to_string[Susy::NtSys::JET_GroupedNP_3_DN]          = "JET_GroupedNP_3_DN";
+        m_NtSys_to_string[Susy::NtSys::JER]                         = "JER"; 
+        m_NtSys_to_string[Susy::NtSys::MET_SoftTrk_ResoPara]        = "MET_SoftTrk_ResoPara";
+        m_NtSys_to_string[Susy::NtSys::MET_SoftTrk_ResoPerp]        = "MET_SoftTrk_ResoPerp"; 
+        m_NtSys_to_string[Susy::NtSys::MET_SoftTrk_ScaleDown]       = "MET_SoftTrk_ScaleDown"; 
+        m_NtSys_to_string[Susy::NtSys::MET_SoftTrk_ScaleUp]         = "MET_SoftTrk_ScaleUp"; 
+        m_NtSys_to_string[Susy::NtSys::MUONS_ID_DN]                 = "MUONS_ID_DN"; 
+        m_NtSys_to_string[Susy::NtSys::MUONS_ID_UP]                 = "MUONS_ID_UP"; 
+        m_NtSys_to_string[Susy::NtSys::MUONS_MS_DN]                 = "MUONS_MS_DN";
+        m_NtSys_to_string[Susy::NtSys::MUONS_MS_UP]                 = "MUONS_MS_UP";
+        m_NtSys_to_string[Susy::NtSys::MUONS_SCALE_DN]              = "MUONS_SCALE_DN";
+        m_NtSys_to_string[Susy::NtSys::MUONS_SCALE_UP]              = "MUONS_SCALE_UP";
 /*
         m_NtSys_to_string[Susy::NtSys::EES_Z_UP]     = "EESZUP";
         m_NtSys_to_string[Susy::NtSys::EES_Z_DN]     = "EESZDOWN";
@@ -502,6 +504,27 @@ namespace sflow {
             m_varInt_array = new Int_t*[index_event_sys.size()];
             m_varBool_array = new Bool_t*[index_event_sys.size()];
 
+            m_varFloatArray_array.clear();
+            m_varBoolArray_array.clear();
+
+
+            vector<vector<vector<double>>> f(index_event_sys.size(), vector<vector<double>>(m_varType.size(), vector<double>(25, 1.0)));
+            m_varFloatArray_array = f;
+
+            vector<vector<vector<bool>>> f2(index_event_sys.size(), vector<vector<bool>>(m_varType.size(), vector<bool>(25,false)));
+            m_varBoolArray_array = f2;
+
+
+//            for(int i = 0; i < index_event_sys.size(); i++) {
+//                for(int j = 0; j < m_varType.size(); j++) {
+//                    for(int k = 0; k < 25; k++) {
+//                        cout << i << "," << j<<","<<k<<"  " << m_varFloatArray_array.at(i).at(j).at(k) << endl;
+//                    } //k
+//                }// j
+//            }//i
+
+
+
             for (int i = 0; i < index_event_sys.size(); i++) {
                 m_varFloat_array[i] = new Float_t[m_varType.size()];
                 m_varDouble_array[i] = new Double_t[m_varType.size()];
@@ -524,12 +547,12 @@ namespace sflow {
                             break;
                         }
                         case SupervarType::sv_float_array: { 
-                            m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varFloatArray[i]);
+                            m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varFloatArray_array[i][j]);
                             //m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varDouble_array[i] + j, leaflist_.data(), 65536);
                             break;
                         }
                         case SupervarType::sv_bool_array: {
-                            m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varBoolArray[i]);
+                            m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varBoolArray_array[i][j]);
                             break;
                         }
                         case SupervarType::sv_double: {
@@ -777,6 +800,7 @@ namespace sflow {
                     }
 
                     if (pass_cuts) {
+                        cout << "PASSED CUTS" << endl;
                         if (save_entry_to_list) {
                             m_entry_list_single_tree->Enter(entry);
                             save_entry_to_list = false;
@@ -792,11 +816,11 @@ namespace sflow {
                                     m_varDouble_array[i][v_] = m_varExprDouble[v_](sl_, vd_); break;
                                 }
                                 case SupervarType::sv_float_array: { 
-                                    m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
+                                    m_varFloatArray_array[i][v_] = m_varExprFloatArray[v_](sl_,vfa_);
                                     break;
                                 }
                                 case SupervarType::sv_bool_array: {
-                                    m_varBoolArray[v_] = m_varExprBoolArray[v_](sl_,vba_);
+                                    m_varBoolArray_array[i][v_] = m_varExprBoolArray[v_](sl_,vba_);
                                     break;
                                 }
                                 case SupervarType::sv_int: {
@@ -829,6 +853,10 @@ namespace sflow {
                 Superlink* sl_ = new Superlink;
                 attach_superlink(sl_);
 
+                if (m_countWeights) {
+                    computeWeights(nt, *m_mcWeighter, m_signalLeptons, m_baseJets, m_RunSyst, m_weights);
+                }
+
                 bool pass_cuts = true;
 
                 if (m_CutStore.size() > 0) {
@@ -837,6 +865,7 @@ namespace sflow {
 
                         if (pass_cuts) {
                             m_RawCounter[i]++;
+                            if (m_countWeights) m_WeightCounter[i] += m_weights->product();
                         }
                         else {
                             break;
@@ -852,7 +881,8 @@ namespace sflow {
                     computeWeights(nt, *m_mcWeighter, m_signalLeptons, m_baseJets, m_RunSyst, m_weights);
 
                     double nom_eventweight = m_weights->product();
-                    m_WeightCounter[m_CutStore.size() - 1] += m_weights->product();
+                    if(!m_countWeights)
+                        m_WeightCounter[m_CutStore.size() - 1] += m_weights->product();
 
                     // FILL HFTs
                     for (int v_ = 0; v_ < m_varType.size(); v_++) {
@@ -1052,36 +1082,73 @@ namespace sflow {
             bool do_susynt_w = false;
 
             switch (super_sys->weight_syst) {
-                case SupersysWeight::PILEUP_UP: {
+                case SupersysWeight::PILEUP_UP : {
                     wSys = MCWeighter::Sys_PILEUP_UP;
                     do_susynt_w = true;
                     break;
                 }
-                case SupersysWeight::PILEUP_DOWN: {
+                case SupersysWeight::PILEUP_DN : {
                     wSys = MCWeighter::Sys_PILEUP_DN;
                     do_susynt_w = true;
                     break;
                 }
-                case SupersysWeight::null: {
+                case SupersysWeight::null : {
                     do_susynt_w = true;
                 }
                 default: break;
-            }
+            } // switch
             if (do_susynt_w) {
                 weights_->susynt = weighter.getMCWeight(ntobj.evt(), m_luminosity, wSys);
             }
+
+            // JVT eff
+            bool do_jvt = false;
+            switch (super_sys->weight_syst) {
+                case SupersysWeight::JVT_EFF_UP :
+                case SupersysWeight::JVT_EFF_DN : {
+                    do_jvt = true;
+                    break;
+                } default: break;
+            } // switch
+            if(do_jvt && jets.size()>0) {
+                double outsf = 1.0;
+                for(int i = 0; i < (int)jets.size(); i++) {
+                    double sf = jets[i]->jvtEff;
+                    double delta = 0.0;
+                    if(super_sys->weight_syst == SupersysWeight::JVT_EFF_UP) {
+                        delta = jets[i]->jvtEff_up;
+                    }
+                    else if(super_sys->weight_syst == SupersysWeight::JVT_EFF_DN) {
+                        delta = jets[i]->jvtEff_dn;
+                    }
+                    outsf *= (sf + delta);
+                } // i
+                weights_->jvt = outsf;
+            } // do jvt 
 
             if(leptons.size()>=1) {
                 bool do_lepSf_ = false;
                 switch(super_sys->weight_syst) {
                     case SupersysWeight::EL_EFF_ID_UP :
-                    case SupersysWeight::EL_EFF_ID_DOWN :
+                    case SupersysWeight::EL_EFF_ID_DN :
+                    case SupersysWeight::EL_EFF_ISO_UP :
+                    case SupersysWeight::EL_EFF_ISO_DN : 
                     case SupersysWeight::EL_EFF_RECO_UP :
-                    case SupersysWeight::EL_EFF_RECO_DOWN :
-                    case SupersysWeight::MUON_EFF_STAT_UP :
-                    case SupersysWeight::MUON_EFF_STAT_DOWN :
-                    case SupersysWeight::MUON_EFF_SYST_UP :
-                    case SupersysWeight::MUON_EFF_SYST_DOWN :
+                    case SupersysWeight::EL_EFF_RECO_DN :
+                    case SupersysWeight::EL_EFF_TRIG_UP :
+                    case SupersysWeight::EL_EFF_TRIG_DN :
+                    case SupersysWeight::MU_EFF_STAT_UP :
+                    case SupersysWeight::MU_EFF_STAT_DN :
+                    case SupersysWeight::MU_EFF_STAT_LOWPT_UP :
+                    case SupersysWeight::MU_EFF_STAT_LOWPT_DN :
+                    case SupersysWeight::MU_EFF_SYS_UP :
+                    case SupersysWeight::MU_EFF_SYS_DN :
+                    case SupersysWeight::MU_EFF_SYS_LOWPT_UP :
+                    case SupersysWeight::MU_EFF_SYS_LOWPT_DN :
+                    case SupersysWeight::MU_EFF_ISO_STAT_UP :
+                    case SupersysWeight::MU_EFF_ISO_STAT_DN :
+                    case SupersysWeight::MU_EFF_ISO_SYS_UP :
+                    case SupersysWeight::MU_EFF_ISO_SYS_DN :
                     case SupersysWeight::null : {
                         do_lepSf_ = true;
                     }; break;
@@ -1095,61 +1162,83 @@ namespace sflow {
                     }
                     weights_->lepSf = outSF;
                 } // do_lepSf
+            } // lepts >= 1
 
-                #warning removing lepton trigger systematic vaiations
-                /*
-                bool do_lep_triggers_ = false; // do_lep_triggers_
-                SusyNtSys trig_sys = Susy::NtSys::NOM;
+            //flavor tagging systematics
 
-                switch (super_sys->weight_syst) {
-                    case SupersysWeight::ETRIGREWUP: {
-                        trig_sys = Susy::NtSys::TRIGSF_EL_UP;
-                        do_lep_triggers_ = true;
-                    } break;
-                    case SupersysWeight::ETRIGREWDOWN: {
-                        trig_sys = Susy::NtSys::TRIGSF_EL_DN;
-                        do_lep_triggers_ = true;
-                    } break;
-                    case SupersysWeight::MTRIGREWUP: {
-                        trig_sys = Susy::NtSys::TRIGSF_MU_UP;
-                        do_lep_triggers_ = true;
-                    } break;
-                    case SupersysWeight::MTRIGREWDOWN: {
-                        trig_sys = Susy::NtSys::TRIGSF_MU_DN;
-                        do_lep_triggers_ = true;
-                    } break;
-                    case SupersysWeight::null: {
-                        do_lep_triggers_ = true;
-                    } break;
-                    default: break;
+            bool do_btag_sys = false;
+            bool do_btag_nom = false;
+
+            switch (super_sys->weight_syst) {
+                case SupersysWeight::FT_EFF_B_UP :
+                case SupersysWeight::FT_EFF_B_DN :
+                case SupersysWeight::FT_EFF_C_UP :
+                case SupersysWeight::FT_EFF_C_DN :
+                case SupersysWeight::FT_EFF_LT_UP :
+                case SupersysWeight::FT_EFF_LT_DN :
+                case SupersysWeight::FT_EFF_EXTRAP_UP :
+                case SupersysWeight::FT_EFF_EXTRAP_DN :
+                case SupersysWeight::FT_EFF_EXTRAPC_UP :
+                case SupersysWeight::FT_EFF_EXTRAPC_DN : {
+                    do_btag_sys = true;
+                    do_btag_nom = false;
+                    break;
+                };
+                case SupersysWeight::null : {
+                    do_btag_sys = false;
+                    do_btag_nom = true;
+                    break;
+                };
+                default: break;
+            } //switch
+            if (do_btag_nom) {
+                double btagSF = 1.0;
+                if(jets.size()>0) { btagSF = m_nttools.bTagSF(jets); } 
+                weights_->btag = btagSF;
+            }
+            if (do_btag_sys) {
+                double btagSF = 1.0;
+                NtSys::SusyNtSys sys = NtSys::SusyNtSys::NOM;
+                {
+                    switch(super_sys->weight_syst) {
+                        case SupersysWeight::FT_EFF_B_UP :
+                            sys = NtSys::SusyNtSys::FT_EFF_B_systematics_UP;
+                            break;
+                        case SupersysWeight::FT_EFF_B_DN : 
+                            sys = NtSys::SusyNtSys::FT_EFF_B_systematics_DN;
+                            break;
+                        case SupersysWeight::FT_EFF_C_UP :
+                            sys = NtSys::SusyNtSys::FT_EFF_C_systematics_UP;
+                            break;
+                        case SupersysWeight::FT_EFF_C_DN :
+                            sys = NtSys::SusyNtSys::FT_EFF_C_systematics_DN;
+                            break;
+                        case SupersysWeight::FT_EFF_LT_UP :
+                            sys = NtSys::SusyNtSys::FT_EFF_Light_systematics_UP;
+                            break;
+                        case SupersysWeight::FT_EFF_LT_DN :
+                            sys = NtSys::SusyNtSys::FT_EFF_Light_systematics_DN;
+                            break;
+                        case SupersysWeight::FT_EFF_EXTRAP_UP :
+                            sys = NtSys::SusyNtSys::FT_EFF_extrapolation_UP;
+                            break; 
+                        case SupersysWeight::FT_EFF_EXTRAP_DN :
+                            sys = NtSys::SusyNtSys::FT_EFF_extrapolation_DN;
+                            break; 
+                        case SupersysWeight::FT_EFF_EXTRAPC_UP :
+                            sys = NtSys::SusyNtSys::FT_EFF_extrapolation_charm_UP;
+                            break;
+                        case SupersysWeight::FT_EFF_EXTRAPC_DN :
+                            sys = NtSys::SusyNtSys::FT_EFF_extrapolation_charm_DN;
+                            break;
+                        default: break;
+                    } // switch
                 }
-                if (do_lep_triggers_) {
-                    weights_->trigger = computeDileptonTriggerWeight(leptons, trig_sys);
-                }
-                */
-                bool do_btag_ = false; // do_btag_
+                if(jets.size()>0) { btagSF = m_nttools.bTagSFError(jets, sys); }
+                weights_->btag = btagSF;
+            }
 
-                switch (super_sys->weight_syst) {
-              //      case SupersysWeight::BJETUP:
-              //      case SupersysWeight::BJETDOWN:
-              //      case SupersysWeight::CJETUP:
-              //      case SupersysWeight::CJETDOWN:
-              //      case SupersysWeight::BMISTAGUP:
-              //      case SupersysWeight::BMISTAGDOWN:
-                    case SupersysWeight::null: {
-                        do_btag_ = true;
-                    } break;
-                    default: break;
-                }
-                if (do_btag_) {
-                    double btagSF = 1.0;
-                    if(jets.size()>0) { btagSF = m_nttools.bTagSF(jets); } 
-                    weights_->btag = btagSF;
-                }
-
-            } // leptons >= 1
-        }
-
+        } //isMC
         return true;
     }
 
@@ -1175,14 +1264,26 @@ namespace sflow {
             if (sys == SupersysWeight::EL_EFF_ID_UP) {
                 delta = el->errEffSF_id_corr_up[id];    // we store the signed errEffSF
             }
-            else if (sys == SupersysWeight::EL_EFF_ID_DOWN) {
+            else if (sys == SupersysWeight::EL_EFF_ID_DN) {
                 delta = el->errEffSF_id_corr_dn[id];    // we store the signed errEffSF
+            }
+            else if (sys == SupersysWeight::EL_EFF_ISO_UP) {
+                delta = el->errEffSF_iso_corr_up[id];
+            }
+            else if (sys == SupersysWeight::EL_EFF_ISO_DN) {
+                delta = el->errEffSF_iso_corr_dn[id];
             }
             else if (sys == SupersysWeight::EL_EFF_RECO_UP) {
                 delta = el->errEffSF_reco_corr_up[id];  // we store the signed errEffSF
             }
-            else if (sys == SupersysWeight::EL_EFF_RECO_DOWN) {
+            else if (sys == SupersysWeight::EL_EFF_RECO_DN) {
                 delta = el->errEffSF_reco_corr_dn[id];  // we store the signed errEffSF
+            }
+            else if (sys == SupersysWeight::EL_EFF_TRIG_UP) {
+                delta = el->errEffSF_trig_corr_up[id];
+            }
+            else if (sys == SupersysWeight::EL_EFF_TRIG_DN) {
+                delta = el->errEffSF_trig_corr_dn[id];
             }
         } // isEle
         else if (lep.isMu()) {
@@ -1196,17 +1297,41 @@ namespace sflow {
             // select the nominal SF
             sf = mu->muoEffSF[id];
 
-            if ( sys == SupersysWeight::MUON_EFF_STAT_UP ) {
+            if ( sys == SupersysWeight::MU_EFF_STAT_UP ) {
                 delta = mu->errEffSF_stat_up[id];
             }
-            else if (sys == SupersysWeight::MUON_EFF_STAT_DOWN ) {
+            else if (sys == SupersysWeight::MU_EFF_STAT_DN ) {
                 delta = mu->errEffSF_stat_dn[id];
             }
-            else if ( sys == SupersysWeight::MUON_EFF_SYST_UP ) {
+            else if (sys == SupersysWeight::MU_EFF_STAT_LOWPT_UP ) {
+                delta = mu->errEffSF_stat_lowpt_up[id];
+            }
+            else if (sys == SupersysWeight::MU_EFF_STAT_LOWPT_DN ) {
+                delta = mu->errEffSF_stat_lowpt_dn[id];
+            }
+            else if (sys == SupersysWeight::MU_EFF_SYS_UP ) {
                 delta = mu->errEffSF_syst_up[id];
             }
-            else if ( sys == SupersysWeight::MUON_EFF_SYST_DOWN ) {
+            else if (sys == SupersysWeight::MU_EFF_SYS_DN ) {
                 delta = mu->errEffSF_syst_dn[id];
+            }
+            else if (sys == SupersysWeight::MU_EFF_SYS_LOWPT_UP ) {
+                delta = mu->errEffSF_syst_lowpt_up[id];
+            }
+            else if (sys == SupersysWeight::MU_EFF_SYS_LOWPT_DN ) {
+                delta = mu->errEffSF_syst_lowpt_dn[id];
+            }
+            else if (sys == SupersysWeight::MU_EFF_ISO_STAT_UP ) {
+                delta = mu->errIso_stat_up[id];
+            }
+            else if (sys == SupersysWeight::MU_EFF_ISO_STAT_DN ) {
+                delta = mu->errIso_stat_dn[id];
+            }
+            else if (sys == SupersysWeight::MU_EFF_ISO_SYS_UP ) {
+                delta = mu->errIso_syst_up[id];
+            }
+            else if (sys == SupersysWeight::MU_EFF_ISO_SYS_DN ) {
+                delta = mu->errIso_syst_dn[id];
             }
         } // isMu
 

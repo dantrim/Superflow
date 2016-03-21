@@ -158,6 +158,8 @@ namespace sflow {
         Int_t* m_varInt;
         Bool_t* m_varBool;
 
+        vector<vector<vector<double>>> m_varFloatArray_array;
+        vector<vector<vector<bool>>> m_varBoolArray_array;
         Float_t** m_varFloat_array;
         Double_t** m_varDouble_array;
         Int_t** m_varInt_array;

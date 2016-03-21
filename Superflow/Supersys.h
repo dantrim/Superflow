@@ -21,46 +21,50 @@ namespace sflow {
     };
 
     enum class SupersysWeight {
-        EL_EFF_ID_UP,
-        EL_EFF_ID_DOWN,
-        EL_EFF_RECO_UP,
-        EL_EFF_RECO_DOWN,
-        MUON_EFF_STAT_UP,
-        MUON_EFF_STAT_DOWN,
-        MUON_EFF_SYST_UP,
-        MUON_EFF_SYST_DOWN,
+        // electron
+        EL_EFF_ID_UP,           //EL_EFF_ID_TotalCorrUncertainty_UP
+        EL_EFF_ID_DN,           //EL_EFF_ID_TotalCorrUncertainty_DN
+        EL_EFF_ISO_UP,          //EL_EFF_Iso_TotalCorrUncertainty_UP
+        EL_EFF_ISO_DN,          //EL_EFF_Iso_TotalCorrUncertainty_DN
+        EL_EFF_RECO_UP,         //EL_EFF_Reco_TotalCorrUncertainty_UP
+        EL_EFF_RECO_DN,         //EL_EFF_Reco_TotalCorrUncertainty_DN
+        EL_EFF_TRIG_UP,         //EL_EFF_Trigger_TotalCorrUncertainty_UP
+        EL_EFF_TRIG_DN,         //EL_EFF_Trigger_TotalCorrUncertainty_DN
+        // flavor tagging
+        FT_EFF_B_UP,            //FT_EFF_B_systematics_UP
+        FT_EFF_B_DN,            //FT_EFF_B_systematics_DN
+        FT_EFF_C_UP,            //FT_EFF_C_systematics_UP
+        FT_EFF_C_DN,            //FT_EFF_C_systematics_DN
+        FT_EFF_LT_UP,           //FT_EFF_Light_systematics_UP
+        FT_EFF_LT_DN,           //FT_EFF_Light_systematics_DN
+        FT_EFF_EXTRAP_UP,       //FT_EFF_extrapolation_UP
+        FT_EFF_EXTRAP_DN,       //FT_EFF_extrapolation_DN
+        FT_EFF_EXTRAPC_UP,      //FT_EFF_extrapolation_charm_UP
+        FT_EFF_EXTRAPC_DN,      //FT_EFF_extrapolation_charm_DN
+        // jvt
+        JVT_EFF_UP,             //JET_JVTEff_UP
+        JVT_EFF_DN,             //JET_JVTEff_DN
+        // muon
+        MU_EFF_STAT_UP,         //MUON_EFF_STAT_UP
+        MU_EFF_STAT_DN,         //MUON_EFF_STAT_DN
+        MU_EFF_STAT_LOWPT_UP,   //MUON_EFF_STAT_LOWPT_UP
+        MU_EFF_STAT_LOWPT_DN,   //MUON_EFF_STAT_LOWPT_DN
+        MU_EFF_SYS_UP,          //MUON_EFF_SYS_UP
+        MU_EFF_SYS_DN,          //MUON_EFF_SYS_DN
+        MU_EFF_SYS_LOWPT_UP,    //MUON_EFF_SYS_LOWPT_UP
+        MU_EFF_SYS_LOWPT_DN,    //MUON_EFF_SYS_LOWPT_DN
+        MU_EFF_ISO_STAT_UP,     //MUON_ISO_STAT_UP
+        MU_EFF_ISO_STAT_DN,     //MUON_ISO_STAT_DN
+        MU_EFF_ISO_SYS_UP,      //MUON_ISO_SYS_UP
+        MU_EFF_ISO_SYS_DN,      //MUON_ISO_SYS_DN
+        // pileup reweighting
         PILEUP_UP,
-        PILEUP_DOWN,
+        PILEUP_DN,
         null,
         block
     };
     
 
-/*
- // run 1 sys
-    enum class SupersysWeight {
-        ETRIGREWUP,         ///< Positive shift in electron trigger weights
-        ETRIGREWDOWN,       ///< Negative shift in electron trigger weights
-        MTRIGREWUP,         ///< Positive shift in muon trigger weights
-        MTRIGREWDOWN,       ///< Negative shift in muon trigger weights
-        BJETUP,             ///< Positive shift in btag scale factor
-        BJETDOWN,           ///< Negative shift in btag scale factor
-        CJETUP,             ///< Positive shift in ctag scale factor
-        CJETDOWN,           ///< Negative shift in ctag scale factor
-        BMISTAGUP,          ///< Positive shift in ltag scale factor
-        BMISTAGDOWN,        ///< Negative shift in ltag scale factor
-        ESFUP,              ///< Positive shift in electron efficiency
-        ESFDOWN,            ///< Negative shift in electron efficiency
-        MEFFUP,             ///< Positive shift in muon efficiency
-        MEFFDOWN,           ///< Negative shift in muon efficiency
-        PILEUPUP,           ///< Positive shift in pileup
-        PILEUPDOWN,         ///< Negative shift in pileup
-        XSUP,               ///< Positive shift in xsec
-        XSDOWN,             ///< Negative shift in xsec
-        null,               ///< Nominal value
-        block               ///< Prevent (re)calculation of the weight
-    };
-*/
     class Supersys {
     public:
         Supersys();
@@ -99,6 +103,7 @@ namespace sflow {
         double qflip;
         double fake;
         double isr;
+        double jvt;
     };
 
     class NewSystematic {

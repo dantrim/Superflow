@@ -48,7 +48,7 @@ namespace sflow {
 
     double Superweight::product()
     {
-        return susynt * lepSf * btag * trigger * qflip * fake * isr;
+        return susynt * lepSf * btag * trigger * qflip * fake * isr * jvt;
     }
 
     void Superweight::reset()
@@ -63,6 +63,7 @@ namespace sflow {
         qflip = 1.0;
         fake = 1.0;
         isr = 1.0;
+        jvt = 1.0;
     }
 
     NewSystematic::NewSystematic(std::string sys_name)
