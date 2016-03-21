@@ -1166,8 +1166,8 @@ namespace sflow {
 
             // get the ElectronId for the analysis type to select the correct errSF
             ElectronId id;
-            if(currentAnaType==AnalysisType::Ana_Stop2L) { id = ElectronId::MediumLH; }
-            else { id = ElectronId::TightLH; }
+            if(currentAnaType==AnalysisType::Ana_Stop2L) { id = ElectronId::MediumLLH; }
+            else { id = ElectronId::TightLLH; }
 
             // select the nominal SF
             sf = el->eleEffSF[id];
