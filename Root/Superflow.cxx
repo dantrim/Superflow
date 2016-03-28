@@ -83,6 +83,8 @@ namespace sflow {
         m_varInt    = nullptr;
         m_varBool   = nullptr;
 
+        m_varFloatArray_array.clear();
+        m_varBoolArray_array.clear();
         m_varFloat_array  = nullptr;
         m_varDouble_array = nullptr;
         m_varInt_array    = nullptr;
@@ -502,6 +504,16 @@ namespace sflow {
             m_varInt_array = new Int_t*[index_event_sys.size()];
             m_varBool_array = new Bool_t*[index_event_sys.size()];
 
+            m_varFloatArray_array.clear();
+            m_varBoolArray_array.clear();
+            vector<vector<vector<double>>> f(index_event_sys.size(), vector<vector<double>>(m_varType.size(),
+                            vector<double>(25,1.0)));
+            m_varFloatArray_array = f;
+
+            vector<vector<vector<bool>>> fb(index_event_sys.size(), vector<vector<bool>>(m_varType.size(),
+                            vector<bool>(25,false)));
+            m_varBoolArray_array = fb;
+
 
             for (int i = 0; i < index_event_sys.size(); i++) {
                 m_varFloat_array[i] = new Float_t[m_varType.size()];
@@ -525,16 +537,11 @@ namespace sflow {
                             break;
                         }
                         case SupervarType::sv_float_array: { 
-                            cout << "USING VECTOR LEAVES FOR SYSTEMATIC TREES IS NOT ALLOWED!" << endl;
-                            exit(1);
-                        //    m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varFloatArray_array[i][j]);
-                        //    //m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varDouble_array[i] + j, leaflist_.data(), 65536);
+                            m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varFloatArray_array[i][j]); 
                             break;
                         }
                         case SupervarType::sv_bool_array: {
-                            cout << "USING VECTOR LEAVES FOR SYSTEMATIC TREES IS NOT ALLOWED!" << endl;
-                            exit(1);
-                        //    m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varBoolArray_array[i][j]);
+                            m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varBoolArray_array[i][j]);
                             break;
                         }
                         case SupervarType::sv_double: {
@@ -797,15 +804,11 @@ namespace sflow {
                                     m_varDouble_array[i][v_] = m_varExprDouble[v_](sl_, vd_); break;
                                 }
                                 case SupervarType::sv_float_array: { 
-                                    cout << "USING VECTOR LEAVES ON SYSTEMATIC TREES IS NOT ALLOWED" << endl;
-                                    exit(1);
-                                 //   m_varFloatArray_array[i][v_] = m_varExprFloatArray[v_](sl_,vfa_);
+                                    m_varFloatArray_array[i][v_] = m_varExprFloatArray[v_](sl_,vfa_);
                                     break;
                                 }
                                 case SupervarType::sv_bool_array: {
-                                    cout << "USING VECTOR LEAVES ON SYSTEMATIC TREES IS NOT ALLOWED" << endl;
-                                    exit(1);
-                                 //   m_varBoolArray_array[i][v_] = m_varExprBoolArray[v_](sl_,vba_);
+                                    m_varBoolArray_array[i][v_] = m_varExprBoolArray[v_](sl_,vba_);
                                     break;
                                 }
                                 case SupervarType::sv_int: {

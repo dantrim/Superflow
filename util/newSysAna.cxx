@@ -222,6 +222,30 @@ int main(int argc, char* argv[])
         *cutflow << SaveVar();
     }
 
+    *cutflow << NewVar("lepton is electron"); {
+        *cutflow << HFTname("l_isE");
+        *cutflow << [&](Superlink* sl, var_bool_array*) -> vector<bool> {
+            vector<bool> out;
+            for(int i = 0; i < (int)leptons.size(); i++) {
+                out.push_back(leptons.at(i)->isEle());
+            }
+            return out;
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("lepton pt [GeV]"); {
+        *cutflow << HFTname("l_pt");
+        *cutflow << [&](Superlink* sl, var_float_array*) -> vector<double> {
+            vector<double> out;
+            for(int i = 0; i < (int)leptons.size(); i++) {
+                out.push_back(leptons.at(i)->Pt());
+            }
+            return out;
+        };
+        *cutflow << SaveVar();
+    }
+
     *cutflow << NewVar("lep1q"); {
         *cutflow << HFTname("l0q");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
@@ -289,6 +313,21 @@ int main(int argc, char* argv[])
         *cutflow << HFTname("j0eta");
         *cutflow << [&](Superlink* sl, var_float*) -> double {
             return (jets.size()>0 ? jets.at(0)->Eta() : -999.);
+        };
+        *cutflow << SaveVar();
+    }
+
+    *cutflow << NewVar("met"); {
+        *cutflow << HFTname("met");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.lv().Pt();
+        };
+        *cutflow << SaveVar();
+    }
+    *cutflow << NewVar("metPhi"); {
+        *cutflow << HFTname("metPhi");
+        *cutflow << [&](Superlink* sl, var_float*) -> double {
+            return met.lv().Phi();
         };
         *cutflow << SaveVar();
     }
