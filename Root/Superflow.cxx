@@ -495,7 +495,6 @@ namespace sflow {
                 m_HFT_array[i] = new TTree(tree_name.str().data(), tree_name.str().data());
                 m_HFT_array[i]->SetDirectory(m_output_array[i]);
                 m_HFT_array[i]->SetAutoFlush(-16777216L);
-                cout << "setting tree for sys " << index_event_sys[i] << "  with name : " << m_HFT_array[i]->GetName() << "  at address: " << &m_HFT_array[i] << endl;
             }
 
             m_varFloat_array = new Float_t*[index_event_sys.size()];
