@@ -153,8 +153,8 @@ namespace sflow {
         m_NtSys_to_string[Susy::NtSys::RESOST]       = "RESOST";
         m_NtSys_to_string[Susy::NtSys::TRIGSF_EL_UP] = "TRIGSFELUP";
         m_NtSys_to_string[Susy::NtSys::TRIGSF_EL_DN] = "TRIGSFELDN";
-        m_NtSys_to_string[Susy::NtSys::TRIGSF_MU_UP] = "TRIGSFMUUP";
-        m_NtSys_to_string[Susy::NtSys::TRIGSF_MU_DN] = "TRIGSFMUDN";
+        m_NtSys_to_string[Susy::NtSys::TRIGSF_MUON_UP] = "TRIGSFMUUP";
+        m_NtSys_to_string[Susy::NtSys::TRIGSF_MUON_DN] = "TRIGSFMUDN";
         m_NtSys_to_string[Susy::NtSys::TES_UP]       = "TESUP";
         m_NtSys_to_string[Susy::NtSys::TES_DN]       = "TESDOWN";
         m_NtSys_to_string[Susy::NtSys::JVF_UP]       = "JVFUP";
@@ -1123,18 +1123,18 @@ namespace sflow {
                     case SupersysWeight::EL_EFF_RECO_DN :
                     case SupersysWeight::EL_EFF_TRIG_UP :
                     case SupersysWeight::EL_EFF_TRIG_DN :
-                    case SupersysWeight::MU_EFF_STAT_UP :
-                    case SupersysWeight::MU_EFF_STAT_DN :
-                    case SupersysWeight::MU_EFF_STAT_LOWPT_UP :
-                    case SupersysWeight::MU_EFF_STAT_LOWPT_DN :
-                    case SupersysWeight::MU_EFF_SYS_UP :
-                    case SupersysWeight::MU_EFF_SYS_DN :
-                    case SupersysWeight::MU_EFF_SYS_LOWPT_UP :
-                    case SupersysWeight::MU_EFF_SYS_LOWPT_DN :
-                    case SupersysWeight::MU_EFF_ISO_STAT_UP :
-                    case SupersysWeight::MU_EFF_ISO_STAT_DN :
-                    case SupersysWeight::MU_EFF_ISO_SYS_UP :
-                    case SupersysWeight::MU_EFF_ISO_SYS_DN :
+                    case SupersysWeight::MUON_EFF_STAT_UP :
+                    case SupersysWeight::MUON_EFF_STAT_DN :
+                    case SupersysWeight::MUON_EFF_STAT_LOWPT_UP :
+                    case SupersysWeight::MUON_EFF_STAT_LOWPT_DN :
+                    case SupersysWeight::MUON_EFF_SYS_UP :
+                    case SupersysWeight::MUON_EFF_SYS_DN :
+                    case SupersysWeight::MUON_EFF_SYS_LOWPT_UP :
+                    case SupersysWeight::MUON_EFF_SYS_LOWPT_DN :
+                    case SupersysWeight::MUON_EFF_ISO_STAT_UP :
+                    case SupersysWeight::MUON_EFF_ISO_STAT_DN :
+                    case SupersysWeight::MUON_EFF_ISO_SYS_UP :
+                    case SupersysWeight::MUON_EFF_ISO_SYS_DN :
                     case SupersysWeight::null : {
                         do_lepSf_ = true;
                     }; break;
@@ -1283,40 +1283,40 @@ namespace sflow {
             // select the nominal SF
             sf = mu->muoEffSF[id];
 
-            if ( sys == SupersysWeight::MU_EFF_STAT_UP ) {
+            if ( sys == SupersysWeight::MUON_EFF_STAT_UP ) {
                 delta = mu->errEffSF_stat_up[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_STAT_DN ) {
+            else if (sys == SupersysWeight::MUON_EFF_STAT_DN ) {
                 delta = mu->errEffSF_stat_dn[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_STAT_LOWPT_UP ) {
+            else if (sys == SupersysWeight::MUON_EFF_STAT_LOWPT_UP ) {
                 delta = mu->errEffSF_stat_lowpt_up[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_STAT_LOWPT_DN ) {
+            else if (sys == SupersysWeight::MUON_EFF_STAT_LOWPT_DN ) {
                 delta = mu->errEffSF_stat_lowpt_dn[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_SYS_UP ) {
+            else if (sys == SupersysWeight::MUON_EFF_SYS_UP ) {
                 delta = mu->errEffSF_syst_up[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_SYS_DN ) {
+            else if (sys == SupersysWeight::MUON_EFF_SYS_DN ) {
                 delta = mu->errEffSF_syst_dn[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_SYS_LOWPT_UP ) {
+            else if (sys == SupersysWeight::MUON_EFF_SYS_LOWPT_UP ) {
                 delta = mu->errEffSF_syst_lowpt_up[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_SYS_LOWPT_DN ) {
+            else if (sys == SupersysWeight::MUON_EFF_SYS_LOWPT_DN ) {
                 delta = mu->errEffSF_syst_lowpt_dn[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_ISO_STAT_UP ) {
+            else if (sys == SupersysWeight::MUON_EFF_ISO_STAT_UP ) {
                 delta = mu->errIso_stat_up[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_ISO_STAT_DN ) {
+            else if (sys == SupersysWeight::MUON_EFF_ISO_STAT_DN ) {
                 delta = mu->errIso_stat_dn[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_ISO_SYS_UP ) {
+            else if (sys == SupersysWeight::MUON_EFF_ISO_SYS_UP ) {
                 delta = mu->errIso_syst_up[id];
             }
-            else if (sys == SupersysWeight::MU_EFF_ISO_SYS_DN ) {
+            else if (sys == SupersysWeight::MUON_EFF_ISO_SYS_DN ) {
                 delta = mu->errIso_syst_dn[id];
             }
         } // isMu

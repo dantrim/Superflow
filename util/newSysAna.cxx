@@ -336,32 +336,32 @@ int main(int argc, char* argv[])
 
     // muon eff
     *cutflow << NewSystematic("muon eff stat uncertainty"); {
-        *cutflow << WeightSystematic(SupersysWeight::MU_EFF_STAT_UP, SupersysWeight::MU_EFF_STAT_DN);
+        *cutflow << WeightSystematic(SupersysWeight::MUON_EFF_STAT_UP, SupersysWeight::MUON_EFF_STAT_DN);
         *cutflow << TreeName("MUON_EFF_STAT");
         *cutflow << SaveSystematic();
     }
     *cutflow << NewSystematic("muon eff stat uncertainty (low pt)"); {
-        *cutflow << WeightSystematic(SupersysWeight::MU_EFF_STAT_LOWPT_UP, SupersysWeight::MU_EFF_STAT_LOWPT_DN);
+        *cutflow << WeightSystematic(SupersysWeight::MUON_EFF_STAT_LOWPT_UP, SupersysWeight::MUON_EFF_STAT_LOWPT_DN);
         *cutflow << TreeName("MUON_EFF_STAT_LOWPT");
         *cutflow << SaveSystematic();
     }
     *cutflow << NewSystematic("muon eff syst uncertainty"); {
-        *cutflow << WeightSystematic(SupersysWeight::MU_EFF_SYS_UP, SupersysWeight::MU_EFF_SYS_DN);
+        *cutflow << WeightSystematic(SupersysWeight::MUON_EFF_SYS_UP, SupersysWeight::MUON_EFF_SYS_DN);
         *cutflow << TreeName("MUON_EFF_SYS");
         *cutflow << SaveSystematic();
     }
     *cutflow << NewSystematic("muon eff syst uncertainty (low pt"); {
-        *cutflow << WeightSystematic(SupersysWeight::MU_EFF_SYS_LOWPT_UP, SupersysWeight::MU_EFF_SYS_LOWPT_DN);
+        *cutflow << WeightSystematic(SupersysWeight::MUON_EFF_SYS_LOWPT_UP, SupersysWeight::MUON_EFF_SYS_LOWPT_DN);
         *cutflow << TreeName("MUON_EFF_SYS_LOWPT");
         *cutflow << SaveSystematic();
     }
     *cutflow << NewSystematic("muon eff iso stat uncertainty"); {
-        *cutflow << WeightSystematic(SupersysWeight::MU_EFF_ISO_STAT_UP, SupersysWeight::MU_EFF_ISO_STAT_DN);
+        *cutflow << WeightSystematic(SupersysWeight::MUON_EFF_ISO_STAT_UP, SupersysWeight::MUON_EFF_ISO_STAT_DN);
         *cutflow << TreeName("MUON_ISO_STAT");
         *cutflow << SaveSystematic();
     }
     *cutflow << NewSystematic("muon eff iso syst uncertainty"); {
-        *cutflow << WeightSystematic(SupersysWeight::MU_EFF_ISO_SYS_UP, SupersysWeight::MU_EFF_ISO_SYS_DN);
+        *cutflow << WeightSystematic(SupersysWeight::MUON_EFF_ISO_SYS_UP, SupersysWeight::MUON_EFF_ISO_SYS_DN);
         *cutflow << TreeName("MUON_ISO_SYS");
         *cutflow << SaveSystematic();
     }

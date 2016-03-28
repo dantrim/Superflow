@@ -45,18 +45,18 @@ namespace sflow {
         JVT_EFF_UP,             //JET_JVTEff_UP
         JVT_EFF_DN,             //JET_JVTEff_DN
         // muon
-        MU_EFF_STAT_UP,         //MUON_EFF_STAT_UP
-        MU_EFF_STAT_DN,         //MUON_EFF_STAT_DN
-        MU_EFF_STAT_LOWPT_UP,   //MUON_EFF_STAT_LOWPT_UP
-        MU_EFF_STAT_LOWPT_DN,   //MUON_EFF_STAT_LOWPT_DN
-        MU_EFF_SYS_UP,          //MUON_EFF_SYS_UP
-        MU_EFF_SYS_DN,          //MUON_EFF_SYS_DN
-        MU_EFF_SYS_LOWPT_UP,    //MUON_EFF_SYS_LOWPT_UP
-        MU_EFF_SYS_LOWPT_DN,    //MUON_EFF_SYS_LOWPT_DN
-        MU_EFF_ISO_STAT_UP,     //MUON_ISO_STAT_UP
-        MU_EFF_ISO_STAT_DN,     //MUON_ISO_STAT_DN
-        MU_EFF_ISO_SYS_UP,      //MUON_ISO_SYS_UP
-        MU_EFF_ISO_SYS_DN,      //MUON_ISO_SYS_DN
+        MUON_EFF_STAT_UP,         //MUON_EFF_STAT_UP
+        MUON_EFF_STAT_DN,         //MUON_EFF_STAT_DN
+        MUON_EFF_STAT_LOWPT_UP,   //MUON_EFF_STAT_LOWPT_UP
+        MUON_EFF_STAT_LOWPT_DN,   //MUON_EFF_STAT_LOWPT_DN
+        MUON_EFF_SYS_UP,          //MUON_EFF_SYS_UP
+        MUON_EFF_SYS_DN,          //MUON_EFF_SYS_DN
+        MUON_EFF_SYS_LOWPT_UP,    //MUON_EFF_SYS_LOWPT_UP
+        MUON_EFF_SYS_LOWPT_DN,    //MUON_EFF_SYS_LOWPT_DN
+        MUON_EFF_ISO_STAT_UP,     //MUON_ISO_STAT_UP
+        MUON_EFF_ISO_STAT_DN,     //MUON_ISO_STAT_DN
+        MUON_EFF_ISO_SYS_UP,      //MUON_ISO_SYS_UP
+        MUON_EFF_ISO_SYS_DN,      //MUON_ISO_SYS_DN
         // pileup reweighting
         PILEUP_UP,
         PILEUP_DN,
