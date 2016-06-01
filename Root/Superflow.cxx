@@ -1250,28 +1250,28 @@ namespace sflow {
             sf = el->eleEffSF[id];
 
             if (sys == SupersysWeight::EL_EFF_ID_UP) {
-                delta = el->errEffSF_id_corr_up[id];    // we store the signed errEffSF
+                delta = el->errEffSF_id_up[id];    // we store the signed errEffSF
             }
             else if (sys == SupersysWeight::EL_EFF_ID_DN) {
-                delta = el->errEffSF_id_corr_dn[id];    // we store the signed errEffSF
+                delta = el->errEffSF_id_dn[id];    // we store the signed errEffSF
             }
             else if (sys == SupersysWeight::EL_EFF_ISO_UP) {
-                delta = el->errEffSF_iso_corr_up[id];
+                delta = el->errEffSF_iso_up[id];
             }
             else if (sys == SupersysWeight::EL_EFF_ISO_DN) {
-                delta = el->errEffSF_iso_corr_dn[id];
+                delta = el->errEffSF_iso_dn[id];
             }
             else if (sys == SupersysWeight::EL_EFF_RECO_UP) {
-                delta = el->errEffSF_reco_corr_up[id];  // we store the signed errEffSF
+                delta = el->errEffSF_reco_up[id];  // we store the signed errEffSF
             }
             else if (sys == SupersysWeight::EL_EFF_RECO_DN) {
-                delta = el->errEffSF_reco_corr_dn[id];  // we store the signed errEffSF
+                delta = el->errEffSF_reco_dn[id];  // we store the signed errEffSF
             }
             else if (sys == SupersysWeight::EL_EFF_TRIG_UP) {
-                delta = el->errEffSF_trig_corr_up[id];
+                delta = el->errEffSF_trig_up[id];
             }
             else if (sys == SupersysWeight::EL_EFF_TRIG_DN) {
-                delta = el->errEffSF_trig_corr_dn[id];
+                delta = el->errEffSF_trig_dn[id];
             }
         } // isEle
         else if (lep.isMu()) {
