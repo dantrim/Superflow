@@ -317,7 +317,7 @@ namespace sflow {
             stringstream sfile_name_;
             sfile_name_ << "CENTRAL_";
 
-            if(input_sample.Contains("data15_13TeV")){
+            if(input_sample.Contains("data15_13TeV") || input_sample.Contains("data16_13TeV")){
                 TString data_run; data_run.Form("%d",nt.evt()->run);
                 if(input_sample.Contains("physics_Main")) {
                     cout << app_name << "Superflow::Init    ====== Determined input data specifications ====== " << endl;
@@ -343,7 +343,7 @@ namespace sflow {
             }
             else {
                 cout << app_name << "Superflow::Init ERROR    The input container name does not appear to be a data sample." << endl;
-                cout << app_name << "Superflow::Init ERROR    It does not contain the 'data15_13TeV' grouping and the run mode is" << endl;
+                cout << app_name << "Superflow::Init ERROR    It does not contain either the 'data15_13TeV' or 'data16_13TeV' grouping and the run mode is" << endl;
                 cout << app_name << "Superflow::Init ERROR    set for data (SuperflowRunMode::data). " << endl;
                 cout << app_name << "Superflow::Init ERROR    >>> Exiting." << endl;
                 exit(1);
