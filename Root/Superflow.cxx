@@ -9,6 +9,7 @@
 #include <string>
 #include <sstream>
 #include <random>
+#include <fstream>
 
 // Superflow
 #include "Superflow/Superflow.h"
@@ -1037,6 +1038,10 @@ namespace sflow {
         if (tree) {
             string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc15_13TeV/");
             m_mcWeighter = new MCWeighter(tree, xsecDir);
+            if(m_useSumwFile) {
+                cout << "Superflow::initMcWeighter    Setting sumw file for MCWeighter: " << m_sumw_file << endl;
+                m_mcWeighter->setSumwFromFILE(m_sumw_file);
+            }
             if (m_dbg) {
                 cout << app_name << "Superflow::initMcWeighter    MCWeighter has been initialized." << endl;
                 cout << app_name << "Superflow::initMcWeighter    MCWeighter using cross-section directory: " << xsecDir << endl;
@@ -1064,19 +1069,22 @@ namespace sflow {
 
         // MCWeighter's susynt-weight calculation
         if (ntobj.evt()->isMC) {
-            MCWeighter::WeightSys wSys = MCWeighter::Sys_NOM;
+            //MCWeighter::WeightSys wSys = MCWeighter::Sys_NOM;
+            NtSys::SusyNtSys wSys = NtSys::NOM;
 
 
             bool do_susynt_w = false;
 
             switch (super_sys->weight_syst) {
                 case SupersysWeight::PILEUP_UP : {
-                    wSys = MCWeighter::Sys_PILEUP_UP;
+                    //wSys = MCWeighter::Sys_PILEUP_UP;
+                    wSys = NtSys::PILEUP_UP;
                     do_susynt_w = true;
                     break;
                 }
                 case SupersysWeight::PILEUP_DN : {
-                    wSys = MCWeighter::Sys_PILEUP_DN;
+                    //wSys = MCWeighter::Sys_PILEUP_DN;
+                    wSys = NtSys::PILEUP_DN;
                     do_susynt_w = true;
                     break;
                 }
@@ -1353,6 +1361,17 @@ namespace sflow {
     void Superflow::setChain(TChain* input_chain_)
     {
         m_input_chain = input_chain_;
+    }
+
+    void Superflow::setUseSumwFile(string filename)
+    {
+        bool exists = std::ifstream(filename).good();
+        if(!exists) {
+            cout << "Superflow::setUseSumwFile    FATAL Provided sumw file not found" << endl;
+            exit(1);
+        }
+        m_useSumwFile = true;
+        m_sumw_file = filename;
     }
 
     /////////////////////////////////////////////////////////////////////

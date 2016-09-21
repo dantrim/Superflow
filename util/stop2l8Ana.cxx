@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("xsec times eff"); {
         *cutflow << HFTname("xsec");
         *cutflow << [&](Superlink* sl, var_double*) -> double {
-            return weighter->getXsecTimesEff(sl->nt->evt(), MCWeighter::Sys_NOM);
+            return weighter->getXsecTimesEff(sl->nt->evt(), NtSys::NOM);
         };
         *cutflow << SaveVar();
     }
