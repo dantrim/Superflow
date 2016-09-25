@@ -30,6 +30,9 @@ namespace sflow {
         setSelectTaus(true);
 
         m_runMode = SuperflowRunMode::null;
+
+
+        m_useSumwFile = false;
        
         /////////////////////////
         // SusyNtuple/Trigger 
@@ -1004,7 +1007,8 @@ namespace sflow {
 
         SusyNtAna::Terminate();
 
-        if (m_mcWeighter) delete m_mcWeighter;
+        //dantrim -- use MCWeighter from SusyNtAna
+        //if (m_mcWeighter) delete m_mcWeighter;
         //if (m_trigObj) delete m_trigObj;
 
         delete[] m_varFloat;
@@ -1037,11 +1041,17 @@ namespace sflow {
         bool success = false;
         if (tree) {
             string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc15_13TeV/");
-            m_mcWeighter = new MCWeighter(tree, xsecDir);
-            if(m_useSumwFile) {
-                cout << "Superflow::initMcWeighter    Setting sumw file for MCWeighter: " << m_sumw_file << endl;
-                m_mcWeighter->setSumwFromFILE(m_sumw_file);
-            }
+            cout << "MCWeighter address: " << &m_mcWeighter << endl;
+            m_mcWeighter = &mcWeighter(); // use MCWeighter instance from SusyNtAna
+        
+            //m_mcWeighter = new MCWeighter();
+            ////m_mcWeighter = new MCWeighter(tree, xsecDir);
+            //if(m_useSumwFile) {
+            //    cout << "Superflow::initMcWeighter    Setting sumw file for MCWeighter: " << m_sumw_file << endl;
+            //    m_mcWeighter->setSumwFromFILE(m_sumw_file);
+            //}
+            // m_mcWeighter->buildSumwMap(tree);
+            m_mcWeighter->printSumwMap();
             if (m_dbg) {
                 cout << app_name << "Superflow::initMcWeighter    MCWeighter has been initialized." << endl;
                 cout << app_name << "Superflow::initMcWeighter    MCWeighter using cross-section directory: " << xsecDir << endl;
