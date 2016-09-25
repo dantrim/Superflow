@@ -31,9 +31,6 @@ namespace sflow {
 
         m_runMode = SuperflowRunMode::null;
 
-
-        m_useSumwFile = false;
-       
         /////////////////////////
         // SusyNtuple/Trigger 
         /////////////////////////
@@ -1371,17 +1368,6 @@ namespace sflow {
     void Superflow::setChain(TChain* input_chain_)
     {
         m_input_chain = input_chain_;
-    }
-
-    void Superflow::setUseSumwFile(string filename)
-    {
-        bool exists = std::ifstream(filename).good();
-        if(!exists) {
-            cout << "Superflow::setUseSumwFile    FATAL Provided sumw file not found" << endl;
-            exit(1);
-        }
-        m_useSumwFile = true;
-        m_sumw_file = filename;
     }
 
     /////////////////////////////////////////////////////////////////////

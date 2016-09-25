@@ -88,15 +88,12 @@ namespace sflow {
         void setRunMode(SuperflowRunMode run_mode_);
         void setSingleEventSyst(SusyNtSys nt_syst_);
         void setChain(TChain* input_chain_);
-        void setUseSumwFile(std::string filename);
 
     protected:
         string app_name;
         void attach_superlink(Superlink* sl_);
         
         MCWeighter* m_mcWeighter; ///< tool to determine the normalization
-        bool m_useSumwFile; ///< configure MCWeighter to use a sumw file
-        std::string m_sumw_file; ///< file to use for sumw look up
 
         bool computeWeights(
             Susy::SusyNtObject &ntobj,
