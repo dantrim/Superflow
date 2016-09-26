@@ -41,6 +41,7 @@ namespace sflow {
         m_countWeights = true;
 
         m_outputFileName      = "";
+        m_outputFileNameSuffix = "";
         m_entry_list_FileName = "entrylist_";
         m_tree_name_auto      = "";
         m_outputFile          = nullptr;
@@ -335,11 +336,17 @@ namespace sflow {
                     cout << app_name << "Superflow::Init ERROR    >>> Exiting." << endl;
                     exit(1);
                 } 
-                sfile_name_ << m_data_stream2string[m_stream] << "_" << data_run << ".root";
+
+                stringstream suffix;
+                if(m_outputFileNameSuffix!="")
+                    suffix << "_" << m_outputFileNameSuffix;
+                else suffix << "";
+
+                sfile_name_ << m_data_stream2string[m_stream] << "_" << data_run << suffix.str() << ".root";
                 cout << app_name << "Superflow::Init    Setting output file name to: " << sfile_name_.str() << endl;
                 
                 m_outputFileName = sfile_name_.str();
-                m_entry_list_FileName += m_data_stream2string[m_stream] + "_" + data_run + ".root";
+                m_entry_list_FileName += m_data_stream2string[m_stream] + "_" + data_run + suffix.str() + ".root";
 
             }
             else {
@@ -353,12 +360,19 @@ namespace sflow {
         }
         else if (m_runMode == SuperflowRunMode::single_event_syst) {
             if (m_NtSys_to_string.count(m_singleEventSyst) != 0) {
+
+                stringstream suffix;
+                if(m_outputFileNameSuffix!="")
+                    suffix << "_" << m_outputFileNameSuffix;
+                else suffix << "";
+
                 stringstream sfile_name_; // output file name
-                sfile_name_ << m_NtSys_to_string[m_singleEventSyst] << "_" << nt.evt()->mcChannel << ".root";
+                sfile_name_ << m_NtSys_to_string[m_singleEventSyst] << "_" << nt.evt()->mcChannel
+                            << suffix.str() << ".root";
                 cout << app_name << "Superflow::Init    Run mode: SuperflowRunMode::single_event_syst" << endl;
                 cout << app_name << "Superflow::Init    Setting output file name to: " << sfile_name_.str() << endl;
                 m_outputFileName = sfile_name_.str();
-                m_entry_list_FileName += sfile_name_.str() + ".root";
+                m_entry_list_FileName += sfile_name_.str() + suffix.str() + ".root";
             }
             else {
                 cout << app_name << "Superflow::Init ERROR (Fatal)    Unknown event systematic! Code: " << static_cast<int>(m_singleEventSyst) << endl;
@@ -366,8 +380,13 @@ namespace sflow {
             }
         }
         else if (nt.evt()->isMC) {
+            stringstream suffix;
+            if(m_outputFileNameSuffix!="")
+                suffix << "_" << m_outputFileNameSuffix;
+            else suffix << "";
+
             stringstream sfile_name_; // output file name
-            sfile_name_ << "CENTRAL_" << nt.evt()->mcChannel << ".root";
+            sfile_name_ << "CENTRAL_" << nt.evt()->mcChannel << suffix.str() << ".root";
             if (m_runMode == SuperflowRunMode::nominal_and_weight_syst) {
                 cout << app_name << "Superflow::Init    Run mode: SuperflowRunMode::nominal_and_weight_syst" << endl;
             }
@@ -376,7 +395,7 @@ namespace sflow {
             }
             cout << app_name << "Superflow::Init    Setting output file name to: " << sfile_name_.str() << endl;
             m_outputFileName = sfile_name_.str();
-            m_entry_list_FileName += to_string(nt.evt()->mcChannel) + ".root";
+            m_entry_list_FileName += to_string(nt.evt()->mcChannel) + suffix.str() + ".root";
         }
         else {
             cout << app_name << "Superflow::Init ERROR (Fatal)    Inconsistent setup." << endl;
@@ -488,8 +507,14 @@ namespace sflow {
 
             m_output_array = new TFile*[index_event_sys.size()];
             for (int i = 0; i < index_event_sys.size(); i++) {
+
+                stringstream suffix;
+                if(m_outputFileNameSuffix!="")
+                    suffix << "_" << m_outputFileNameSuffix;
+                else suffix << "";
+
                 stringstream sfile_name_; // output file name
-                sfile_name_ << m_NtSys_to_string[m_sysStore[index_event_sys[i]].event_syst] << "_" << nt.evt()->mcChannel << ".root";
+                sfile_name_ << m_NtSys_to_string[m_sysStore[index_event_sys[i]].event_syst] << "_" << nt.evt()->mcChannel << suffix.str() << ".root";
                 m_output_array[i] = new TFile(sfile_name_.str().data(), "RECREATE");
             }
 
@@ -1101,7 +1126,7 @@ namespace sflow {
                 default: break;
             } // switch
             if (do_susynt_w) {
-                weights_->susynt = weighter.getMCWeight(ntobj.evt(), m_luminosity, wSys);
+                weights_->susynt = weighter.getMCWeight(ntobj.evt(), m_luminosity, wSys, false);
             }
 
             // JVT eff
@@ -1368,6 +1393,11 @@ namespace sflow {
     void Superflow::setChain(TChain* input_chain_)
     {
         m_input_chain = input_chain_;
+    }
+
+    void Superflow::setFileSuffix(string suffix)
+    {
+        m_outputFileNameSuffix = suffix;
     }
 
     /////////////////////////////////////////////////////////////////////

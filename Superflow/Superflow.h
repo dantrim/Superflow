@@ -88,6 +88,7 @@ namespace sflow {
         void setRunMode(SuperflowRunMode run_mode_);
         void setSingleEventSyst(SusyNtSys nt_syst_);
         void setChain(TChain* input_chain_);
+        void setFileSuffix(string suffix);
 
     protected:
         string app_name;
@@ -115,6 +116,7 @@ namespace sflow {
         Superweight* m_weights;
 
         string m_outputFileName;
+        string m_outputFileNameSuffix;
         string m_entry_list_FileName;
         string m_tree_name_auto;
         TFile* m_outputFile;
