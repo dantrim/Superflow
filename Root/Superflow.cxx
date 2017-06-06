@@ -226,7 +226,7 @@ namespace sflow {
         SusyNtAna::Begin(0);
 
         cout << app_name << "Superflow::Begin    Input sample: "<< endl;
-        cout << app_name << "Superflow::Begin    " << m_sample << endl;
+        cout << app_name << "Superflow::Begin    " << sampleName() << endl;
 
         if (m_runMode == SuperflowRunMode::null) {
             cout << app_name << "Superflow::Begin ERROR (Fatal)    Missing call to Superflow::setRunMode()." << endl;
@@ -288,8 +288,8 @@ namespace sflow {
         cout << app_name << "Superflow::Init" << endl;
         SusyNtAna::Init(tree);
         
-        TString input_sample = m_input_chain->GetFile()->Get("inputContainerName")->GetTitle();
-        TString output_sample = m_input_chain->GetFile()->Get("outputContainerName")->GetTitle();
+        TString input_sample = parentSampleName(); // from SusyNtAna
+        TString output_sample = sampleName();
         TString nt_tag = m_input_chain->GetFile()->Get("productionTag")->GetTitle();
         TString prod_command = m_input_chain->GetFile()->Get("productionCommand")->GetTitle();
         cout << endl;
