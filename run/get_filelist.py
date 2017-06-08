@@ -6,6 +6,7 @@ if __name__ == "__main__" :
     group_name = sys.argv[1]
     process_number = sys.argv[2]
     split_dsids = sys.argv[3]
+    stored_dir = sys.argv[4]
 
     samples_to_split = []
     if split_dsids != "X" :
@@ -15,6 +16,9 @@ if __name__ == "__main__" :
     samples = []
 
     lines = open(injob_filelist).readlines()
+
+    split_options = ""
+
     for line in lines :
         if not line : continue
         line = line.strip()
@@ -26,7 +30,11 @@ if __name__ == "__main__" :
                 split_this_sample = True
 
         if split_this_sample :
+
+            split_options = "--sumw --suffix %d"%(int(process_number))
+
             rname = "./filelists/%s/%s"%(group_name, line) 
+            #rname = "./%s/filelists/%s/%s"%(stored_dir, group_name, line) 
             rfiles = open(rname).readlines()
             for rf in rfiles :
                 if not rf : continue
@@ -43,6 +51,8 @@ if __name__ == "__main__" :
         if "susyNt.root" in submit_sample :
             print submit_sample
         else :
-            submit_sample = "./filelists/%s/%s"%(group_name, submit_sample)
+            submit_sample = "./%s/filelists/%s/%s"%(stored_dir, group_name, submit_sample)
             print submit_sample
-    
+
+    if split_options != "" :
+        print split_options

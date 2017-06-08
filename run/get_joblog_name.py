@@ -52,11 +52,11 @@ if __name__ == "__main__" :
     global_to_use = -1
     found_it = False
     for global_id, process_id_list in containers.iteritems() :
-        print global_id
+        #print global_id
         if found_it :
             break
         for p_id in process_id_list :
-            print " > ",p_id
+            #print " > ",p_id
             #print "p_id number : %d %d"%(p_id, process_number)
             if int(p_id) == int(process_number) :
                 global_to_use = global_id
@@ -67,6 +67,5 @@ if __name__ == "__main__" :
         print "ERROR did not find global idx"
         sys.exit()
     global_name = dsid_lists[global_to_use]
-    print "GLOBAL : %s"%global_name
-                
-        
+    global_name = global_name.split("/")[-1].replace(".txt","_%d.log"%(int(process_number)))
+    print global_name
