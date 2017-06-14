@@ -24,49 +24,62 @@
 #include "Superflow/Superlink.h"
 #include "Superflow/Cut.h"
 #include "Superflow/StringTools.h"
-#include "Superflow/PhysicsTools.h"
-#include "Superflow/LeptonTruthDefinitions.h"
+#include "Superflow/input_options.h"
 
 
 using namespace std;
 using namespace sflow;
 
-// function prototypes
-void print_usage(const char *exeName);
-void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_events_, string& sample_, SuperflowRunMode& run_mode_, SusyNtSys& nt_sysnt_);
-
+string ana_name = "SuperflowAna";
 
 int main(int argc, char* argv[])
 {
     // START read-in
-    int n_skip_ = 0;
     int num_events_ = -1;
-    string sample_;
+    string input = "";
+    string suffix_name = "";
+    string sumw_file = "";
+    bool dbg = false;
     SuperflowRunMode run_mode = SuperflowRunMode::nominal;
     SusyNtSys nt_sys_ = NtSys::NOM;
 
-    TChain* chain = new TChain("susyNt");
-    chain->SetDirectory(0);
     
     ////////////////////////////////////////////////////////////
     // Read in the command-line options (input file, num events, etc...)
     ////////////////////////////////////////////////////////////
-    read_options(argc, argv, chain, n_skip_, num_events_, sample_, run_mode, nt_sys_); // defined below
+    if(!read_options(ana_name, argc, argv, input, num_events_, suffix_name, run_mode, sumw_file, dbg)) {
+        exit(1);
+    } 
+
+    TChain* chain = new TChain("susyNt");
+    chain->SetDirectory(0);
+
+    bool verbose = true;
+    ChainHelper::addInput(chain, input, verbose);
+    Long64_t tot_num_events = chain->GetEntries();
+    num_events_ = (num_events_ < 0 ? tot_num_events : num_events_);
 
     ////////////////////////////////////////////////////////////
     // Initialize & configure the analysis
     //  > Superflow inherits from SusyNtAna : TSelector
     ////////////////////////////////////////////////////////////
     Superflow* cutflow = new Superflow(); // initialize the cutflow
-    cutflow->setAnaName("SuperflowAna");
+    cutflow->setAnaName(ana_name);
     cutflow->setAnaType(AnalysisType::Ana_2Lep); 
-    cutflow->setLumi(LUMI_A_A4); // set the MC normalized to lumi periods A1-A3
-    cutflow->setSampleName(sample_);
+    cutflow->setLumi(1000); // set lumi to 1/fb
+    cutflow->setSampleName(input);
     cutflow->setRunMode(run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows
     cutflow->setChain(chain);
+    if(suffix_name != "") {
+        cutflow->setFileSuffix(suffix_name);
+    }
+    if(sumw_file != "") {
+        cout << ana_name << "    Reading sumw for sample from file: " << sumw_file << endl;
+        cutflow->setUseSumwFile(sumw_file);
+    }
 
-    cout << "Analysis    Total Entries: " << chain->GetEntries() << endl;
+    cout << ana_name << "    Total Entries: " << chain->GetEntries() << endl;
 
     if (run_mode == SuperflowRunMode::single_event_syst) cutflow->setSingleEventSyst(nt_sys_);
 
@@ -209,12 +222,6 @@ int main(int argc, char* argv[])
     // LEPTONS
     // LEPTONS
     // LEPTONS
-
-    *cutflow << NewVar("is genuine same-sign"); {
-        *cutflow << HFTname("isGenSS");
-        *cutflow << [](Superlink *sl, var_bool*) -> bool { return PhysicsTools::isGenuineSS(sl->leptons); };
-        *cutflow << SaveVar();
-    }
 
     *cutflow << NewVar("is e + e"); {
         *cutflow << HFTname("isElEl");
@@ -870,7 +877,8 @@ int main(int argc, char* argv[])
     // END Setup systematics
 
     // Initialize the cutflow and start the event loop.
-    chain->Process(cutflow, sample_.c_str(), num_events_, n_skip_);
+    //chain->Process(cutflow, sample_.c_str(), num_events_, n_skip_);
+    chain->Process(cutflow, input.c_str(), num_events_);
 
     delete cutflow;
     delete chain;
@@ -879,106 +887,106 @@ int main(int argc, char* argv[])
     exit(0);
 }
 
-void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_events_, string& sample_,
-    SuperflowRunMode& run_mode_, SusyNtSys& nt_sys)
-{
-    bool nominal_ = false;
-    bool nominal_and_weight_syst_ = false;
-    bool all_syst_ = false;
-    bool single_event_syst_ = false;
-
-    string systematic_ = "undefined";
-
-    string input;
-
-    /** Read inputs to program */
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-n") == 0)
-            num_events_ = atoi(argv[++i]);
-        else if (strcmp(argv[i], "-c") == 0)
-            nominal_ = true;
-        else if (strcmp(argv[i], "-w") == 0)
-            nominal_and_weight_syst_ = true;
-        else if (strcmp(argv[i], "-e") == 0) {
-            single_event_syst_ = true;
-        }
-        else if (strcmp(argv[i], "-a") == 0) {
-            all_syst_ = true;
-        }
-        else if (strcmp(argv[i], "-i") == 0) {
-            input = argv[++i];
-        }
-        else if (strcmp(argv[i], "-s") == 0) {
-            systematic_ = argv[++i];
-        }
-        else {
-            cout << "Analysis    Error (fatal): Bad arguments." << endl;
-            exit(1);
-        }
-    }
-
-    bool verbose = true;
-    ChainHelper::addInput(chain, input, verbose);
-    Long64_t tot_num_events = chain->GetEntries();
-    num_events_ = (num_events_ < 0 ? tot_num_events : num_events_);
-    // if (debug) chain->ls();
-
-    if (nominal_) {
-        run_mode_ = SuperflowRunMode::nominal;
-        cout << "Analysis    run mode: SuperflowRunMode::nominal" << endl;
-    }
-    if (nominal_and_weight_syst_) {
-        run_mode_ = SuperflowRunMode::nominal_and_weight_syst;
-        cout << "Analysis    run mode: SuperflowRunMode::nominal_and_weight_syst" << endl;
-    }
-    if (single_event_syst_) {
-        run_mode_ = SuperflowRunMode::single_event_syst;
-        cout << "Analysis    run mode: SuperflowRunMode::single_event_syst" << endl;
-    }
-
-    if (all_syst_) {
-        run_mode_ = SuperflowRunMode::all_syst;
-        cout << "Analysis    run mode: SuperflowRunMode::all_syst" << endl;
-    }
-
-    map <string, SusyNtSys> event_syst_map;
-/*    event_syst_map["EESZUP"] = NtSys::EES_Z_UP;
-    event_syst_map["EESZDOWN"] = NtSys::EES_Z_DN;
-    event_syst_map["EESMATUP"] = NtSys::EES_MAT_UP;
-    event_syst_map["EESMATDOWN"] = NtSys::EES_MAT_DN;
-    event_syst_map["EESPSUP"] = NtSys::EES_PS_UP;
-    event_syst_map["EESPSDOWN"] = NtSys::EES_PS_DN;
-    event_syst_map["EESLOWUP"] = NtSys::EES_LOW_UP;
-    event_syst_map["EESLOWDOWN"] = NtSys::EES_LOW_DN;
-    event_syst_map["EERUP"] = NtSys::EER_UP;
-    event_syst_map["EERDOWN"] = NtSys::EER_DN;
-    event_syst_map["MSUP"] = NtSys::MS_UP;
-    event_syst_map["MSDOWN"] = NtSys::MS_DN;
-    event_syst_map["IDUP"] = NtSys::ID_UP;
-    event_syst_map["IDDOWN"] = NtSys::ID_DN;
-    event_syst_map["JESUP"] = NtSys::JES_UP;
-    event_syst_map["JESDOWN"] = NtSys::JES_DN;
-    event_syst_map["JER"] = NtSys::JER;
-    event_syst_map["SCALESTUP"] = NtSys::SCALEST_UP;
-    event_syst_map["SCALESTDOWN"] = NtSys::SCALEST_DN;
-    event_syst_map["RESOST"] = NtSys::RESOST;
-    event_syst_map["TRIGSFELUP"] = NtSys::TRIGSF_EL_UP;
-    event_syst_map["TRIGSFELDN"] = NtSys::TRIGSF_EL_DN;
-    event_syst_map["TRIGSFMUUP"] = NtSys::TRIGSF_MU_UP;
-    event_syst_map["TRIGSFMUDN"] = NtSys::TRIGSF_MU_DN;
-    event_syst_map["TESUP"] = NtSys::TES_UP;
-    event_syst_map["TESDOWN"] = NtSys::TES_DN;
-    event_syst_map["JVFUP"] = NtSys::JVF_UP;
-    event_syst_map["JVFDOWN"] = NtSys::JVF_DN;
-*/
-    if (single_event_syst_) {
-        if (event_syst_map.count(systematic_) == 1) {
-            nt_sys = event_syst_map[systematic_];
-        }
-        else {
-            cout << "Analysis" << "    ERROR (fatal): Event systematic option /s " << systematic_ << " -> not found." << endl;
-            exit(1);
-        }
-    }
-
-}
+//void read_options(int argc, char* argv[], TChain* chain, int& n_skip_, int& num_events_, string& sample_,
+//    SuperflowRunMode& run_mode_, SusyNtSys& nt_sys)
+//{
+//    bool nominal_ = false;
+//    bool nominal_and_weight_syst_ = false;
+//    bool all_syst_ = false;
+//    bool single_event_syst_ = false;
+//
+//    string systematic_ = "undefined";
+//
+//    string input;
+//
+//    /** Read inputs to program */
+//    for (int i = 1; i < argc; i++) {
+//        if (strcmp(argv[i], "-n") == 0)
+//            num_events_ = atoi(argv[++i]);
+//        else if (strcmp(argv[i], "-c") == 0)
+//            nominal_ = true;
+//        else if (strcmp(argv[i], "-w") == 0)
+//            nominal_and_weight_syst_ = true;
+//        else if (strcmp(argv[i], "-e") == 0) {
+//            single_event_syst_ = true;
+//        }
+//        else if (strcmp(argv[i], "-a") == 0) {
+//            all_syst_ = true;
+//        }
+//        else if (strcmp(argv[i], "-i") == 0) {
+//            input = argv[++i];
+//        }
+//        else if (strcmp(argv[i], "-s") == 0) {
+//            systematic_ = argv[++i];
+//        }
+//        else {
+//            cout << "Analysis    Error (fatal): Bad arguments." << endl;
+//            exit(1);
+//        }
+//    }
+//
+//    bool verbose = true;
+//    ChainHelper::addInput(chain, input, verbose);
+//    Long64_t tot_num_events = chain->GetEntries();
+//    num_events_ = (num_events_ < 0 ? tot_num_events : num_events_);
+//    // if (debug) chain->ls();
+//
+//    if (nominal_) {
+//        run_mode_ = SuperflowRunMode::nominal;
+//        cout << "Analysis    run mode: SuperflowRunMode::nominal" << endl;
+//    }
+//    if (nominal_and_weight_syst_) {
+//        run_mode_ = SuperflowRunMode::nominal_and_weight_syst;
+//        cout << "Analysis    run mode: SuperflowRunMode::nominal_and_weight_syst" << endl;
+//    }
+//    if (single_event_syst_) {
+//        run_mode_ = SuperflowRunMode::single_event_syst;
+//        cout << "Analysis    run mode: SuperflowRunMode::single_event_syst" << endl;
+//    }
+//
+//    if (all_syst_) {
+//        run_mode_ = SuperflowRunMode::all_syst;
+//        cout << "Analysis    run mode: SuperflowRunMode::all_syst" << endl;
+//    }
+//
+//    map <string, SusyNtSys> event_syst_map;
+///*    event_syst_map["EESZUP"] = NtSys::EES_Z_UP;
+//    event_syst_map["EESZDOWN"] = NtSys::EES_Z_DN;
+//    event_syst_map["EESMATUP"] = NtSys::EES_MAT_UP;
+//    event_syst_map["EESMATDOWN"] = NtSys::EES_MAT_DN;
+//    event_syst_map["EESPSUP"] = NtSys::EES_PS_UP;
+//    event_syst_map["EESPSDOWN"] = NtSys::EES_PS_DN;
+//    event_syst_map["EESLOWUP"] = NtSys::EES_LOW_UP;
+//    event_syst_map["EESLOWDOWN"] = NtSys::EES_LOW_DN;
+//    event_syst_map["EERUP"] = NtSys::EER_UP;
+//    event_syst_map["EERDOWN"] = NtSys::EER_DN;
+//    event_syst_map["MSUP"] = NtSys::MS_UP;
+//    event_syst_map["MSDOWN"] = NtSys::MS_DN;
+//    event_syst_map["IDUP"] = NtSys::ID_UP;
+//    event_syst_map["IDDOWN"] = NtSys::ID_DN;
+//    event_syst_map["JESUP"] = NtSys::JES_UP;
+//    event_syst_map["JESDOWN"] = NtSys::JES_DN;
+//    event_syst_map["JER"] = NtSys::JER;
+//    event_syst_map["SCALESTUP"] = NtSys::SCALEST_UP;
+//    event_syst_map["SCALESTDOWN"] = NtSys::SCALEST_DN;
+//    event_syst_map["RESOST"] = NtSys::RESOST;
+//    event_syst_map["TRIGSFELUP"] = NtSys::TRIGSF_EL_UP;
+//    event_syst_map["TRIGSFELDN"] = NtSys::TRIGSF_EL_DN;
+//    event_syst_map["TRIGSFMUUP"] = NtSys::TRIGSF_MU_UP;
+//    event_syst_map["TRIGSFMUDN"] = NtSys::TRIGSF_MU_DN;
+//    event_syst_map["TESUP"] = NtSys::TES_UP;
+//    event_syst_map["TESDOWN"] = NtSys::TES_DN;
+//    event_syst_map["JVFUP"] = NtSys::JVF_UP;
+//    event_syst_map["JVFDOWN"] = NtSys::JVF_DN;
+//*/
+//    if (single_event_syst_) {
+//        if (event_syst_map.count(systematic_) == 1) {
+//            nt_sys = event_syst_map[systematic_];
+//        }
+//        else {
+//            cout << "Analysis" << "    ERROR (fatal): Event systematic option /s " << systematic_ << " -> not found." << endl;
+//            exit(1);
+//        }
+//    }
+//
+//}

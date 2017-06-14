@@ -6,6 +6,7 @@ using namespace std;
 
 namespace sflow {
 
+    //////////////////////////////////////////////////////////////////////////
     Supersys::Supersys()
     {
         reset();
@@ -41,6 +42,7 @@ namespace sflow {
         weight_syst_down = SupersysWeight::null;
     }
 
+    //////////////////////////////////////////////////////////////////////////
     Superweight::Superweight()
     {
         reset();
@@ -48,45 +50,44 @@ namespace sflow {
 
     double Superweight::product()
     {
-        return susynt * lepSf * btag * trigger * qflip * fake * isr * jvt;
+        return susynt * lepSf * btag * jvt;
     }
 
     void Superweight::reset()
     {
         susynt = 1.0;
-        gen = 1.0;
         pileup = 1.0;
-        norm = 1.0;
         lepSf = 1.0;
         btag = 1.0;
-        trigger = 1.0;
-        qflip = 1.0;
-        fake = 1.0;
-        isr = 1.0;
         jvt = 1.0;
     }
 
+    //////////////////////////////////////////////////////////////////////////
     NewSystematic::NewSystematic(std::string sys_name)
     {
         name = sys_name;
     }
 
+    //////////////////////////////////////////////////////////////////////////
     TreeName::TreeName(std::string tree_name)
     {
         name = tree_name;
     }
 
+    //////////////////////////////////////////////////////////////////////////
     EventSystematic::EventSystematic(Susy::NtSys::SusyNtSys syst_val)
     {
         event_syst_ = syst_val;
     }
 
+    //////////////////////////////////////////////////////////////////////////
     WeightSystematic::WeightSystematic(SupersysWeight syst_val_up, SupersysWeight syst_val_down)
     {
         weight_syst_up = syst_val_up;
         weight_syst_down = syst_val_down;
     }
 
+    //////////////////////////////////////////////////////////////////////////
     BTagSys supersys_to_btagsys(SupersysWeight sys) // BTagSys is from SusyDefs
     {
         BTagSys bsys = BTag_NOM;

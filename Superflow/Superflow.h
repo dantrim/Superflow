@@ -21,14 +21,14 @@
 #include "SusyNtuple/TriggerTools.h"
 
 // Superflow
-#include "Superflow/DataDefinitions.h"
+//#include "Superflow/DataDefinitions.h"
 #include "Superflow/Cut.h"
 #include "Superflow/Superlink.h"
 #include "Superflow/Supervar.h"
 #include "Superflow/Supersys.h"
 
 
-using namespace DataDefinitions;
+//using namespace DataDefinitions;
 
 namespace sflow {
 

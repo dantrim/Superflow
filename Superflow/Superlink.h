@@ -11,10 +11,10 @@
 #include "SusyNtuple/TriggerTools.h"
 
 #include "Superflow/Supersys.h"
-#include "Superflow/DataDefinitions.h"
+//#include "Superflow/DataDefinitions.h"
 
 
-using namespace DataDefinitions;
+//using namespace DataDefinitions;
 
 namespace sflow {
 
