@@ -34,20 +34,11 @@ string ana_name = "SuperflowAna";
 
 int main(int argc, char* argv[])
 {
-    // START read-in
-    int num_events_ = -1;
-    string input = "";
-    string suffix_name = "";
-    string sumw_file = "";
-    bool dbg = false;
-    SuperflowRunMode run_mode = SuperflowRunMode::nominal;
-    SusyNtSys nt_sys_ = NtSys::NOM;
-
-    
     ////////////////////////////////////////////////////////////
     // Read in the command-line options (input file, num events, etc...)
     ////////////////////////////////////////////////////////////
-    if(!read_options(ana_name, argc, argv, input, num_events_, suffix_name, run_mode, sumw_file, dbg)) {
+    SFOptions options(argc, argv);
+    if(!read_options(options)) {
         exit(1);
     } 
 
@@ -55,33 +46,33 @@ int main(int argc, char* argv[])
     chain->SetDirectory(0);
 
     bool verbose = true;
-    ChainHelper::addInput(chain, input, verbose);
+    ChainHelper::addInput(chain, options.input, verbose);
     Long64_t tot_num_events = chain->GetEntries();
-    num_events_ = (num_events_ < 0 ? tot_num_events : num_events_);
+    options.n_events_to_process = (options.n_events_to_process < 0 ? tot_num_events : options.n_events_to_process);
 
     ////////////////////////////////////////////////////////////
     // Initialize & configure the analysis
     //  > Superflow inherits from SusyNtAna : TSelector
     ////////////////////////////////////////////////////////////
     Superflow* cutflow = new Superflow(); // initialize the cutflow
-    cutflow->setAnaName(ana_name);
+    cutflow->setAnaName(options.ana_name);
     cutflow->setAnaType(AnalysisType::Ana_2Lep); 
     cutflow->setLumi(1000); // set lumi to 1/fb
-    cutflow->setSampleName(input);
-    cutflow->setRunMode(run_mode);
+    cutflow->setSampleName(options.input);
+    cutflow->setRunMode(options.run_mode);
     cutflow->setCountWeights(true); // print the weighted cutflows
     cutflow->setChain(chain);
-    if(suffix_name != "") {
-        cutflow->setFileSuffix(suffix_name);
+    if(options.suffix_name != "") {
+        cutflow->setFileSuffix(options.suffix_name);
     }
-    if(sumw_file != "") {
-        cout << ana_name << "    Reading sumw for sample from file: " << sumw_file << endl;
-        cutflow->setUseSumwFile(sumw_file);
+    if(options.sumw_file_name != "") {
+        cout << options.ana_name << "    Reading sumw for sample from file: " << options.sumw_file_name << endl;
+        cutflow->setUseSumwFile(options.sumw_file_name);
     }
 
-    cout << ana_name << "    Total Entries: " << chain->GetEntries() << endl;
+    cout << options.ana_name << "    Total Entries: " << chain->GetEntries() << endl;
 
-    if (run_mode == SuperflowRunMode::single_event_syst) cutflow->setSingleEventSyst(nt_sys_);
+    //if (options.run_mode == SuperflowRunMode::single_event_syst) cutflow->setSingleEventSyst(nt_sys_);
 
     /////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
@@ -878,7 +869,7 @@ int main(int argc, char* argv[])
 
     // Initialize the cutflow and start the event loop.
     //chain->Process(cutflow, sample_.c_str(), num_events_, n_skip_);
-    chain->Process(cutflow, input.c_str(), num_events_);
+    chain->Process(cutflow, options.input.c_str(), options.n_events_to_process);
 
     delete cutflow;
     delete chain;

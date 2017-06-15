@@ -33,19 +33,22 @@ void help(string ana)
 
 }
 
-bool read_options(string ana_name, int argc, char* argv[], string& input, int& num_events, string& suffix_name,
-            sflow::SuperflowRunMode& run_mode, string& sumw_file, bool dbg)
+bool read_options(SFOptions& options)
 {
+
     bool nominal = false;
     bool nominal_and_weight_sys = false;
     bool all_sys = false;
 
+    int argc = options.argc;
+    char** argv = options.argv;
+
     for(int i = 1; i < argc; i++) {
         if(strcmp(argv[i], "-n") == 0) {
-            num_events = atoi(argv[++i]);
+            options.n_events_to_process = atoi(argv[++i]);
         }
         else if(strcmp(argv[i], "-i") == 0) {
-            input = argv[++i];
+            options.input = argv[++i];
         }
         else if(strcmp(argv[i], "-c") == 0) {
             nominal = true;
@@ -57,55 +60,57 @@ bool read_options(string ana_name, int argc, char* argv[], string& input, int& n
             all_sys = true;
         }
         else if(strcmp(argv[i], "-d") == 0) {
-            dbg = true;
+            options.dbg = true;
         }
         else if(strcmp(argv[i], "--suffix") == 0) {
-            suffix_name = argv[++i];
+            options.suffix_name = argv[++i];
         }
         else if(strcmp(argv[i], "--sumw") == 0) {
-            sumw_file = argv[++i];
+            options.sumw_file_name = argv[++i];
         }
         else if( (strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "--help") == 0) ) {
-            help(ana_name);
+            help(options.ana_name);
             return false;
         }
         else {
-            cout << ana_name << "::input_options    Unknown command line argument '" << argv[i] << "', exiting" << endl;
-            help(ana_name);
+            cout << options.ana_name << "::input_options    Unknown command line argument '" << argv[i] << "', exiting" << endl;
+            help(options.ana_name);
             return false;
         }
     }
 
 
     if(nominal) {
-        run_mode = sflow::SuperflowRunMode::nominal;
-        cout << ana_name << "    Run mode: nominal" << endl;
+        options.run_mode = sflow::SuperflowRunMode::nominal;
+        cout << options.ana_name << "    Run mode: nominal" << endl;
     }
     else if(nominal_and_weight_sys) {
-        run_mode = sflow::SuperflowRunMode::nominal_and_weight_syst;
-        cout << ana_name << "    Run mode: nominal_and_weight_syst" << endl;
+        options.run_mode = sflow::SuperflowRunMode::nominal_and_weight_syst;
+        cout << options.ana_name << "    Run mode: nominal_and_weight_syst" << endl;
     }
     else if(all_sys) {
-        run_mode = sflow::SuperflowRunMode::all_syst;
-        cout << ana_name << "    Run mode: all_syst" << endl;
+        options.run_mode = sflow::SuperflowRunMode::all_syst;
+        cout << options.ana_name << "    Run mode: all_syst" << endl;
     }
 
     // check input sumw file if it exists
     bool sumw_file_exists = true;
-    if(sumw_file != "") {
-        sumw_file_exists = std::ifstream(sumw_file).good();
+    if(options.sumw_file_name != "") {
+        sumw_file_exists = std::ifstream(options.sumw_file_name).good();
     }
     if(!sumw_file_exists) {
-        cout << ana_name << "    ERROR Provided SUMW file '" << sumw_file << "' cannot be found!" << endl;
+        cout << options.ana_name << "    ERROR Provided SUMW file '" << options.sumw_file_name << "' cannot be found!" << endl;
         return false;
     }
 
     // check that the user provided an input
-    if(input=="") {
-        cout << ana_name << "    ERROR You must provide an input file, dir, or filelist!" << endl;
-        help(ana_name);
+    if(options.input=="") {
+        cout << options.ana_name << "    ERROR You must provide an input file, dir, or filelist!" << endl;
+        help(options.ana_name);
         return false;
     }
 
     return true;
+
+
 }
