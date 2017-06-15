@@ -1,9 +1,3 @@
-#ifndef SUSYNTUPLE_SUSYNTSYS_H
-#define SUSYNTUPLE_SUSYNTSYS_H
-
-// Superflow.cxx
-//
-
 // std
 #include <cassert>
 #include <cstdlib>
@@ -17,122 +11,27 @@
 // Superflow
 #include "Superflow/Superflow.h"
 #include "Superflow/StringTools.h"
-//#include "Superflow/PhysicsTools.h"
 
 using namespace std;
 
 namespace sflow {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Constructor
-///////////////////////////////////////////////////////////////////////////////
-Superflow::Superflow()
+Superflow::Superflow() :
+    m_mcWeighter(nullptr)
 {
-    app_name = "Superflow    ";
-    m_dbg = true;
-    setSelectTaus(true);
-
-    m_runMode = SuperflowRunMode::null;
-
-    m_CutStore_Name_Exists = false;
-    m_CutStoreUntitled     = 1;
-
-    m_countWeights = true;
-
-    m_outputFileName      = "";
-    m_outputFileNameSuffix = "";
-    m_entry_list_FileName = "entrylist_";
-    m_tree_name_auto      = "";
-    m_outputFile          = nullptr;
-    m_entryListFile       = nullptr;
-    m_HFT                 = nullptr;
-
-    m_output_array = nullptr;
-
-    m_HFT_array = nullptr;
-
-    m_entry_list_total       = nullptr;
-    m_entry_list_single_tree = nullptr;
-
-    m_period = ATLAS_period::null;
-    m_stream = ATLAS_stream::null;
-
-    m_varState = SupervarState::closed;
-    m_superVar_hasFunction = false;
-    m_superVar_hasNiceName = false;
-    m_superVar_hasHFTName  = false;
-    m_superVar_Untitled    = 1;
-
-    m_mcWeighter = nullptr;
-
-    m_nullExprFloat  = [](Superlink* sl, var_float*) -> double { return 0.0; };
-    m_nullExprFloatArray = [](Superlink* sl, var_float_array*) -> vector<double> {
-            vector<double> null;
-            for(int i = 0; i < 25; i++) {
-                null.push_back(0.0);
-            }
-            return null;
-    };
-    m_nullExprDouble = [](Superlink* sl, var_double*) -> double { return 0.0; };
-    m_nullExprInt    = [](Superlink* sl, var_int*) -> int { return 0; };
-    m_nullExprBool   = [](Superlink* sl, var_bool*) -> bool { return false; };
-    m_nullExprVoid   = [](Superlink* sl, var_void*) {};
-
-    m_varFloat  = nullptr;
-    //m_varFloatArray = nullptr;
-    m_varDouble = nullptr;
-    m_varInt    = nullptr;
-    m_varBool   = nullptr;
-
-    m_varFloatArray_array.clear();
-    m_varBoolArray_array.clear();
-    m_varFloat_array  = nullptr;
-    m_varDouble_array = nullptr;
-    m_varInt_array    = nullptr;
-    m_varBool_array   = nullptr;
-
-    m_sysState = SupersysState::closed;
-
-
-    m_sysTemplate.reset();
-    m_sys_hasNiceName   = false;
-    m_sys_hasTreeName   = false;
-    m_sys_hasType       = false;
-    m_sys_hasSystematic = false;
-
-    m_singleEventSyst = NtSys::NOM;
-    m_RunSyst         = new Supersys(SupersysType::central);
-
-    m_tree_leafs_size    = 0;
-    m_weight_leaf_offset = 0;
-
-    //m_trigObj = nullptr;
-
-    m_input_chain = nullptr;
-
-    m_data_stream2string[ATLAS_stream::Main] = "physics_Main";
-
 }
-
-///////////////////////////////////////////////////////////////////////////////
-// Destructor
 ///////////////////////////////////////////////////////////////////////////////
 Superflow::~Superflow()
 {}
-
-
-// Superlink
-// Superlink
-// Superlink
-
+///////////////////////////////////////////////////////////////////////////////
 void Superflow::attach_superlink(Superlink* sl_)
 {
-    //sl_->tools = this;
-    sl_->tools = &m_nttools; // from SusyNtAna
+    sl_->tools = &m_nttools;
 
     sl_->anaType = m_nttools.getAnaType();
 
-    sl_->nt = &nt; // SusyNt
+    sl_->nt = &nt;
     sl_->weights = m_weights;
     sl_->nt_sys = m_RunSyst->event_syst;
 
@@ -163,25 +62,21 @@ void Superflow::attach_superlink(Superlink* sl_)
         sl_->isData = true;
     }
 }
-
-///////////////////////////////////////////////////////////////////////////////
-// TSelector Begin
 ///////////////////////////////////////////////////////////////////////////////
 void Superflow::Begin(TTree* /*tree*/)
 {
     cout << app_name << "Superflow::Begin" << endl;
     SusyNtAna::Begin(0);
 
-    cout << app_name << "Superflow::Begin    Input sample: "<< endl;
-    cout << app_name << "Superflow::Begin    " << m_sample << endl;
+    cout << app_name << "Superflow::Begin    Input sample: " << m_sample << endl;
 
     if (m_runMode == SuperflowRunMode::null) {
-        cout << app_name << "Superflow::Begin ERROR (Fatal)    Missing call to Superflow::setRunMode()." << endl;
+        cout << app_name << "Superflow::Begin ERROR (Fatal)    SuperflowRunMode is \"null\"! -- Missing call to Superflow::setRunMode(), exiting" << endl;
         exit(1);
     }
 
     if (m_varState != SupervarState::closed || m_sysState != SupersysState::closed) {
-        cout << app_name << "Superflow::Begin ERROR (Fatal)    Close the Var using SaveVar()." << endl;;
+        cout << app_name << "Superflow::Begin ERROR (Fatal)    Invalid setup of variables in executable -- Close the Var using SaveVar(), exiting" << endl;;
         exit(1);
     }
 
@@ -190,39 +85,9 @@ void Superflow::Begin(TTree* /*tree*/)
         exit(1);
     }
 
-    // determine number of weight systematics
-    if (m_runMode == SuperflowRunMode::nominal_and_weight_syst || m_runMode == SuperflowRunMode::all_syst) {
-        for (int i = 0; i < m_sysStore.size(); i++) {
-            if (m_sysStore[i].type == SupersysType::weight) {
-                index_weight_sys.push_back(i);
-            }
-        }
-    }
+    SuperflowBase::Begin(0);
 
-    // determine number of event systematics
-    if (m_runMode == SuperflowRunMode::all_syst) {
-        for (int i = 0; i < m_sysStore.size(); i++) {
-            if (m_sysStore[i].type == SupersysType::event) {
-                index_event_sys.push_back(i);
-            }
-        }
-    }
-    
-    // if run mode single_event_syst, set which syst to run on
-    if (m_runMode == SuperflowRunMode::single_event_syst) {
-        for (int i = 0; i < m_sysStore.size(); i++) {
-            if (m_sysStore[i].type == SupersysType::event && m_sysStore[i].event_syst == m_singleEventSyst) {
-                // initially set to nominal
-                delete m_RunSyst;
-
-                m_RunSyst = &m_sysStore[i]; // don't delete!!
-            }
-        }
-    } // end if run mode single_event_syst
-} // end Superflow::Begin()
-
-///////////////////////////////////////////////////////////////////////////////
-// TSelector Init
+}
 ///////////////////////////////////////////////////////////////////////////////
 void Superflow::Init(TTree* tree)
 {
@@ -233,6 +98,7 @@ void Superflow::Init(TTree* tree)
     TString output_sample = m_input_chain->GetFile()->Get("outputContainerName")->GetTitle();
     TString nt_tag = m_input_chain->GetFile()->Get("productionTag")->GetTitle();
     TString prod_command = m_input_chain->GetFile()->Get("productionCommand")->GetTitle();
+
     cout << endl;
     cout << app_name << "Superflow::Init    ================ Sample Information ==============" << endl;
     cout << app_name << "Superflow::Init     Input container name  : " << input_sample  << endl;
@@ -243,327 +109,24 @@ void Superflow::Init(TTree* tree)
 
     if (!nt.evt()->isMC) {
         cout << app_name << "Superflow::Init    Switching run mode to SuperflowRunMode::data" << endl;
-        m_runMode = SuperflowRunMode::data; // Changing the run mode!!
+        m_runMode = SuperflowRunMode::data;
     }
     else if (nt.evt()->isMC) {
-        initMcWeighter(tree);
+        initialize_mc_weighter(tree);
     }
 
-    // output file name
-    stringstream sfile_name_;
-
-    // determine output file name
-    if (m_runMode == SuperflowRunMode::data) {
-        m_countWeights = true;
-
-        // output file name
-        stringstream sfile_name_;
-        sfile_name_ << "CENTRAL_";
-
-        if(input_sample.Contains("data15_13TeV") || input_sample.Contains("data16_13TeV")){
-            TString data_run; data_run.Form("%d",nt.evt()->run);
-            if(input_sample.Contains("physics_Main")) {
-                cout << app_name << "Superflow::Init    ====== Determined input data specifications ====== " << endl;
-                cout << app_name << "Superflow::Init     stream: Main " << endl;
-                cout << app_name << "Superflow::Init     run   : " << data_run << endl;
-                cout << app_name << "Superflow::Init    ==================================================" << endl;
-                cout << endl;
-                m_stream = ATLAS_stream::Main;
-            } // if main
-            else {
-                cout << app_name << "Superflow::Init ERROR    Could not determine data stream for sample from the input container: " << endl;
-                cout << app_name << "Superflow::Init ERROR    \t" << input_sample << endl;
-                cout << app_name << "Superflow::Init ERROR    The only supported stream is 'Main' ('physics_Main')." << endl;
-                cout << app_name << "Superflow::Init ERROR    >>> Exiting." << endl;
-                exit(1);
-            } 
-
-            stringstream suffix;
-            if(m_outputFileNameSuffix!="")
-                suffix << "_" << m_outputFileNameSuffix;
-            else suffix << "";
-
-            sfile_name_ << m_data_stream2string[m_stream] << "_" << data_run << suffix.str() << ".root";
-            cout << app_name << "Superflow::Init    Setting output file name to: " << sfile_name_.str() << endl;
-            
-            m_outputFileName = sfile_name_.str();
-            m_entry_list_FileName += m_data_stream2string[m_stream] + "_" + data_run + suffix.str() + ".root";
-
-        }
-        else {
-            cout << app_name << "Superflow::Init ERROR    The input container name does not appear to be a data sample." << endl;
-            cout << app_name << "Superflow::Init ERROR    It does not contain either the 'data15_13TeV' or 'data16_13TeV' grouping and the run mode is" << endl;
-            cout << app_name << "Superflow::Init ERROR    set for data (SuperflowRunMode::data). " << endl;
-            cout << app_name << "Superflow::Init ERROR    >>> Exiting." << endl;
-            exit(1);
-        } 
-
-    }
-    else if (m_runMode == SuperflowRunMode::single_event_syst) {
-        if (Susy::NtSys::SusyNtSysNames.count(m_singleEventSyst) != 0) {
-
-            stringstream suffix;
-            if(m_outputFileNameSuffix!="")
-                suffix << "_" << m_outputFileNameSuffix;
-            else suffix << "";
-
-            stringstream sfile_name_; // output file name
-            sfile_name_ << Susy::NtSys::SusyNtSysNames.at(m_singleEventSyst) << "_" << nt.evt()->mcChannel
-                        << suffix.str() << ".root";
-            cout << app_name << "Superflow::Init    Run mode: SuperflowRunMode::single_event_syst" << endl;
-            cout << app_name << "Superflow::Init    Setting output file name to: " << sfile_name_.str() << endl;
-            m_outputFileName = sfile_name_.str();
-            m_entry_list_FileName += sfile_name_.str() + suffix.str() + ".root";
-        }
-        else {
-            cout << app_name << "Superflow::Init ERROR (Fatal)    Unknown event systematic! Code: " << static_cast<int>(m_singleEventSyst) << endl;
-            exit(1);
-        }
-    }
-    else if (nt.evt()->isMC) {
-        stringstream suffix;
-        if(m_outputFileNameSuffix!="")
-            suffix << "_" << m_outputFileNameSuffix;
-        else suffix << "";
-
-        stringstream sfile_name_; // output file name
-        sfile_name_ << "CENTRAL_" << nt.evt()->mcChannel << suffix.str() << ".root";
-        if (m_runMode == SuperflowRunMode::nominal_and_weight_syst) {
-            cout << app_name << "Superflow::Init    Run mode: SuperflowRunMode::nominal_and_weight_syst" << endl;
-        }
-        else {
-            cout << app_name << "Superflow::Init    Run mode: SuperflowRunMode::nominal (weighted)" << endl;
-        }
-        cout << app_name << "Superflow::Init    Setting output file name to: " << sfile_name_.str() << endl;
-        m_outputFileName = sfile_name_.str();
-        m_entry_list_FileName += to_string(nt.evt()->mcChannel) + suffix.str() + ".root";
-    }
-    else {
-        cout << app_name << "Superflow::Init ERROR (Fatal)    Inconsistent setup." << endl;
-        exit(1);
-    }
-
-    m_outputFile = new TFile(m_outputFileName.data(), "RECREATE");
-
-    /////////////////////////////////////////////
-    // Set the output tree name
-    /////////////////////////////////////////////
-//    stringstream tree_name;
-//    if (m_runMode == SuperflowRunMode::data) {
-//        tree_name << "id_" << m_data_stream2string[m_stream];
-//    }
-//    else {
-//        tree_name << "id_" << nt.evt()->mcChannel;
-//    }
-    stringstream tree_name;
-    tree_name << "superNt";
-    cout << app_name << "Superflow::Init    Setting output tree name to: " << tree_name.str() << endl; 
-
-    m_tree_name_auto = tree_name.str();
-
-    // initialize total entry list (also see Notify();)
-    m_entryListFile = new TFile(m_entry_list_FileName.data(), "RECREATE");
-    m_entry_list_total = new TEntryList(m_tree_name_auto.data(), m_tree_name_auto.data());
-    m_entry_list_total->SetDirectory(m_entryListFile);
-
-    // initialize output tree
-    m_HFT = new TTree(tree_name.str().data(), tree_name.str().data());
-    m_HFT->SetDirectory(m_outputFile);
-    m_HFT->SetAutoFlush(-16777216L);
-
-    // define number of trees
-    m_tree_leafs_size = m_varType.size() + 2 * index_weight_sys.size();// 2nd term may be zero
-    m_weight_leaf_offset = m_varType.size();
-   
-
-    m_varFloat = new Float_t[m_tree_leafs_size]; // this one is larger to hold the syst_WEIGHT
-    //m_varFloatArray = new Double_t*[m_varType.size()];
-    m_varDouble = new Double_t[m_varType.size()];
-    m_varInt = new Int_t[m_varType.size()];
-    m_varBool = new Bool_t[m_varType.size()];
-
-    // initialize HFT
-    for (int i = 0; i < m_tree_leafs_size; i++) m_varFloat[i] = 1.0;
-    for (int i = 0; i < m_varType.size(); i++) m_varDouble[i] = 1.0;
-    for (int i = 0; i < m_varType.size(); i++) m_varInt[i] = 0;
-    for (int i = 0; i < m_varType.size(); i++) m_varBool[i] = false;
-    for (int i = 0; i < m_varType.size(); i++) { //m_varFloatArray[i] = 1.0; }
-        vector<double> null(25, -999);
-        vector<bool> f(25, false);
-        m_varFloatArray.push_back(null);
-        m_varBoolArray.push_back(f);
-    }
-
-    for (int i = 0; i < m_varType.size(); i++) {
-        switch (m_varType[i]) {
-            case SupervarType::sv_void: break;
-            case SupervarType::sv_float: {
-                string leaflist_ = m_varHFTName[i] + "/F";
-                m_HFT->Branch(m_varHFTName[i].data(), m_varFloat + i, leaflist_.data(), 65536);
-                break;
-            }
-            case SupervarType::sv_double: {
-                string leaflist_ = m_varHFTName[i] + "/D";
-                m_HFT->Branch(m_varHFTName[i].data(), m_varDouble + i, leaflist_.data(), 65536);
-                break;
-            }
-            case SupervarType::sv_int: {
-                string leaflist_ = m_varHFTName[i] + "/I";
-                m_HFT->Branch(m_varHFTName[i].data(), m_varInt + i, leaflist_.data(), 65536);
-                break;
-            }
-            case SupervarType::sv_bool: {
-                string leaflist_ = m_varHFTName[i] + "/O";
-                m_HFT->Branch(m_varHFTName[i].data(), m_varBool + i, leaflist_.data(), 65536);
-                break;
-            }
-            case SupervarType::sv_float_array: {
-                //string leaflist_ = m_varHFTName[i] + "[25]/D";
-                //m_HFT->Branch(m_varHFTName[i].data(), m_varFloatArray.at(i), leaflist_.data(), 65536);
-                m_HFT->Branch(m_varHFTName[i].data(), &m_varFloatArray[i]);
-                break;
-            }
-            case SupervarType::sv_bool_array: {
-                m_HFT->Branch(m_varHFTName[i].data(), &m_varBoolArray[i]);
-                break;
-            }
-        }
-    }
-
-    for (int i = 0; i < index_weight_sys.size(); i++) {
-        string syst_var_name_up = weight_prefix + m_sysStore[index_weight_sys[i]].tree_name + weight_suffix_up;
-        string syst_var_name_down = weight_prefix + m_sysStore[index_weight_sys[i]].tree_name + weight_suffix_down;
-
-        string leaflist_up = syst_var_name_up + "/F";
-        string leaflist_down = syst_var_name_down + "/F";
-
-        cout << app_name << "Weight var trees: " << syst_var_name_up << ", " << syst_var_name_down << endl;
-
-        m_HFT->Branch(syst_var_name_up.data(), m_varFloat + m_weight_leaf_offset + 2 * i, leaflist_up.data(), 65536);
-        m_HFT->Branch(syst_var_name_down.data(), m_varFloat + m_weight_leaf_offset + 2 * i + 1, leaflist_down.data(), 65536);
-    }
-
-    // Make an output file for each event systematic.
-    if (m_runMode == SuperflowRunMode::all_syst) {
-
-        m_output_array = new TFile*[index_event_sys.size()];
-        for (int i = 0; i < index_event_sys.size(); i++) {
-
-            stringstream suffix;
-            if(m_outputFileNameSuffix!="")
-                suffix << "_" << m_outputFileNameSuffix;
-            else suffix << "";
-
-            stringstream sfile_name_; // output file name
-            sfile_name_ << Susy::NtSys::SusyNtSysNames.at(m_sysStore[index_event_sys[i]].event_syst) << "_" << nt.evt()->mcChannel << suffix.str() << ".root";
-            m_output_array[i] = new TFile(sfile_name_.str().data(), "RECREATE");
-        }
-
-        m_HFT_array = new TTree*[index_event_sys.size()];
-        for (int i = 0; i < index_event_sys.size(); i++) {
-            m_HFT_array[i] = new TTree(tree_name.str().data(), tree_name.str().data());
-            m_HFT_array[i]->SetDirectory(m_output_array[i]);
-            m_HFT_array[i]->SetAutoFlush(-16777216L);
-        }
-
-        m_varFloat_array = new Float_t*[index_event_sys.size()];
-        m_varDouble_array = new Double_t*[index_event_sys.size()];
-        m_varInt_array = new Int_t*[index_event_sys.size()];
-        m_varBool_array = new Bool_t*[index_event_sys.size()];
-
-        m_varFloatArray_array.clear();
-        m_varBoolArray_array.clear();
-        vector<vector<vector<double>>> f(index_event_sys.size(), vector<vector<double>>(m_varType.size(),
-                        vector<double>(25,1.0)));
-        m_varFloatArray_array = f;
-
-        vector<vector<vector<bool>>> fb(index_event_sys.size(), vector<vector<bool>>(m_varType.size(),
-                        vector<bool>(25,false)));
-        m_varBoolArray_array = fb;
-
-
-        for (int i = 0; i < index_event_sys.size(); i++) {
-            m_varFloat_array[i] = new Float_t[m_varType.size()];
-            m_varDouble_array[i] = new Double_t[m_varType.size()];
-            m_varInt_array[i] = new Int_t[m_varType.size()];
-            m_varBool_array[i] = new Bool_t[m_varType.size()];
-
-            for (int j = 0; j < m_varType.size(); j++) m_varFloat_array[i][j] = 1.0;
-            for (int j = 0; j < m_varType.size(); j++) m_varDouble_array[i][j] = 1.0;
-            for (int j = 0; j < m_varType.size(); j++) m_varInt_array[i][j] = 0;
-            for (int j = 0; j < m_varType.size(); j++) m_varBool_array[i][j] = false;
-        }
-
-        for (int i = 0; i < index_event_sys.size(); i++) {
-            for (int j = 0; j < m_varType.size(); j++) {
-                switch (m_varType[j]) {
-                    case SupervarType::sv_void: break;
-                    case SupervarType::sv_float: {
-                        string leaflist_ = m_varHFTName[j] + "/F";
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varFloat_array[i] + j, leaflist_.data(), 65536);
-                        break;
-                    }
-                    case SupervarType::sv_float_array: { 
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varFloatArray_array[i][j]); 
-                        break;
-                    }
-                    case SupervarType::sv_bool_array: {
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varBoolArray_array[i][j]);
-                        break;
-                    }
-                    case SupervarType::sv_double: {
-                        string leaflist_ = m_varHFTName[j] + "/D";
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varDouble_array[i] + j, leaflist_.data(), 65536);
-                        break;
-                    }
-                    case SupervarType::sv_int: {
-                        string leaflist_ = m_varHFTName[j] + "/I";
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varInt_array[i] + j, leaflist_.data(), 65536);
-                        break;
-                    }
-                    case SupervarType::sv_bool: {
-                        string leaflist_ = m_varHFTName[j] + "/O";
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varBool_array[i] + j, leaflist_.data(), 65536);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-} // end Superflow::Init()
-
-///////////////////////////////////////////////////////////////////////////////
-// TSelector Notify
+    initialize_output_files(input_sample);
+}
 ///////////////////////////////////////////////////////////////////////////////
 Bool_t Superflow::Notify()
 {
-    cout << app_name << "Superflow::Notify" << endl;
-    static int tree_counter;
-
-    if (m_entry_list_single_tree != nullptr) m_entry_list_total->Add(m_entry_list_single_tree);
-    delete m_entry_list_single_tree;
-
-    string new_list_name = m_tree_name_auto + "_" + to_string(tree_counter);
-    tree_counter++;
-
-    m_entry_list_single_tree = new TEntryList();
-    m_entry_list_single_tree->SetTree(m_input_chain->GetTree());
-
+    SuperflowBase::Notify();
     return kTRUE;
-} // end Superflow::Notify()
-
-///////////////////////////////////////////////////////////////////////////////
-// TSelector Process
+}
 ///////////////////////////////////////////////////////////////////////////////
 Bool_t Superflow::Process(Long64_t entry)
 {
     GetEntry(entry);
-    ///////////////////////////////////////////////////////////////////////
-    // since we may be looping over for many systematics, etc... we only
-    // want to save to the EntryLists each entry once. "save_entry_to_list"
-    // acts as a catch to prevent from duplicate storing.
-    bool save_entry_to_list = true;
-    ///////////////////////////////////////////////////////////////////////
 
     m_chainEntry++; // SusyNtAna counter
 
@@ -576,7 +139,12 @@ Bool_t Superflow::Process(Long64_t entry)
             << " event " << setw(7) << nt.evt()->eventNumber << " ****" << endl;
     }
 
-    // these are flags
+
+    /////////////////////////////////////////////////////////////////////////
+    // select the objects for the selected run modes
+    ////////////////////////////////////////////////////////////////////////
+
+    // these are used to select the signature of the lambdas
     var_float* vf_          = nullptr;
     var_double* vd_         = nullptr;
     var_float_array* vfa_   = nullptr;
@@ -585,28 +153,23 @@ Bool_t Superflow::Process(Long64_t entry)
     var_bool* vb_           = nullptr;
     var_void* vv_           = nullptr;
 
-    /////////////////////////////////////////////////////////////
-    // Now select the objects, etc... depending on which 
-    // run mode you are in
-    /////////////////////////////////////////////////////////////
-    
     switch (m_runMode) {
-        /////////////////////////
-        // run mode data
-        /////////////////////////
+        ////////////////////////////////////////////////////////////////////
+        // data
+        ////////////////////////////////////////////////////////////////////
         case SuperflowRunMode::data: {
             SusyNtAna::clearObjects();
-            SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium); // always select with nominal? (to compute event flags)
+            SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium);
 
             m_weights = new Superweight();
             Superlink* sl_ = new Superlink;
             attach_superlink(sl_);
 
-            bool pass_cuts = true; // loop over and appply the cuts in m_CutStore.
+            // loop over the loaded cuts
+            bool pass_cuts = true;
             if (m_CutStore.size() > 0) {
                 for (int i = 0; i < m_CutStore.size(); i++) {
-                    pass_cuts = m_CutStore[i](sl_); // run the cut function
-
+                    pass_cuts = m_CutStore[i](sl_);
                     if (pass_cuts) {
                         m_RawCounter[i]++;
                     }
@@ -616,18 +179,17 @@ Bool_t Superflow::Process(Long64_t entry)
                 }
             }
 
-            if (pass_cuts) { // data passed cuts, so fill HFTs.
-                if (save_entry_to_list) {
-                    m_entry_list_single_tree->Enter(entry);
-                    save_entry_to_list = false;
-                }
+            // we have passed the cuts, now fill the trees
+            if (pass_cuts) {
                 for (int v_ = 0; v_ < m_varType.size(); v_++) {
                     switch (m_varType[v_]) {
                         case SupervarType::sv_float: {
-                            m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_); break;
+                            m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_);
+                            break;
                         }
                         case SupervarType::sv_double: {
-                            m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_); break;
+                            m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_);
+                            break;
                         }
                         case SupervarType::sv_float_array: { 
                             m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
@@ -638,13 +200,16 @@ Bool_t Superflow::Process(Long64_t entry)
                             break;
                         }
                         case SupervarType::sv_int: {
-                            m_varInt[v_] = m_varExprInt[v_](sl_, vi_); break;
+                            m_varInt[v_] = m_varExprInt[v_](sl_, vi_);
+                            break;
                         }
                         case SupervarType::sv_bool: {
-                            m_varBool[v_] = m_varExprBool[v_](sl_, vb_); break;
+                            m_varBool[v_] = m_varExprBool[v_](sl_, vb_);
+                            break;
                         }
                         case SupervarType::sv_void: {
-                            m_varExprVoid[v_](sl_, vv_); break;
+                            m_varExprVoid[v_](sl_, vv_);
+                            break;
                         }
                     }
                 }
@@ -655,10 +220,9 @@ Bool_t Superflow::Process(Long64_t entry)
 
         } break;
         
-        /////////////////////////
-        // run mode nominal
-        // run mode single_event_syst
-        /////////////////////////
+        ////////////////////////////////////////////////////////////////////
+        // nominal, single_event_syst
+        ////////////////////////////////////////////////////////////////////
         case SuperflowRunMode::nominal:
         case SuperflowRunMode::single_event_syst: {
 
@@ -689,10 +253,6 @@ Bool_t Superflow::Process(Long64_t entry)
             }
 
             if (pass_cuts) {
-                if (save_entry_to_list) {
-                    m_entry_list_single_tree->Enter(entry);
-                    save_entry_to_list = false;
-                }
                 if (!m_countWeights) {
                     computeWeights(nt, *m_mcWeighter, m_signalLeptons, m_baseJets, m_RunSyst, m_weights);
                     m_WeightCounter[m_CutStore.size() - 1] += m_weights->product();
@@ -702,7 +262,8 @@ Bool_t Superflow::Process(Long64_t entry)
                 for (int v_ = 0; v_ < m_varType.size(); v_++) {
                     switch (m_varType[v_]) {
                         case SupervarType::sv_float: {
-                            m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_); break;
+                            m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_);
+                            break;
                         }
                         case SupervarType::sv_float_array: { 
                             m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
@@ -713,16 +274,20 @@ Bool_t Superflow::Process(Long64_t entry)
                             break;
                         }
                         case SupervarType::sv_double: {
-                            m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_); break;
+                            m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_);
+                            break;
                         }
                         case SupervarType::sv_int: {
-                            m_varInt[v_] = m_varExprInt[v_](sl_, vi_); break;
+                            m_varInt[v_] = m_varExprInt[v_](sl_, vi_);
+                            break;
                         }
                         case SupervarType::sv_bool: {
-                            m_varBool[v_] = m_varExprBool[v_](sl_, vb_); break;
+                            m_varBool[v_] = m_varExprBool[v_](sl_, vb_);
+                            break;
                         }
                         case SupervarType::sv_void: {
-                            m_varExprVoid[v_](sl_, vv_); break;
+                            m_varExprVoid[v_](sl_, vv_);
+                            break;
                         }
                     }
                 }
@@ -732,6 +297,9 @@ Bool_t Superflow::Process(Long64_t entry)
             delete m_weights;
 
         } break;
+        ////////////////////////////////////////////////////////////////////
+        // processing all systematics
+        ////////////////////////////////////////////////////////////////////
         case SuperflowRunMode::all_syst: {
             for (int i = 0; i < index_event_sys.size(); i++) { // loop over event systematics
                 SusyNtAna::clearObjects();
@@ -748,25 +316,23 @@ Bool_t Superflow::Process(Long64_t entry)
 
                 if (m_CutStore.size() > 0) {
                     for (int k = 0; k < m_CutStore.size(); k++) {
-                        pass_cuts = m_CutStore[k](sl_); // run the cut function
+                        pass_cuts = m_CutStore[k](sl_);
                         if (!pass_cuts) break;
                     }
                 }
 
                 if (pass_cuts) {
-                    if (save_entry_to_list) {
-                        m_entry_list_single_tree->Enter(entry);
-                        save_entry_to_list = false;
-                    }
                     computeWeights(nt, *m_mcWeighter, m_signalLeptons, m_baseJets, m_RunSyst, m_weights);
                     // FILL_HFTs
                     for (int v_ = 0; v_ < m_varType.size(); v_++) {
                         switch (m_varType[v_]) {
                             case SupervarType::sv_float: {
-                                m_varFloat_array[i][v_] = m_varExprFloat[v_](sl_, vf_); break;
+                                m_varFloat_array[i][v_] = m_varExprFloat[v_](sl_, vf_);
+                                break;
                             }
                             case SupervarType::sv_double: {
-                                m_varDouble_array[i][v_] = m_varExprDouble[v_](sl_, vd_); break;
+                                m_varDouble_array[i][v_] = m_varExprDouble[v_](sl_, vd_);
+                                break;
                             }
                             case SupervarType::sv_float_array: { 
                                 m_varFloatArray_array[i][v_] = m_varExprFloatArray[v_](sl_,vfa_);
@@ -777,13 +343,16 @@ Bool_t Superflow::Process(Long64_t entry)
                                 break;
                             }
                             case SupervarType::sv_int: {
-                                m_varInt_array[i][v_] = m_varExprInt[v_](sl_, vi_); break;
+                                m_varInt_array[i][v_] = m_varExprInt[v_](sl_, vi_);
+                                break;
                             }
                             case SupervarType::sv_bool: {
-                                m_varBool_array[i][v_] = m_varExprBool[v_](sl_, vb_); break;
+                                m_varBool_array[i][v_] = m_varExprBool[v_](sl_, vb_);
+                                break;
                             }
                             case SupervarType::sv_void: {
-                                m_varExprVoid[v_](sl_, vv_); break;
+                                m_varExprVoid[v_](sl_, vv_);
+                                break;
                             }
                         }
                     }
@@ -794,7 +363,10 @@ Bool_t Superflow::Process(Long64_t entry)
 
                 m_RunSyst = nullptr;
             }
-        } // we didn't break!!
+        }
+        ////////////////////////////////////////////////////////////////////
+        // processing nominal and weight systematics
+        ////////////////////////////////////////////////////////////////////
         case SuperflowRunMode::nominal_and_weight_syst: {
             delete m_RunSyst;
             m_RunSyst = new Supersys(SupersysType::central);
@@ -827,10 +399,6 @@ Bool_t Superflow::Process(Long64_t entry)
             }
 
             if (pass_cuts) {
-                if (save_entry_to_list) {
-                    m_entry_list_single_tree->Enter(entry);
-                    save_entry_to_list = false;
-                }
                 computeWeights(nt, *m_mcWeighter, m_signalLeptons, m_baseJets, m_RunSyst, m_weights);
 
                 double nom_eventweight = m_weights->product();
@@ -841,10 +409,12 @@ Bool_t Superflow::Process(Long64_t entry)
                 for (int v_ = 0; v_ < m_varType.size(); v_++) {
                     switch (m_varType[v_]) {
                         case SupervarType::sv_float: {
-                            m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_); break;
+                            m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_);
+                            break;
                         }
                         case SupervarType::sv_double: {
-                            m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_); break;
+                            m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_);
+                            break;
                         }
                         case SupervarType::sv_float_array: { 
                             m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
@@ -855,18 +425,23 @@ Bool_t Superflow::Process(Long64_t entry)
                             break;
                         }
                         case SupervarType::sv_int: {
-                            m_varInt[v_] = m_varExprInt[v_](sl_, vi_); break;
+                            m_varInt[v_] = m_varExprInt[v_](sl_, vi_);
+                            break;
                         }
                         case SupervarType::sv_bool: {
-                            m_varBool[v_] = m_varExprBool[v_](sl_, vb_); break;
+                            m_varBool[v_] = m_varExprBool[v_](sl_, vb_);
+                            break;
                         }
                         case SupervarType::sv_void: {
-                            m_varExprVoid[v_](sl_, vv_); break;
+                            m_varExprVoid[v_](sl_, vv_);
+                            break;
                         }
                     }
                 }
 
-                // FILL more HFTs
+                /////////////////////////////////////////
+                // fill the weight variations
+                /////////////////////////////////////////
                 for (int w_ = 0; w_ < index_weight_sys.size(); w_++) {
                     Superweight* weightComponents_copy = new Superweight(*m_weights);
 
@@ -911,10 +486,7 @@ Bool_t Superflow::Process(Long64_t entry)
         default: break;
     }
     return kTRUE;
-} // end Superflow::Process()
-
-///////////////////////////////////////////////////////////////////////////////
-// TSelector Terminate
+}
 ///////////////////////////////////////////////////////////////////////////////
 void Superflow::Terminate()
 {
@@ -941,100 +513,40 @@ void Superflow::Terminate()
     }
     cout << app_name << endl << app_name << endl;
 
-    m_outputFile->Write();
-    for (int i = 0; i < index_event_sys.size(); i++) m_output_array[i]->Write();
-
-    m_outputFile->Close();
-    for (int i = 0; i < index_event_sys.size(); i++) m_output_array[i]->Close();
-
-    cout << app_name << "Files OK." << endl;
-
-    if (m_entry_list_single_tree != nullptr) {
-        m_entry_list_total->Add(m_entry_list_single_tree); // last tree
-    }
-
-    m_entryListFile->Write();
-    m_entryListFile->Close();
-
-    delete m_outputFile;
-    delete m_entryListFile;
-    for (int i = 0; i < index_event_sys.size(); i++) delete m_output_array[i];
-    delete[] m_output_array;
-
-    if (m_entry_list_single_tree != nullptr) delete m_entry_list_single_tree;
-
-    // Trees and entry-lists in the files are deleted with the file.
-
+    SuperflowBase::Terminate();
     SusyNtAna::Terminate();
 
     //dantrim -- use MCWeighter from SusyNtAna
     //if (m_mcWeighter) delete m_mcWeighter;
     //if (m_trigObj) delete m_trigObj;
 
-    delete[] m_varFloat;
-    delete[] m_varDouble;
-    delete[] m_varInt;
-    delete[] m_varBool;
-
-    if (m_runMode == SuperflowRunMode::all_syst) {
-        for (int i = 0; i < index_event_sys.size(); i++) delete[] m_varFloat_array[i];
-        delete m_varFloat_array;
-        for (int i = 0; i < index_event_sys.size(); i++) delete[] m_varDouble_array[i];
-        delete m_varDouble_array;
-        for (int i = 0; i < index_event_sys.size(); i++) delete[] m_varInt_array[i];
-        delete m_varInt_array;
-        for (int i = 0; i < index_event_sys.size(); i++) delete[] m_varBool_array[i];
-        delete m_varBool_array;
-    }
-
-    if (m_runMode != SuperflowRunMode::single_event_syst) delete m_RunSyst;
-
-    cout << app_name << "Done." << endl;
-
-} // end Superflow::Terminate()
-
-
+}
 ///////////////////////////////////////////////////////////////////////////////
-bool Superflow::initMcWeighter(TTree *tree)
+bool Superflow::initialize_mc_weighter(TTree *tree)
 {
-    cout << app_name << "Superflow::initMcWeighter    Initializing MCWeighter" << endl;
+    cout << app_name << "Superflow::initialize_mc_weighter    Initializing MCWeighter" << endl;
     bool success = false;
     if (tree) {
         string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc15_13TeV/");
-        cout << "MCWeighter address: " << &m_mcWeighter << endl;
         m_mcWeighter = &mcWeighter(); // use MCWeighter instance from SusyNtAna
     
-        //m_mcWeighter = new MCWeighter();
-        ////m_mcWeighter = new MCWeighter(tree, xsecDir);
-        //if(m_useSumwFile) {
-        //    cout << "Superflow::initMcWeighter    Setting sumw file for MCWeighter: " << m_sumw_file << endl;
-        //    m_mcWeighter->setSumwFromFILE(m_sumw_file);
-        //}
-        // m_mcWeighter->buildSumwMap(tree);
         m_mcWeighter->printSumwMap();
         if (m_dbg) {
-            cout << app_name << "Superflow::initMcWeighter    MCWeighter has been initialized." << endl;
-            cout << app_name << "Superflow::initMcWeighter    MCWeighter using cross-section directory: " << xsecDir << endl;
+            cout << app_name << "Superflow::initialize_mc_weighter    MCWeighter has been initialized." << endl;
+            cout << app_name << "Superflow::initialize_mc_weighter    MCWeighter using cross-section directory: " << xsecDir << endl;
         }
     }
     else {
-        cout << app_name << "Superflow::initMcWeighter ERROR    Invalid input tree, cannot initialize MCWeighter." << endl;
-        cout << app_name << "Superflow::initMcWeighter ERROR    >>> Exiting." << endl;
+        cout << app_name << "Superflow::initialize_mc_weighter ERROR    Invalid input tree, cannot initialize MCWeighter." << endl;
+        cout << app_name << "Superflow::initialize_mc_weighter ERROR    >>> Exiting." << endl;
         exit(1);
     }
     return success;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
-// -------------------------------- WEIGHTS COMPUTATION ----------------------------- //
-bool Superflow::computeWeights(
-    Susy::SusyNtObject &ntobj,
-    MCWeighter &weighter,
-    const LeptonVector& leptons,
-    const JetVector& jets,
-    Supersys* super_sys,
-    Superweight* weights_
-    )
+bool Superflow::computeWeights( Susy::SusyNtObject &ntobj, MCWeighter &weighter,
+            const LeptonVector& leptons, const JetVector& jets,
+            Supersys* super_sys, Superweight* weights_)
 {
 
     // MCWeighter's susynt-weight calculation
@@ -1047,13 +559,11 @@ bool Superflow::computeWeights(
 
         switch (super_sys->weight_syst) {
             case SupersysWeight::PILEUP_UP : {
-                //wSys = MCWeighter::Sys_PILEUP_UP;
                 wSys = NtSys::PILEUP_UP;
                 do_susynt_w = true;
                 break;
             }
             case SupersysWeight::PILEUP_DN : {
-                //wSys = MCWeighter::Sys_PILEUP_DN;
                 wSys = NtSys::PILEUP_DN;
                 do_susynt_w = true;
                 break;
@@ -1207,7 +717,6 @@ bool Superflow::computeWeights(
     } //isMC
     return true;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const SupersysWeight sys)
 {
@@ -1305,8 +814,6 @@ double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const Super
     out_SF = (sf + delta);
     return out_SF;
 }
-
-
 ///////////////////////////////////////////////////////////////////////////////
 void Superflow::setLumi(const float lumi) {
     m_luminosity = lumi;
@@ -1314,552 +821,30 @@ void Superflow::setLumi(const float lumi) {
     cout << app_name << " Setting MC normalization (luminosity) to " << m_luminosity << " pb^-1." << endl;
     cout << app_name << "----------------------------- -------------------------------" << endl;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 void Superflow::setCountWeights(bool value) ///> public function, if set true it prints the weighted cutflow
 {
     m_countWeights = value;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 void Superflow::setRunMode(SuperflowRunMode run_mode_) ///> public function
 {
     m_runMode = run_mode_;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 void Superflow::setSingleEventSyst(SusyNtSys nt_syst_)
 {
     m_singleEventSyst = nt_syst_;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 void Superflow::setChain(TChain* input_chain_)
 {
     m_input_chain = input_chain_;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 void Superflow::setFileSuffix(string suffix)
 {
     m_outputFileNameSuffix = suffix;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-//--------------------------------------------------------------------------//
-//                USER SHOULD NOT ADD ANYTHING BELOW HERE                   //
-//                USER SHOULD NOT ADD ANYTHING BELOW HERE                   //
-//                USER SHOULD NOT ADD ANYTHING BELOW HERE                   //
-//                USER SHOULD NOT ADD ANYTHING BELOW HERE                   //
-//--------------------------------------------------------------------------//
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-
-// --------------------------------------------------------------- //
-//  Superflow operator implementation
-//  Superflow operator implementation
-//  Superflow operator implementation
-// --------------------------------------------------------------- //
-
-////////////////////////////////////////////
-// Cut operators
-////////////////////////////////////////////
-
-/* ---------------------------
-    CutName operator
-
-    Feeds in a human-readable/descriptive name for a cut to be placed.
-    --> Checks that the SupersysState and SupervarState are closed, meaning
-        that any previous definition of a systematic or variable is finished
-        and succesfully saved/stored.
-
-    usage:
-        <SuperflowObject> << CutName("lead lepton pT > 20 GeV");
-   ---------------------------
-*/
-Superflow& Superflow::operator<<(CutName cut_)
-{
-    if (m_sysState == SupersysState::closed && m_varState == SupervarState::closed) {
-        m_CutStore_Name_Exists = true;
-        m_CutStoreNames.push_back(cut_.name);
-
-        cout << app_name << "New cut: " << cut_.name << endl;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): Cutflow operations are incorrectly ordered.";
-        exit(1);
-    }
-    return *this;
-}
-
-/* ----------------------------
-    Cut function operator
-
-    Feeds in the (lambda) function expression to be evaluated for the cut.
-    --> Checks that the SupersysState and SupervarState are closed, meaning
-        that any previous definition of a systematic or variable is finished
-        and succesfully saved/stored.
-    --> Checks m_CutStore_Name_Exists variable to be sure that we have processed
-        the CutName operator prior this call (i.e. so that this cut will have 
-        a descriptive name). If this is not the case, a default name is given.
-    --> Adds a place in the raw and weighted counters (m_RawCounter and m_WeightCounter).
-
-     usage:
-        <SuperflowObject> << CutName("at least 2 base leptons") << [](Superlink* sl) -> bool {
-            return (sl->baseLeptons.size() >= 2);
-        };
-    --------------------------
-*/
-Superflow& Superflow::operator<<(std::function<bool(Superlink*)> cut_)
-{
-    if (m_sysState == SupersysState::closed && m_varState == SupervarState::closed) {
-        m_CutStore.push_back(cut_);
-
-        if (m_CutStore_Name_Exists) {
-            m_CutStore_Name_Exists = false;
-        }
-        else {
-            m_CutStoreNames.push_back("Untitled-" + to_string(m_CutStoreUntitled));
-            cout << app_name << "New cut: " << "Untitled-" << m_CutStoreUntitled << endl;
-            m_CutStoreUntitled++;
-        }
-
-        m_RawCounter.push_back(0.0);
-        m_WeightCounter.push_back(0.0);
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): Cutflow operations are incorrectly ordered.";
-        exit(1);
-    }
-    return *this;
-}
-
-////////////////////////////////////////////
-// HFT operators
-//   These set what will be stored in the
-//   output ntuples
-////////////////////////////////////////////
-
-/* ----------------------------
-    NewVar operator
-        
-    Feeds in a human-readable/descriptive name for a variable to store in the output trees.
-    --> This is NOT the name that will show up as the leaf name (i.e. when you do TBrowser/TTree::Draw())
-    --> Checks that the SupersysState and SupervarState are closed, meaning
-        that any previous definition of a systematic or variable is finished
-        and succesfully saved/stored.
-    --> Name is stored in vector m_varNiceName
-    --> m_superVar_hasNiceName is set to true to ensure that the ordering of HFT var creation is correct.
-        This is set to false once the full variable is saved/stored.
-    --> Variable definition is to take place after the NewVar is fed in, so we set the 
-        m_varState to SupervarState::open. This will be set to SupervarState::closed once
-        the variable is saved/stored.
-
-    usage:
-        <SuperflowObject> << NewVar("stransverse mass");
-
-   ----------------------------
-*/
-Superflow& Superflow::operator<<(NewVar new_var_name) // this is the NiceName
-{
-    if (m_varState == SupervarState::closed && m_sysState == SupersysState::closed) {
-        m_varNiceName.push_back(new_var_name.name);
-        m_superVar_hasNiceName = true;
-        m_varState = SupervarState::open;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): Close the Var using SaveVar().";
-        exit(1);
-    }
-    return *this;
-}
-
-/* ----------------------------
-    HFTname operator
-    
-    Feed in the name of the variable that will appear in the output ntuples (i.e. when you 
-    do TTree::Draw() or look in the TBrowser).
-    --> We must have already provided a "nice name" using the NewVar operator which means that
-        m_varState == SupervarState::open.
-    --> m_superVar_hasHFTName must be false, this operator provides the HFTname and sets this to true.
-    --> The leaf name is stored in the vector m_varHFTName 
-
-    usage:
-        <SuperflowObject> << NewVar("stransverse mass") << HFTname("mT2");
-
-   ----------------------------
-*/
-Superflow& Superflow::operator<<(HFTname hft_name)
-{
-    if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasHFTName) {
-        m_varHFTName.push_back(hft_name.name);
-        m_superVar_hasHFTName = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): Open a new Var using NewVar().";
-        exit(1);
-    }
-    return *this;
-}
-
-/* ----------------------------
-    Variable function operators
-    
-    Provide a (lambda) function expression using the Superlink object to 
-    calculate/provide the values for the variables whose names we have
-    already provided using the NewVar and HFTname operators.
-    --> There are function expressions for each of the conceivable variable types:
-            - float
-            - double
-            - int
-            - bool
-            - void
-        and the expression is fed into the appropriate vector of functions. 
-        E.G. m_varExprFloat is type vector<std::function<double(Superlink*, var_float*)>> 
-    --> var_float, var_double, var_int, var_void, and var_bool are dummy classes that are
-        used only for type identification in the signatures of these different operators
-        (see Superflow/Supervar.h).
-    --> A null expression is provided to all other function vectors that are not of
-        the type of the current function expression being fed in. In this way all of the
-        function vectors will be of the same length and the indices of the functions will
-        unambiguously line up with the vectors for the NewVar and HFTname vectors.
-    --> m_varState must == SupervarState::open, indicating that we are currently in the process of
-        storing a variable.
-    --> m_superVar_hasFunction must be false since we have, at this point, only just opened the
-        the m_varState and have only provided names for this variable.
-    --> m_varType holds values of the enum SupervarType -- one for each function expression 
-        fed in and is essentially used as a way to determine how many variables we have
-        to store. 
-
-    --> NOTE: for var_void type function expressions the NewVar and HFTname operators do not need
-            to be called as they are set automatically within void function. The checks for the m_varState, etc...
-            are also not checked. The main purpose of the var_void type function expression operator
-            is to, for example, clear a global object that is defined in the executable outside of 
-            the function expressions but used across many of them.
-            E.G.
-                JetVector central_light_jets;
-                <VAR OPERATOR> { central_light_jets.push_back(foo) }
-                    ...
-                <VAR OPERATOR> { central_light_jets.at(0)->Pt() }
-                    ...
-                <SuperflowObject> << [&](Superlink* sl, var_void*) { central_light_jets.clear(); };
-
-    usage:
-        <SuperflowObject> << NewVar("leading lepton transverse momenta");
-        <SuperflowObject> << HFTname("lept1Pt");
-        <SuperflowObject> << [](Superlink* sl, var_float*) -> double { return sl->leptons->at(0)->Pt(); }
-
-   ----------------------------
-*/
-
-// float function
-Superflow& Superflow::operator<<(std::function<double(Superlink*, var_float*)> var_)
-{
-    if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-        m_varExprFloat.push_back(var_); // fill
-        m_varExprFloatArray.push_back(m_nullExprFloatArray);
-        m_varExprBoolArray.push_back(m_nullExprBoolArray);
-        m_varExprDouble.push_back(m_nullExprDouble);
-        m_varExprInt.push_back(m_nullExprInt);
-        m_varExprBool.push_back(m_nullExprBool);
-        m_varExprVoid.push_back(m_nullExprVoid);
-
-        m_varType.push_back(SupervarType::sv_float);
-        m_superVar_hasFunction = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-        exit(1);
-    }
-    return *this;
-}
-// vector<double> function
-Superflow& Superflow::operator<<(std::function<vector<double>(Superlink*, var_float_array*)> var_)
-{
-    if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-        m_varExprFloat.push_back(m_nullExprFloat);
-        m_varExprDouble.push_back(m_nullExprDouble);
-        m_varExprBoolArray.push_back(m_nullExprBoolArray);
-        m_varExprFloatArray.push_back(var_);
-        m_varExprInt.push_back(m_nullExprInt);
-        m_varExprBool.push_back(m_nullExprBool);
-        m_varExprVoid.push_back(m_nullExprVoid);
-
-        m_varType.push_back(SupervarType::sv_float_array);
-        m_superVar_hasFunction = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-        exit(1);
-    }
-    return *this;
-}
-// vector<bool> function
-Superflow& Superflow::operator<<(std::function<vector<bool>(Superlink*, var_bool_array*)> var_)
-{
-    if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-        m_varExprFloat.push_back(m_nullExprFloat);
-        m_varExprDouble.push_back(m_nullExprDouble);
-        m_varExprBoolArray.push_back(var_);
-        m_varExprFloatArray.push_back(m_nullExprFloatArray);
-        m_varExprInt.push_back(m_nullExprInt);
-        m_varExprBool.push_back(m_nullExprBool);
-        m_varExprVoid.push_back(m_nullExprVoid);
-
-        m_varType.push_back(SupervarType::sv_bool_array);
-        m_superVar_hasFunction = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-        exit(1);
-    }
-    return *this;
-}
-
-    
-// double function
-Superflow& Superflow::operator<<(std::function<double(Superlink*, var_double*)> var_)
-{
-    if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-        m_varExprFloat.push_back(m_nullExprFloat);
-        m_varExprFloatArray.push_back(m_nullExprFloatArray);
-        m_varExprBoolArray.push_back(m_nullExprBoolArray);
-        m_varExprDouble.push_back(var_); // fill
-        m_varExprInt.push_back(m_nullExprInt);
-        m_varExprBool.push_back(m_nullExprBool);
-        m_varExprVoid.push_back(m_nullExprVoid);
-
-        m_varType.push_back(SupervarType::sv_double);
-        m_superVar_hasFunction = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-        exit(1);
-    }
-    return *this;
-}
-// int function
-Superflow& Superflow::operator<<(std::function<int(Superlink*, var_int*)> var_)
-{
-    if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-        m_varExprFloat.push_back(m_nullExprFloat);
-        m_varExprDouble.push_back(m_nullExprDouble);
-        m_varExprFloatArray.push_back(m_nullExprFloatArray);
-        m_varExprBoolArray.push_back(m_nullExprBoolArray);
-        m_varExprInt.push_back(var_); // fill
-        m_varExprBool.push_back(m_nullExprBool);
-        m_varExprVoid.push_back(m_nullExprVoid);
-
-        m_varType.push_back(SupervarType::sv_int);
-        m_superVar_hasFunction = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-        exit(1);
-    }
-    return *this;
-}
-// bool function
-Superflow& Superflow::operator<<(std::function<bool(Superlink*, var_bool*)> var_)
-{
-    if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
-        m_varExprFloat.push_back(m_nullExprFloat);
-        m_varExprDouble.push_back(m_nullExprDouble);
-        m_varExprFloatArray.push_back(m_nullExprFloatArray);
-        m_varExprBoolArray.push_back(m_nullExprBoolArray);
-        m_varExprInt.push_back(m_nullExprInt);
-        m_varExprBool.push_back(var_); // fill
-        m_varExprVoid.push_back(m_nullExprVoid);
-
-        m_varType.push_back(SupervarType::sv_bool);
-        m_superVar_hasFunction = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-        exit(1);
-    }
-    return *this;
-}
-// void function
-Superflow& Superflow::operator<<(std::function<void(Superlink*, var_void*)> var_)
-{
-    m_varExprFloat.push_back(m_nullExprFloat);
-    m_varExprDouble.push_back(m_nullExprDouble);
-    m_varExprFloatArray.push_back(m_nullExprFloatArray);
-    m_varExprBoolArray.push_back(m_nullExprBoolArray);
-    m_varExprInt.push_back(m_nullExprInt);
-    m_varExprBool.push_back(m_nullExprBool);
-    m_varExprVoid.push_back(var_);// fill
-
-    m_varNiceName.push_back("void");
-    m_varHFTName.push_back("void");
-    m_varType.push_back(SupervarType::sv_void);
-    return *this;
-}
-
-/* ----------------------------
-    SaveVar operator
-    
-    Check that we have all of the required pieces for storing a variable in the 
-    output ntuples.
-    
-    --> If the var state is still open and we have defined a function (with a name) then we
-        have all of the pieces. Set these flags back to false so that we can be ready to
-        start defining the next variable to be stored.
-    --> If there is no name, provide the default one.
-
-    usage:
-        <SuperflowObject> << NewVar("sub-leading jet eta");
-        <SuperflowObject> << HFTname("jet2Eta");
-        <SuperflowObject> << [](Superlink* sl, var_float*) -> double {
-            return sl->jets->size() >= 2 ? sl->jets->at(1)->Eta() : 0.0;
-        };
-        <SuperflowObject> << SaveVar();
-        
-   ----------------------------
-*/
-Superflow& Superflow::operator<<(SaveVar save_var)
-{
-    if (m_varState == SupervarState::open && m_superVar_hasFunction && m_superVar_hasNiceName) {
-        if (!m_superVar_hasHFTName) {
-            m_varHFTName.push_back("Untitled_" + to_string(m_superVar_Untitled));
-            m_superVar_Untitled++;
-            m_superVar_hasHFTName = true;
-        }
-
-        m_varState = SupervarState::closed;
-        m_superVar_hasFunction = false;
-        m_superVar_hasNiceName = false;
-        m_superVar_hasHFTName = false;
-
-        cout << app_name << "New var: " << m_varNiceName.back() << endl;
-        cout << app_name << "    HFT: " << m_varHFTName.back() << endl;
-    }
-    else {
-        if (m_varState != SupervarState::open) {
-            cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): A lambda-expression is required.";
-        }
-        exit(1);
-    }
-    return *this;
-}
-
-////////////////////////////////////////////
-// Systematic operators
-////////////////////////////////////////////
-
-Superflow& Superflow::operator<<(NewSystematic new_sys) // this is the NiceName
-{
-    if (m_sysState == SupersysState::closed && m_varState == SupervarState::closed) {
-        m_sysTemplate.name = new_sys.name;
-        m_sys_hasNiceName = true;
-        m_sysState = SupersysState::open;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): Close using SaveSystematic().";
-        exit(1);
-    }
-    return *this;
-}
-
-Superflow& Superflow::operator<<(TreeName tree_name)
-{
-    if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasTreeName) {
-        m_sysTemplate.tree_name = tree_name.name;
-        m_sys_hasTreeName = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): Open a NewSystematic().";
-        exit(1);
-    }
-    return *this;
-}
-
-Superflow& Superflow::operator<<(EventSystematic obj_)
-{
-    if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasSystematic) {
-        m_sysTemplate.event_syst = obj_.event_syst_;
-        m_sysTemplate.weight_syst = SupersysWeight::null;
-        m_sys_hasSystematic = true;
-
-        m_sysTemplate.type = SupersysType::event;
-        m_sys_hasType = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): Open a NewSystematic().";
-        exit(1);
-    }
-    return *this;
-}
-
-Superflow& Superflow::operator<<(WeightSystematic obj_)
-{
-    if (m_sysState == SupersysState::open && m_varState == SupervarState::closed && !m_sys_hasSystematic) {
-        m_sysTemplate.event_syst = Susy::NtSys::NOM;
-        m_sysTemplate.weight_syst_up = obj_.weight_syst_up;
-        m_sysTemplate.weight_syst_down = obj_.weight_syst_down;
-        m_sys_hasSystematic = true;
-
-        m_sysTemplate.type = SupersysType::weight;
-        m_sys_hasType = true;
-    }
-    else {
-        cout << app_name << "ERROR (Fatal): Open a NewSystematic().";
-        exit(1);
-    }
-    return *this;
-}
-
-Superflow& Superflow::operator<<(SaveSystematic save_var)
-{
-    if (m_sysState == SupersysState::open
-        && m_varState == SupervarState::closed
-        && m_sys_hasNiceName
-        && m_sys_hasTreeName
-        && m_sys_hasType
-        && m_sys_hasSystematic
-        ) {
-        if (m_sysTemplate.name == "") m_sysTemplate.name = m_sysTemplate.tree_name;
-
-        m_sysState = SupersysState::closed;
-        m_sys_hasNiceName = false;
-        m_sys_hasTreeName = false;
-        m_sys_hasSystematic = false;
-        m_sys_hasType = false;
-
-        m_sysStore.push_back(m_sysTemplate);
-        m_sysTemplate.reset();
-
-        cout << app_name << "New systematic: " << m_sysStore.back().name << endl;
-        if (m_sysStore.back().type == SupersysType::event) {
-            cout << app_name << "    event systematic: " << m_sysStore.back().tree_name << endl;
-        }
-        else if (m_sysStore.back().type == SupersysType::weight) {
-            cout << app_name << "    weight systematics: " << m_sysStore.back().tree_name << weight_suffix_up
-                << "/" << m_sysStore.back().tree_name << weight_suffix_down << endl;
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Impossible SupersysType.";
-            exit(1);
-        }
-
-    }
-    else {
-        if (m_sysState != SupersysState::open) {
-            cout << app_name << "ERROR (Fatal): First open a NewSystematic().";
-        }
-        else {
-            cout << app_name << "ERROR (Fatal): Can't save incomplete systematic object.";
-        }
-        exit(1);
-    }
-    return *this;
-}
-
 } // namespace sflow
-
-#endif
