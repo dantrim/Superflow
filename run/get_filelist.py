@@ -1,5 +1,27 @@
 #!/usr/bin/env python
 
+################################################################################
+#
+# this script is used to grab the filelist for
+# a given job ID number 'process_number' within
+# a job submitted by the condor system.
+#
+# parameters provided (in specific order)
+#  1) 'group_name' : name of process (name of directory that holds the *.txt filelists)
+#  2) 'process_number' : process number in the Condor cluster queue
+#  3) 'split_dsids' : comma separated list of all DSIDs that should have a split
+#                     submission (if none, then is an "X")
+#  4) 'stored_dir' : name of directory contained in tar file sent to condor
+#                    job and where the filelists/ directory must be stored
+#
+#  assumes filelists structure:
+#      /<stored_dir>/filelists/<group_name>/
+#
+# daniel.joseph.antrim@cern.ch
+# June 2017
+#
+################################################################################
+
 import sys
 
 if __name__ == "__main__" :

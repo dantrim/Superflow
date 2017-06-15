@@ -1,5 +1,22 @@
 #!/usr/bin/env python
 
+##############################################################################
+#
+# this script is used to determine the name of the output log for a job
+# run on the condor batch system
+#
+# inputs:
+#   1) 'process_group_dir' : name of process being submitted
+#   2) 'process_number' : process ID number of condor cluster
+#   3) 'split_dsids' : comma separated list (no spaces between) of DSIDS
+#                   that should have split submission
+#
+# daniel.joseph.antrim@cern.ch
+# June 2017
+#
+##############################################################################
+
+
 import sys
 import glob
 
@@ -52,12 +69,9 @@ if __name__ == "__main__" :
     global_to_use = -1
     found_it = False
     for global_id, process_id_list in containers.iteritems() :
-        #print global_id
         if found_it :
             break
         for p_id in process_id_list :
-            #print " > ",p_id
-            #print "p_id number : %d %d"%(p_id, process_number)
             if int(p_id) == int(process_number) :
                 global_to_use = global_id
                 found_it = True
