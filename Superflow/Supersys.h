@@ -99,21 +99,6 @@ namespace sflow {
     };
 
     //////////////////////////////////////////////////////
-    class Superweight {
-        public:
-            Superweight();
-
-            double product();
-            void reset();
-
-            double susynt; ///< from SusyNtTools::getEventWeight: includes gen, pileup, xs, lumi, sumw
-            double pileup;
-            double lepSf;
-            double btag;
-            double jvt;
-    };
-
-    //////////////////////////////////////////////////////
     class NewSystematic {
         public:
             NewSystematic(std::string sys_name);

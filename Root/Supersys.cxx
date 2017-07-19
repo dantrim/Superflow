@@ -43,26 +43,6 @@ namespace sflow {
     }
 
     //////////////////////////////////////////////////////////////////////////
-    Superweight::Superweight()
-    {
-        reset();
-    }
-
-    double Superweight::product()
-    {
-        return susynt * lepSf * btag * jvt;
-    }
-
-    void Superweight::reset()
-    {
-        susynt = 1.0;
-        pileup = 1.0;
-        lepSf = 1.0;
-        btag = 1.0;
-        jvt = 1.0;
-    }
-
-    //////////////////////////////////////////////////////////////////////////
     NewSystematic::NewSystematic(std::string sys_name)
     {
         name = sys_name;

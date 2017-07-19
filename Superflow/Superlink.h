@@ -11,10 +11,7 @@
 #include "SusyNtuple/TriggerTools.h"
 
 #include "Superflow/Supersys.h"
-//#include "Superflow/DataDefinitions.h"
-
-
-//using namespace DataDefinitions;
+#include "Superflow/Superweight.h"
 
 namespace sflow {
 

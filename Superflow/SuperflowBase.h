@@ -14,6 +14,7 @@
 #include "Superflow/Superlink.h"
 #include "Superflow/Supervar.h"
 #include "Superflow/Supersys.h"
+#include "Superflow/Superweight.h"
 
 //ROOT
 #include "TSelector.h"

@@ -71,17 +71,17 @@ void Superflow::Begin(TTree* /*tree*/)
     cout << app_name << "Superflow::Begin    Input sample: " << m_sample << endl;
 
     if (m_runMode == SuperflowRunMode::null) {
-        cout << app_name << "Superflow::Begin ERROR (Fatal)    SuperflowRunMode is \"null\"! -- Missing call to Superflow::setRunMode(), exiting" << endl;
+        cout << app_name << "Superflow::Begin ERROR    SuperflowRunMode is \"null\"! -- Missing call to Superflow::setRunMode(), exiting" << endl;
         exit(1);
     }
 
     if (m_varState != SupervarState::closed || m_sysState != SupersysState::closed) {
-        cout << app_name << "Superflow::Begin ERROR (Fatal)    Invalid setup of variables in executable -- Close the Var using SaveVar(), exiting" << endl;;
+        cout << app_name << "Superflow::Begin ERROR    Invalid setup of variables in executable -- Close the Var using SaveVar(), exiting" << endl;;
         exit(1);
     }
 
     if (m_runMode == SuperflowRunMode::single_event_syst && m_singleEventSyst == Susy::NtSys::NOM) {
-        cout << app_name << "Superflow::Begin ERROR (Fatal)    SuperflowRunMode::single_event_syst: Call setSingleEventSyst(SusyNtSys nt_syst_)." << endl;
+        cout << app_name << "Superflow::Begin ERROR    SuperflowRunMode::single_event_syst: Call setSingleEventSyst(SusyNtSys nt_syst_)." << endl;
         exit(1);
     }
 
@@ -133,7 +133,7 @@ Bool_t Superflow::Process(Long64_t entry)
     //////////////////////////////////////////////
     // process counter
     //////////////////////////////////////////////
-    if (m_chainEntry % 50000 == 0) {
+    if (m_chainEntry % 5000 == 0) {
         cout << app_name << "Superflow::Process    **** Processing entry " << setw(6) << m_chainEntry
             << " run "   << setw(6) << nt.evt()->run
             << " event " << setw(7) << nt.evt()->eventNumber << " ****" << endl;
@@ -159,7 +159,7 @@ Bool_t Superflow::Process(Long64_t entry)
         ////////////////////////////////////////////////////////////////////
         case SuperflowRunMode::data: {
             SusyNtAna::clearObjects();
-            SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium);
+            SusyNtAna::selectObjects(m_RunSyst->event_syst);
 
             m_weights = new Superweight();
             Superlink* sl_ = new Superlink;
@@ -227,7 +227,7 @@ Bool_t Superflow::Process(Long64_t entry)
         case SuperflowRunMode::single_event_syst: {
 
             SusyNtAna::clearObjects();
-            SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium); // always select with nominal? (to compute event flags)
+            SusyNtAna::selectObjects(m_RunSyst->event_syst);
 
             m_weights = new Superweight();
             Superlink* sl_ = new Superlink;
@@ -306,7 +306,7 @@ Bool_t Superflow::Process(Long64_t entry)
                 delete m_RunSyst;
 
                 m_RunSyst = &m_sysStore[index_event_sys[i]]; // don't delete!!
-                SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium); // always select with nominal? (to compute event flags)
+                SusyNtAna::selectObjects(m_RunSyst->event_syst);
 
                 m_weights = new Superweight();
                 Superlink* sl_ = new Superlink;
@@ -372,7 +372,7 @@ Bool_t Superflow::Process(Long64_t entry)
             m_RunSyst = new Supersys(SupersysType::central);
 
             SusyNtAna::clearObjects();
-            SusyNtAna::selectObjects(m_RunSyst->event_syst, TauId::Medium);
+            SusyNtAna::selectObjects(m_RunSyst->event_syst);
 
             m_weights = new Superweight();
             Superlink* sl_ = new Superlink;
@@ -599,7 +599,7 @@ bool Superflow::computeWeights( Susy::SusyNtObject &ntobj, MCWeighter &weighter,
                 }
                 outsf *= (sf + delta);
             } // i
-            weights_->jvt = outsf;
+            weights_->jvtSf = outsf;
         } // do jvt 
 
         if(leptons.size()>=1) {
@@ -670,7 +670,7 @@ bool Superflow::computeWeights( Susy::SusyNtObject &ntobj, MCWeighter &weighter,
         if (do_btag_nom) {
             double btagSF = 1.0;
             if(jets.size()>0) { btagSF = m_nttools.bTagSF(jets); } 
-            weights_->btag = btagSF;
+            weights_->btagSf = btagSF;
         }
         if (do_btag_sys) {
             double btagSF = 1.0;
@@ -711,7 +711,7 @@ bool Superflow::computeWeights( Susy::SusyNtObject &ntobj, MCWeighter &weighter,
                 } // switch
             }
             if(jets.size()>0) { btagSF = m_nttools.bTagSFError(jets, sys); }
-            weights_->btag = btagSF;
+            weights_->btagSf = btagSF;
         }
 
     } //isMC
