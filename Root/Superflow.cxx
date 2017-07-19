@@ -755,11 +755,12 @@ double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const Super
         else if (sys == SupersysWeight::EL_EFF_RECO_DN) {
             delta = el->errEffSF_reco_dn[id];  // we store the signed errEffSF
         }
+        #warning we only handle single lepton trigger for trigger SF systematics 
         else if (sys == SupersysWeight::EL_EFF_TRIG_UP) {
-            delta = el->errEffSF_trig_up[id];
+            delta = el->errEffSF_trig_up_single[id];
         }
         else if (sys == SupersysWeight::EL_EFF_TRIG_DN) {
-            delta = el->errEffSF_trig_dn[id];
+            delta = el->errEffSF_trig_dn_single[id];
         }
     } // isEle
     else if (lep.isMu()) {

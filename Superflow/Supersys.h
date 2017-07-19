@@ -39,8 +39,8 @@ namespace sflow {
         EL_EFF_ISO_DN,          //EL_EFF_Iso_TotalCorrUncertainty_DN
         EL_EFF_RECO_UP,         //EL_EFF_Reco_TotalCorrUncertainty_UP
         EL_EFF_RECO_DN,         //EL_EFF_Reco_TotalCorrUncertainty_DN
-        EL_EFF_TRIG_UP,         //EL_EFF_Trigger_TotalCorrUncertainty_UP
-        EL_EFF_TRIG_DN,         //EL_EFF_Trigger_TotalCorrUncertainty_DN
+        EL_EFF_TRIG_UP,         //EL_EFF_Trigger_TOTAL_UP
+        EL_EFF_TRIG_DN,         //EL_EFF_Trigger_TOTAL_DN
         // flavor tagging
         FT_EFF_B_UP,            //FT_EFF_B_systematics_UP
         FT_EFF_B_DN,            //FT_EFF_B_systematics_DN
