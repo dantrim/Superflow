@@ -16,6 +16,8 @@ using namespace std;
 
 namespace sflow {
 
+LeptonVector scratchLeptonVector = {};
+
 ///////////////////////////////////////////////////////////////////////////////
 Superflow::Superflow() :
     m_mcWeighter(nullptr)
@@ -46,7 +48,28 @@ void Superflow::attach_superlink(Superlink* sl_)
     sl_->baseTaus = &m_baseTaus;
     sl_->baseJets = &m_baseJets;
 
-    sl_->leptons = &m_signalLeptons;
+    scratchLeptonVector.clear();
+    if (doFakes) {
+        if (m_baseLeptons.size() == fakesTightLooseConfig.size()) {
+            // populate `leptons` with baseline leptons to be *treated* as signal for fakes
+            for (uint i = 0; i < fakesTightLooseConfig.size(); ++i) {
+                char & c = fakesTightLooseConfig[i];
+                if (c == '1') scratchLeptonVector.push_back(m_baseLeptons[i]);
+                else if (c != '0') {
+                    cout << "ERROR: Superflow::attach_superlink: illegal `fakesTightLooseConfig`: " << fakesTightLooseConfig << "\n";
+                    exit(1);  // should probably throw an exception here instead to allow for more graceful cleanup
+                }
+            }
+        }
+        // leave `leptons` empty when number of leptons is different from number of leptons in `fakesTightLooseConfig`
+        sl_->leptons = &scratchLeptonVector;
+    }
+    else if (doQflip) sl_->leptons = &m_baseLeptons;  // treat all baseline leptons as signal for qflip when not also running fakes
+    else              sl_->leptons = &m_signalLeptons;  // populate `leptons` with signal leptons when running neither fakes nor qflip
+
+    sl_->signalLeptons = &m_signalLeptons;
+
+
     sl_->electrons = &m_signalElectrons;
     sl_->muons = &m_signalMuons;
     sl_->taus = &m_signalTaus;

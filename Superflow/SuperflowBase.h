@@ -62,6 +62,30 @@ namespace sflow {
             SuperflowBase();
             ~SuperflowBase(){};
 
+            /// When `doFakes` is `true`, this only adds a '_qflip' suffix to the output
+            /// file name when set to `true`. Otherwise, `leptons` is populated with all
+            /// baseline leptons when set to `true` and all signal leptons when set to
+            /// `false`. Set to `true` when doing a data-driven qflip estimate with the
+            /// FakeLeptBkg package - see
+            /// https://svnweb.cern.ch/trac/atlasoff/browser/PhysicsAnalysis/SUSYPhys/FakeObjectTools/trunk/FakeLepMxM
+            bool doQflip = false;
+
+            /// When `true`, `leptons` is populated with baseline leptons specified by
+            /// `fakesTightLooseConfig`. If the number of baseline leptons is not equal
+            /// to the length of `fakesTightLooseConfig`, then `leptons` is left empty
+            /// when this flag is set. See the description of `doQflip` for the behavior
+            /// when this flag is set to `false`. Set to `true` when doing a data-driven
+            /// fakes estimate with the GeneralisedMatrixMethod package - see
+            /// https://svnweb.cern.ch/trac/atlasoff/browser/PhysicsAnalysis/SUSYPhys/FakeObjectTools/trunk/FakeLepMxM
+            bool doFakes = false;
+
+            /// Specifies tight-loose config for baseline leptons when running fakes,
+            /// e.g. "101" <--> require exactly three baseline leptons and treat them
+            /// as signal, not signal, signal, respectively. Used only when `doFakes`
+            /// is set to true.
+            string fakesTightLooseConfig;
+
+
             virtual void setAnaName(string name) { app_name = name + "    "; }
             virtual void setDebug(bool dbg) { m_dbg = dbg; }
 

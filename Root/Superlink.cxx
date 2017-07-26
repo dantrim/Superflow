@@ -34,6 +34,7 @@ namespace sflow {
         electrons = nullptr;
         muons = nullptr;
         leptons = nullptr;
+        signalLeptons = nullptr;
         taus = nullptr;
         jets = nullptr;
 
@@ -68,6 +69,7 @@ namespace sflow {
         electrons = nullptr;
         muons = nullptr;
         leptons = nullptr;
+        signalLeptons = nullptr;
         taus = nullptr;
         jets = nullptr;
 
