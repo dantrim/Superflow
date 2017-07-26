@@ -195,9 +195,15 @@ void SuperflowBase::determine_output_filename(TString input_sample)
                 suffix << "_" << m_outputFileNameSuffix;
             else suffix << "";
 
-            sfile_name_ << m_data_stream2string[m_stream] << "_" << data_run << suffix.str() << ".root";
+            sfile_name_ << m_data_stream2string[m_stream] << "_" << data_run << suffix.str();
+
+            // add additional suffix for data, qflip, fakes
+            if (!doQflip && !doFakes) sfile_name_ << "_data";
+            if (doQflip) sfile_name_ << "_qflip";
+            if (doFakes) sfile_name_ << "_fakes_" << fakesTightLooseConfig;
+
+            sfile_name_ << ".root";
             cout << app_name << "SuperflowBase::determine_output_filename    Setting output file name to: " << sfile_name_.str() << endl;
-            
             m_outputFileName = sfile_name_.str();
 
         }
