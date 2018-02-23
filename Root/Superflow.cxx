@@ -138,7 +138,7 @@ Bool_t Superflow::Process(Long64_t entry)
             << " run "   << setw(6) << nt.evt()->run
             << " event " << setw(7) << nt.evt()->eventNumber << " ****" << endl;
     }
-
+    
 
     /////////////////////////////////////////////////////////////////////////
     // select the objects for the selected run modes
@@ -148,11 +148,13 @@ Bool_t Superflow::Process(Long64_t entry)
     var_float* vf_          = nullptr;
     var_double* vd_         = nullptr;
     var_float_array* vfa_   = nullptr;
+    var_int_array* via_     = nullptr;
     var_bool_array* vba_    = nullptr;
     var_int* vi_            = nullptr;
     var_bool* vb_           = nullptr;
     var_void* vv_           = nullptr;
 
+    Superweight weights_printout;
     switch (m_runMode) {
         ////////////////////////////////////////////////////////////////////
         // data
@@ -189,6 +191,10 @@ Bool_t Superflow::Process(Long64_t entry)
                         }
                         case SupervarType::sv_double: {
                             m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_);
+                            break;
+                        }
+                        case SupervarType::sv_int_array: { 
+                            m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
                             break;
                         }
                         case SupervarType::sv_float_array: { 
@@ -265,6 +271,10 @@ Bool_t Superflow::Process(Long64_t entry)
                             m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_);
                             break;
                         }
+                        case SupervarType::sv_int_array: { 
+                            m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
+                            break;
+                        }
                         case SupervarType::sv_float_array: { 
                             m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
                             break;
@@ -332,6 +342,10 @@ Bool_t Superflow::Process(Long64_t entry)
                             }
                             case SupervarType::sv_double: {
                                 m_varDouble_array[i][v_] = m_varExprDouble[v_](sl_, vd_);
+                                break;
+                            }
+                            case SupervarType::sv_int_array: { 
+                                m_varIntArray_array[i][v_] = m_varExprIntArray[v_](sl_,via_);
                                 break;
                             }
                             case SupervarType::sv_float_array: { 
@@ -416,6 +430,10 @@ Bool_t Superflow::Process(Long64_t entry)
                             m_varDouble[v_] = m_varExprDouble[v_](sl_, vd_);
                             break;
                         }
+                        case SupervarType::sv_int_array: { 
+                            m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
+                            break;
+                        }
                         case SupervarType::sv_float_array: { 
                             m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
                             break;
@@ -485,6 +503,15 @@ Bool_t Superflow::Process(Long64_t entry)
         } break;
         default: break;
     }
+    //cout << "Event " << m_chainEntry << ") "
+    //     << "Evt# = " << nt.evt()->eventNumber << '\n'
+    //     << "\tgenerator weight = " << nt.evt()->w << ", "
+    //     << "sum of MC event weights = " << nt.evt()->sumOfEventWeights << ", "
+    //     << "pileup = " << nt.evt()->wPileup << '\n'
+    //     << "\tlepSF = " << m_weights->lepSf << ", "
+    //     << "jvtSF = " << m_weights->jvtSf << ", "
+    //     << "btagSF = " << m_weights->btagSf << ", "
+    //     << "other weights = " << m_weights->susynt << '\n';
     return kTRUE;
 }
 ///////////////////////////////////////////////////////////////////////////////
