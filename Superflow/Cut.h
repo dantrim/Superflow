@@ -8,8 +8,8 @@ namespace sflow {
 
     class Cut {
     public:
-        Cut() {};
-        virtual ~Cut() {};
+        Cut() {}
+        virtual ~Cut() {}
 
         std::string name;
         virtual bool operator() (Superlink* sl) = 0;// return true to pass the cut
@@ -21,9 +21,9 @@ namespace sflow {
         std::function<bool(Superlink*)> stored_cut;
 
         CutName(std::string cut_name);
-        ~CutName() {};
+        ~CutName() {}
 
         void operator<<(std::function<bool(Superlink*)> cut_);
     };
 
-};
+}

@@ -33,7 +33,7 @@ namespace sflow {
 
     }; // class
 
-}; // namespace
+} // namespace
 
 
 #endif
