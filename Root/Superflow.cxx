@@ -138,7 +138,7 @@ Bool_t Superflow::Process(Long64_t entry)
             << " run "   << setw(6) << nt.evt()->run
             << " event " << setw(7) << nt.evt()->eventNumber << " ****" << endl;
     }
-    
+
 
     /////////////////////////////////////////////////////////////////////////
     // select the objects for the selected run modes
@@ -154,7 +154,6 @@ Bool_t Superflow::Process(Long64_t entry)
     var_bool* vb_           = nullptr;
     var_void* vv_           = nullptr;
 
-    Superweight weights_printout;
     switch (m_runMode) {
         ////////////////////////////////////////////////////////////////////
         // data
@@ -503,15 +502,6 @@ Bool_t Superflow::Process(Long64_t entry)
         } break;
         default: break;
     }
-    //cout << "Event " << m_chainEntry << ") "
-    //     << "Evt# = " << nt.evt()->eventNumber << '\n'
-    //     << "\tgenerator weight = " << nt.evt()->w << ", "
-    //     << "sum of MC event weights = " << nt.evt()->sumOfEventWeights << ", "
-    //     << "pileup = " << nt.evt()->wPileup << '\n'
-    //     << "\tlepSF = " << m_weights->lepSf << ", "
-    //     << "jvtSF = " << m_weights->jvtSf << ", "
-    //     << "btagSF = " << m_weights->btagSf << ", "
-    //     << "other weights = " << m_weights->susynt << '\n';
     return kTRUE;
 }
 ///////////////////////////////////////////////////////////////////////////////
