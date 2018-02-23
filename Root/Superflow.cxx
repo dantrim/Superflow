@@ -37,6 +37,7 @@ void Superflow::attach_superlink(Superlink* sl_)
 
     sl_->preElectrons = &m_preElectrons;
     sl_->preMuons = &m_preMuons;
+    sl_->preLeptons = &m_preLeptons;
     sl_->preTaus = &m_preTaus;
     sl_->preJets = &m_preJets;
 

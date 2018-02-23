@@ -34,6 +34,7 @@ namespace sflow {
 
         ElectronVector* preElectrons;   ///< pre electrons prior to baseline selection and OR 
         MuonVector*     preMuons;       ///< pre muons prior to baseline selection and OR
+        LeptonVector*   preLeptons;     ///< pre leptons prior to baseline selection and OR
         TauVector*      preTaus;        ///< pre taus prior to baseline selection and OR
         JetVector*      preJets;        ///< pre jets prior to baseline selection and OR
 
