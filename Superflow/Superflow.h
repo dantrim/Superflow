@@ -17,7 +17,7 @@ namespace sflow {
         // TSelector Methods
         void Begin(TTree *tree);
         void Init(TTree *tree);
-        Bool_t Notify();
+        //Bool_t Notify();
         Bool_t Process(Long64_t entry);
         void Terminate();
         

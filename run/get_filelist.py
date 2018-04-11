@@ -53,7 +53,7 @@ if __name__ == "__main__" :
 
         if split_this_sample :
 
-            split_options = "--sumw --suffix %d"%(int(process_number))
+            split_options = "--sumw ./%s/sumw_file.txt --suffix %d"%(stored_dir, int(process_number))
 
             rname = "./filelists/%s/%s"%(group_name, line) 
             #rname = "./%s/filelists/%s/%s"%(stored_dir, group_name, line) 

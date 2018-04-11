@@ -22,7 +22,8 @@ double Superweight::product()
 {
     // dantrim July 2017 -- the user should be smart about using the product method,
     // I personally don't recommend it since the SF are analysis/selection dependent
-    return susynt * pileup * lepSf * jvtSf;
+    #warning need to commit to git adding back the btagSf or fix how it is handled in the Superflow weight syst
+    return susynt * pileup * lepSf * jvtSf * btagSf;
 }
 
 }; // namespace

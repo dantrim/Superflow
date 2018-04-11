@@ -68,7 +68,7 @@ namespace sflow {
             // TSelector methods
             virtual void Begin(TTree *tree);
             virtual void Init(TTree *tree);
-            virtual Bool_t Notify();
+            //virtual Bool_t Notify();
             virtual void Terminate();
 
             void initialize_output_files(TString input = "");

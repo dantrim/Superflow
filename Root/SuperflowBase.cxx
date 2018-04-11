@@ -141,23 +141,23 @@ void SuperflowBase::Init(TTree* tree)
 
 }
 ///////////////////////////////////////////////////////////////////////////////
-Bool_t SuperflowBase::Notify()
-{
-    cout << app_name << "Superflow::Notify" << endl;
-    static int tree_counter;
-
-    //if (m_entry_list_single_tree != nullptr) m_entry_list_total->Add(m_entry_list_single_tree);
-    //delete m_entry_list_single_tree;
-
-    string new_list_name = m_tree_name_auto + "_" + to_string(tree_counter);
-    tree_counter++;
-
-    m_entry_list_single_tree = new TEntryList();
-    m_entry_list_single_tree->SetTree(m_input_chain->GetTree());
-
-    return kTRUE;
-
-}
+//Bool_t SuperflowBase::Notify()
+//{
+//    cout << app_name << "Superflow::Notify" << endl;
+//    static int tree_counter;
+//
+//    //if (m_entry_list_single_tree != nullptr) m_entry_list_total->Add(m_entry_list_single_tree);
+//    //delete m_entry_list_single_tree;
+//
+//    string new_list_name = m_tree_name_auto + "_" + to_string(tree_counter);
+//    tree_counter++;
+//
+//    m_entry_list_single_tree = new TEntryList();
+//    m_entry_list_single_tree->SetTree(m_input_chain->GetTree());
+//
+//    return kTRUE;
+//
+//}
 ///////////////////////////////////////////////////////////////////////////////
 void SuperflowBase::determine_output_filename(TString input_sample)
 {

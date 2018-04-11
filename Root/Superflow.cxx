@@ -118,11 +118,11 @@ void Superflow::Init(TTree* tree)
     initialize_output_files(input_sample);
 }
 ///////////////////////////////////////////////////////////////////////////////
-Bool_t Superflow::Notify()
-{
-    SuperflowBase::Notify();
-    return kTRUE;
-}
+//Bool_t Superflow::Notify()
+//{
+//    SuperflowBase::Notify();
+//    return kTRUE;
+//}
 ///////////////////////////////////////////////////////////////////////////////
 Bool_t Superflow::Process(Long64_t entry)
 {

@@ -20,24 +20,35 @@ import subprocess
 import time
 debug = False
 
-ana_name = "rjigsawAna_WWBB" # name of the executable to be run
-tar_name = "n0232val" # name of the directory you stored in the tarball
+ana_name = "ntupler_wwbb" # name of the executable to be run
+tar_name = "n0234val" # name of the directory you stored in the tarball
 tar_location = "/data/uclhc/uci/user/dantrim/" # location of tarball file to take to job site
 superflow_run_mode = "-c" # superflow run mode and options
 
 ###############################################################################
 # output locations
-out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0232/f_jun5/data/Raw/" # location to dump the output ntuples
-log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0232/f_jun5/data/logs/" # location to dump the job logs
+#out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/data/Raw/" # location to dump the output ntuples
+#log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/data/logs/" # location to dump the job logs
+
+out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/mc/Raw/"
+log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/mc/logs/"
+
+#out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/mc/ttbar/Raw/"
+#log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/mc/ttbar/logs/"
 
 ###############################################################################
 # filelist locations
-filelist_dir = "/data/uclhc/uci/user/dantrim/n0232val/filelists/" # directory of filelist directories
-in_job_filelist_dir = "/n0232val/filelists/" # name of filelist dir as seen at the job site (in the tarred file)
+filelist_dir = "/data/uclhc/uci/user/dantrim/n0234val/filelists/" # directory of filelist directories
+in_job_filelist_dir = "/n0234val/filelists/" # name of filelist dir as seen at the job site (in the tarred file)
 
 ###############################################################################
 # samples to process - text files located in <filelist_dir>/<sample-name>/*.txt
-samples = ["ttbar", "diboson_sherpa"]
+#samples = ["ttbar", "diboson_sherpa"]
+#samples = ["data_n0234"]
+#samples = ["singletop", "drellyan_sherpa", "higgs", "singletop_DS", "ttV", "wjets_sherpa", "wwbb_susy2", "zjets_sherpa"]
+#samples = ["ttbar"]
+#samples = ["diboson_sherpa"]
+samples = ["wwbb_susy2"]
 
 
 ###############################################################################
@@ -49,10 +60,10 @@ samples_to_split = ["410009"] # ttbar
 
 ###############################################################################
 # sites to consider for processing
-doBrick = True
-doLocal = False
-doSDSC  = False
-doUC    = False
+doBrick = False
+doLocal = True 
+doSDSC  = True 
+doUC    = True 
 
 def fax_is_setup() :
     """
