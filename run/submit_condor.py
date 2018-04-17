@@ -20,35 +20,39 @@ import subprocess
 import time
 debug = False
 
-ana_name = "ntupler_wwbb" # name of the executable to be run
-tar_name = "n0234val" # name of the directory you stored in the tarball
-tar_location = "/data/uclhc/uci/user/dantrim/" # location of tarball file to take to job site
+ana_name = "ntupler_val" # name of the executable to be run
+tar_name = "susynt-read" # name of the directory you stored in the tarball
+tar_location = "/data/uclhc/uci/user/dantrim/n0300val/" # location of tarball file to take to job site
 superflow_run_mode = "-c" # superflow run mode and options
+
+def get_injob_path(path) :
+
+    """
+    Name of filelist dir or file "path" as seen at the job
+    site once the analysis directory is untarred
+    """
+
+    global tar_name
+    return path[path.find(tar_name) + len(tar_name) : -1]
 
 ###############################################################################
 # output locations
-#out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/data/Raw/" # location to dump the output ntuples
-#log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/data/logs/" # location to dump the job logs
 
-out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/mc/Raw/"
-log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/mc/logs/"
-
-#out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/mc/ttbar/Raw/"
-#log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/a_jul25/mc/ttbar/logs/"
+out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0300/data/Raw/"
+log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0300/data/logs/"
 
 ###############################################################################
 # filelist locations
-filelist_dir = "/data/uclhc/uci/user/dantrim/n0234val/filelists/" # directory of filelist directories
-in_job_filelist_dir = "/n0234val/filelists/" # name of filelist dir as seen at the job site (in the tarred file)
+filelist_dir = "/data/uclhc/uci/user/dantrim/n0300val/susynt-read/filelists/" # directory of filelists
+in_job_filelist_dir = get_injob_path(filelist_dir)
+#in_job_filelist_dir = "/n0234val/filelists/" # name of filelist dir as seen at the job site (in the tarred file)
 
 ###############################################################################
 # samples to process - text files located in <filelist_dir>/<sample-name>/*.txt
-#samples = ["ttbar", "diboson_sherpa"]
-#samples = ["data_n0234"]
-#samples = ["singletop", "drellyan_sherpa", "higgs", "singletop_DS", "ttV", "wjets_sherpa", "wwbb_susy2", "zjets_sherpa"]
-#samples = ["ttbar"]
-#samples = ["diboson_sherpa"]
-samples = ["wwbb_susy2"]
+#samples = ["test_data17"]
+#samples = ["condor_lists_data15", "condor_lists_data16", "condor_lists_data17"]
+samples = ["condor_lists_data17"]
+#samples = ["test_data17"]
 
 
 ###############################################################################
@@ -60,10 +64,10 @@ samples_to_split = ["410009"] # ttbar
 
 ###############################################################################
 # sites to consider for processing
-doBrick = False
-doLocal = True 
-doSDSC  = True 
-doUC    = True 
+doBrick = True
+doLocal = False
+doSDSC  = False
+doUC    = False 
 
 def fax_is_setup() :
     """
@@ -199,17 +203,19 @@ def build_job_executable(executable_name, process_group, number_of_samples) :
     f.write('echo "Directory structure in untarred directory:"\n')
     f.write('ls -ltrh\n')
     f.write('lsetup fax\n')
-    f.write('source susynt-read/bash/setup_root.sh\n')
-    f.write('source RootCore/local_setup.sh\n')
+    f.write('source bash/setup_release.sh\n')
+
+#    f.write('source susynt-read/bash/setup_root.sh\n')
+#    f.write('source RootCore/local_setup.sh\n')
     f.write('ls ./filelists/${group_name} > joblist_${group_name}.txt\n')
-    f.write('echo "python ./Superflow/run/get_filelist.py ${group_name} ${process_number} ${split_dsids} ${stored_dir} > injob_filelist_${group_name}_${process_number}.txt"\n')
-    f.write('python ./Superflow/run/get_filelist.py ${group_name} ${process_number} ${split_dsids} ${stored_dir} > injob_filelist_${group_name}_${process_number}.txt\n')
+    f.write('echo "python ./source/Superflow/run/get_filelist.py ${group_name} ${process_number} ${split_dsids} ${stored_dir} > injob_filelist_${group_name}_${process_number}.txt"\n')
+    f.write('python ./source/Superflow/run/get_filelist.py ${group_name} ${process_number} ${split_dsids} ${stored_dir} > injob_filelist_${group_name}_${process_number}.txt\n')
     f.write('ls -ltrh\n')
     f.write('input_list_for_process_number=$(head -1 injob_filelist_${group_name}_${process_number}.txt)\n')
     f.write('echo "input list for process : ${input_list_for_process_number}"\n')
 
-    f.write('echo "python ./Superflow/run/get_joblog_name.py ./filelists/${group_name} ${process_number} ${split_dsids} > injob_log_${group_name}_${process_number}.txt"\n')
-    f.write('python ./Superflow/run/get_joblog_name.py ./filelists/${group_name} ${process_number} ${split_dsids} > injob_log_${group_name}_${process_number}.txt\n')
+    f.write('echo "python ./source/Superflow/run/get_joblog_name.py ./filelists/${group_name} ${process_number} ${split_dsids} > injob_log_${group_name}_${process_number}.txt"\n')
+    f.write('python ./source/Superflow/run/get_joblog_name.py ./filelists/${group_name} ${process_number} ${split_dsids} > injob_log_${group_name}_${process_number}.txt\n')
     f.write('log_for_process=$(head -1 injob_log_${group_name}_${process_number}.txt)\n')
     f.write('split_cmd=""\n')
     f.write('n_lines=$(cat injob_filelist_${group_name}_${process_number}.txt |wc -l)\n')
@@ -218,13 +224,15 @@ def build_job_executable(executable_name, process_group, number_of_samples) :
     f.write('fi\n')
     f.write('echo "Setting log to: ${log_for_process}"\n')
 
-    f.write('cd SuperRest/\n')
-    f.write('source setRestFrames.sh\n')
+    #f.write('cd SuperRest/\n')
+    #f.write('source setRestFrames.sh\n')
     f.write('cd ${work_dir}\n')
+    f.write('echo "================================================================="\n')
     f.write('echo "Submitting with input filelist ${input_list_for_process_number}"\n')
     f.write('echo "Submitting with output log file ${log_for_process}"\n')
     f.write('echo "${executable} -i ${input_list_for_process_number} ${superflow_options} ${split_cmd} 2>&1 | tee ${log_for_process}"\n')
-    f.write('${executable} -i ${input_list_for_process_number} ${superflow_options} ${split_cmd} 2>&1 | tee ${log_for_process}\n')
+    f.write('echo "================================================================="\n')
+    f.write('${executable} -n 1000 -i ${input_list_for_process_number} ${superflow_options} ${split_cmd} 2>&1 | tee ${log_for_process}\n')
 
     f.write('ls -ltrh\n')
     
@@ -265,7 +273,7 @@ def submit_sample(sample) :
         else :
             total_number_of_jobs += 1
 
-    print "Total number of jobs to process in samples %s : %d"%(sample, total_number_of_jobs)
+    print "Total number of jobs to process in sample %s : %d"%(sample, total_number_of_jobs)
 
     build_condor_script(condor_script_name, executable_name, process_group, total_number_of_jobs)
     build_job_executable(executable_name, process_group, total_number_of_jobs)
@@ -309,9 +317,9 @@ def main() :
 
     debug = False
     if len(sys.argv) >= 2 :
-        if sys.argv[1] == "-d" or sys.argv[1] == "--debug" :
-            debug = True
-    
+        for arg in sys.argv :
+            if arg == "-d" or arg == "--debug" :
+                debug = True
 
     # check that we are situationally aware
     if not environment_ready() :

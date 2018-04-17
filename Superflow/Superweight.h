@@ -22,9 +22,11 @@ namespace sflow {
             Superweight();
 
             double product();
+            double product_multi();
             void reset();
 
             double susynt; // weight returned from SusyNtuple/MCWeighter::getMCWeight(...)
+            double susynt_multi; // multi period susynt weight
             double pileup;
             double lepSf;
             double trigSf;

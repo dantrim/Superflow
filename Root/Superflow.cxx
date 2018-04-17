@@ -531,6 +531,7 @@ bool Superflow::initialize_mc_weighter(TTree *tree)
         m_mcWeighter = &mcWeighter(); // use MCWeighter instance from SusyNtAna
     
         m_mcWeighter->printSumwMap();
+        m_mcWeighter->printSumwMapPeriod();
         if (m_dbg) {
             cout << app_name << "Superflow::initialize_mc_weighter    MCWeighter has been initialized." << endl;
             cout << app_name << "Superflow::initialize_mc_weighter    MCWeighter using cross-section directory: " << xsecDir << endl;
@@ -574,7 +575,8 @@ bool Superflow::computeWeights( Susy::SusyNtObject &ntobj, MCWeighter &weighter,
             default: break;
         } // switch
         if (do_susynt_w) {
-            weights_->susynt = weighter.getMCWeight(ntobj.evt(), m_luminosity, wSys, false);
+            weights_->susynt = weighter.getMCWeight(ntobj.evt(), m_luminosity, wSys, /*multi-period*/false, /*include PRW*/false);
+            weights_->susynt_multi = weighter.getMCWeight(ntobj.evt(), m_luminosity, wSys, /*multi-period*/true, /*include PRW*/false);
         }
 
         // JVT eff
@@ -730,9 +732,9 @@ double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const Super
         const Electron* el = dynamic_cast<const Electron*> (&lep);
 
         // get the ElectronId for the analysis type to select the correct errSF
-        ElectronId id;
-        if(currentAnaType==AnalysisType::Ana_Stop2L) { id = ElectronId::MediumLLH; }
-        else { id = ElectronId::TightLLH; }
+        ElectronId id = m_nttools.electronSelector().signalId();
+        //if(currentAnaType==AnalysisType::Ana_Stop2L) { id = ElectronId::MediumLLH; }
+        //else { id = ElectronId::TightLLH; }
 
         // select the nominal SF
         sf = el->eleEffSF[id];
@@ -767,9 +769,9 @@ double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const Super
         const Muon* mu = dynamic_cast<const Muon*> (&lep);
 
         // get the MuonId for the analysis type to select the correct errSF
-        MuonId id;
-        if(currentAnaType==AnalysisType::Ana_Stop2L) { id = MuonId::Medium; }
-        else { id = MuonId::Medium; }
+        MuonId id = m_nttools.muonSelector().signalId();
+//        if(currentAnaType==AnalysisType::Ana_Stop2L) { id = MuonId::Medium; }
+//        else { id = MuonId::Medium; }
 
         // select the nominal SF
         sf = mu->muoEffSF[id];
