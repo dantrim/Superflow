@@ -63,7 +63,7 @@ namespace sflow {
             ~SuperflowBase(){};
 
             virtual void setAnaName(string name) { app_name = name + "    "; }
-            virtual void setDebug(bool dbg) { m_dbg = dbg; }
+            virtual void setDebug(bool dbg); // { m_dbg = dbg; }
 
             // TSelector methods
             virtual void Begin(TTree *tree);

@@ -52,6 +52,12 @@ SuperflowBase::SuperflowBase()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void SuperflowBase::setDebug(bool doit)
+{
+    m_dbg = doit;
+    mcWeighter().setVerbose(doit);
+}
+///////////////////////////////////////////////////////////////////////////////
 void SuperflowBase::initialize_output_arrays()
 {
     m_nullExprFloat  = [](Superlink* sl, var_float*) -> double { return 0.0; };
@@ -249,7 +255,7 @@ void SuperflowBase::determine_output_filename(TString input_sample)
         else suffix << "";
 
         stringstream sfile_name_; // output file name
-        sfile_name_ << "CENTRAL_" << nt.evt()->mcChannel << suffix.str() << ".root";
+        sfile_name_ << "CENTRAL_" << nt.evt()->mcChannel << "_" << MCType2str(static_cast<MCType>(nt.evt()->mcType)) << suffix.str() << ".root";
         if (m_runMode == SuperflowRunMode::nominal_and_weight_syst) {
             cout << app_name << "SuperflowBase::determine_output_filename    Run mode: SuperflowRunMode::nominal_and_weight_syst" << endl;
         }

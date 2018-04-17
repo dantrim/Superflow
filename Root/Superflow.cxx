@@ -529,8 +529,9 @@ bool Superflow::initialize_mc_weighter(TTree *tree)
     if (tree) {
         string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc15_13TeV/");
         m_mcWeighter = &mcWeighter(); // use MCWeighter instance from SusyNtAna
+        m_mcWeighter->setVerbose(m_dbg);
     
-        m_mcWeighter->printSumwMap();
+        //m_mcWeighter->printSumwMap();
         m_mcWeighter->printSumwMapPeriod();
         if (m_dbg) {
             cout << app_name << "Superflow::initialize_mc_weighter    MCWeighter has been initialized." << endl;
