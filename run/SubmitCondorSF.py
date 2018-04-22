@@ -6,7 +6,9 @@ import subprocess
 import time
 
 ana_name = "ntupler_wwbb_novec"
+ana_name = "ntupler_val"
 tar_location = "/data/uclhc/uci/user/dantrim/"
+tar_location = "/data/uclhc/uci/user/dantrim/n0301val/"
 
 #n_split = sys.argv[1]
 
@@ -37,13 +39,18 @@ log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/k_jan6_bsys/mc/ttbar/logs/
 out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/l_mar21_nobjetcut/mc/ttbar/Raw/"
 log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0234/l_mar21_nobjetcut/mc/ttbar/logs/"
 
+out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0301_slim/mc/ttbar/Raw/"
+log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0301_slim/mc/ttbar/logs/"
 
 filelist_dir = "/data/uclhc/uci/user/dantrim/n0234val/filelists/"
+filelist_dir = "/data/uclhc/uci/user/dantrim/n0301val/susynt-read/filelists/"
 in_job_filelist_dir = "/n0234val/filelists/"
+in_job_filelist_dir = "/filelists/"
 #samples = ["diboson_sherpa_lvlv", "drellyan_sherpa", "wjets_sherpa22", "zjets_sherpa22", "ttV", "singletop"]
 #samples = ["ttbar_min"]
 #samples = ["Wt"]#, "wwbb_susy2"]
-samples = ["ttbar"]
+samples = ["mc16a_ttbar", "mc16d_ttbar"]
+samples = ["mc16d_ttbar"]
 #samples = ["ttbar_pp8"]
 #samples = ["retry_mc"]
 #samples = ["zjets_and_DY"]
@@ -51,14 +58,16 @@ samples = ["ttbar"]
 #samples = ["data16_n0234"] #, "data16_n0234"]
 #samples = ["data16_n0234"]
 
-samples_to_split = ["410009", "410503", "410505", "410225"]
+samples_to_split = ["410472"]
 #samples_to_split = ["341122", "364102", "364114", "364115", "364116", "364118", "364200"]
 #splits_to_do = [10, 11, 12, 22, 23]
+#splits_to_do = [88]
+splits_to_do = [134,19,30,94]
 
 doBrick = True
 doLocal = False  
 doSDSC  = False 
-doUC    = False 
+doUC    = False
 
 
 def get_retrylist() :
@@ -162,9 +171,9 @@ def main() :
                     split_files.append(line)
 
                 for split_file in split_files :
-                    #if split_suffix not in splits_to_do :
-                    #    split_suffix = split_suffix + 1
-                    #    continue
+                    if split_suffix not in splits_to_do :
+                        split_suffix = split_suffix + 1
+                        continue
                     print "    >>> Sub-file [%d] %s"%(split_suffix, split_file)
 
                     run_cmd = "ARGS="
@@ -173,9 +182,9 @@ def main() :
                     run_cmd += ' %s '%log_dir
                     run_cmd += ' %s '%ana_name
                     #run_cmd += ' %s '%(tar_location + "area.tgz.tgz")
-                    run_cmd += ' n0234val '
+                    run_cmd += ' susynt-read '
                     run_cmd += ' %s '%split_file
-                    run_cmd += ' %s --sumw ./n0234val/sumw_file.txt --suffix %d'%(run_mode, split_suffix) # any extra cmd line optino for Superflow executable
+                    run_cmd += ' %s --sumw ./susynt-read/sumw_file.root --suffix %d'%(run_mode, split_suffix) # any extra cmd line optino for Superflow executable
                     run_cmd += '"'
                     run_cmd += ' condor_submit submitFile_TEMPLATE.condor '
                     lname = dataset.split("/")[-1].replace(".txt", "")
@@ -214,13 +223,11 @@ def look_for_condor_script(brick_ = False, local_ = False, sdsc_ = False, uc_ = 
     f.write('+site_local=%s\n'%local_)
     f.write('+sdsc=%s\n'%sdsc_)
     f.write('+uc=%s\n'%uc_)
-    #f.write('transfer_input_files = area.tgz.tgz\n')
+    f.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/atlas/analysisbase:21.2.4"\n')
     f.write('executable = RunCondorSF.sh\n')
     f.write('arguments = $ENV(ARGS)\n')
     f.write('should_transfer_files = YES\n')
     f.write('when_to_transfer_output = ON_EXIT\n')
-    #f.write('transfer_output_files = OUTFILE\n')
-    #f.write('transfer_output_remaps = OUTFILE_REMAP\n')
     f.write('use_x509userproxy = True\n')
     f.write('notification = Never\n')
     f.write('queue\n')
@@ -229,6 +236,10 @@ def look_for_condor_script(brick_ = False, local_ = False, sdsc_ = False, uc_ = 
 def look_for_condor_executable() :
     f = open('RunCondorSF.sh', 'w') 
     f.write('#!/bin/bash\n\n\n')
+    f.write('echo "hostname:"\n')
+    f.write('hostname\n')
+    f.write('echo "whoami:"\n')
+    f.write('whoami\n')
     f.write('echo " ------- RunCondorSF -------- "\n')
     f.write('output_dir=${1}\n')
     f.write('log_dir=${2}\n')
@@ -258,9 +269,11 @@ def look_for_condor_executable() :
     f.write('echo "Directory structure:"\n')
     f.write('ls -ltrh\n')
     f.write('lsetup fax\n')
-    f.write('source susynt-read/bash/setup_root.sh\n')
-    f.write('echo "Calling : source RootCore/local_setup.sh"\n')
-    f.write('source RootCore/local_setup.sh\n')
+    f.write('export STORAGEPREFIX=root://fax.mwt2.org:1094/\n')
+    f.write('source bash/setup_release.sh\n')
+#    f.write('source susynt-read/bash/setup_root.sh\n')
+#    f.write('echo "Calling : source RootCore/local_setup.sh"\n')
+#    f.write('source RootCore/local_setup.sh\n')
     #f.write('echo "Calling : cd SuperRest/"\n')
     #f.write('cd SuperRest/\n')
     #f.write('source setRestFrames.sh\n')
