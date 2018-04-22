@@ -527,7 +527,6 @@ bool Superflow::initialize_mc_weighter(TTree *tree)
     cout << app_name << "Superflow::initialize_mc_weighter    Initializing MCWeighter" << endl;
     bool success = false;
     if (tree) {
-        string xsecDir = gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/mc15_13TeV/");
         m_mcWeighter = &mcWeighter(); // use MCWeighter instance from SusyNtAna
         m_mcWeighter->setVerbose(m_dbg);
     
@@ -535,7 +534,6 @@ bool Superflow::initialize_mc_weighter(TTree *tree)
         m_mcWeighter->printSumwMapPeriod();
         if (m_dbg) {
             cout << app_name << "Superflow::initialize_mc_weighter    MCWeighter has been initialized." << endl;
-            cout << app_name << "Superflow::initialize_mc_weighter    MCWeighter using cross-section directory: " << xsecDir << endl;
         }
     }
     else {
