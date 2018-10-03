@@ -54,7 +54,7 @@ def create_prefixed_lists(base_list_dir, storage_prefix) :
 
 def create_tar(args) :
 
-    print 'Creatting tar file'
+    print 'Creating tar file'
 
     global tar_file
 
