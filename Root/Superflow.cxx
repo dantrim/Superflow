@@ -737,32 +737,33 @@ double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const Super
 
         // select the nominal SF
         sf = el->eleEffSF[id];
+    #warning NOT HANDLING LEPTON EFFICIENCY SCALEFACTOR UNCERTAINTIES
 
-        if (sys == SupersysWeight::EL_EFF_ID_UP) {
-            delta = el->errEffSF_id_up[id];    // we store the signed errEffSF
-        }
-        else if (sys == SupersysWeight::EL_EFF_ID_DN) {
-            delta = el->errEffSF_id_dn[id];    // we store the signed errEffSF
-        }
-        else if (sys == SupersysWeight::EL_EFF_ISO_UP) {
-            delta = el->errEffSF_iso_up[id];
-        }
-        else if (sys == SupersysWeight::EL_EFF_ISO_DN) {
-            delta = el->errEffSF_iso_dn[id];
-        }
-        else if (sys == SupersysWeight::EL_EFF_RECO_UP) {
-            delta = el->errEffSF_reco_up[id];  // we store the signed errEffSF
-        }
-        else if (sys == SupersysWeight::EL_EFF_RECO_DN) {
-            delta = el->errEffSF_reco_dn[id];  // we store the signed errEffSF
-        }
-        #warning we only handle single lepton trigger for trigger SF systematics 
-        else if (sys == SupersysWeight::EL_EFF_TRIG_UP) {
-            delta = el->errEffSF_trig_up_single[id];
-        }
-        else if (sys == SupersysWeight::EL_EFF_TRIG_DN) {
-            delta = el->errEffSF_trig_dn_single[id];
-        }
+//        if (sys == SupersysWeight::EL_EFF_ID_UP) {
+//            delta = el->errEffSF_id_up[id];    // we store the signed errEffSF
+//        }
+//        else if (sys == SupersysWeight::EL_EFF_ID_DN) {
+//            delta = el->errEffSF_id_dn[id];    // we store the signed errEffSF
+//        }
+//        else if (sys == SupersysWeight::EL_EFF_ISO_UP) {
+//            delta = el->errEffSF_iso_up[id];
+//        }
+//        else if (sys == SupersysWeight::EL_EFF_ISO_DN) {
+//            delta = el->errEffSF_iso_dn[id];
+//        }
+//        else if (sys == SupersysWeight::EL_EFF_RECO_UP) {
+//            delta = el->errEffSF_reco_up[id];  // we store the signed errEffSF
+//        }
+//        else if (sys == SupersysWeight::EL_EFF_RECO_DN) {
+//            delta = el->errEffSF_reco_dn[id];  // we store the signed errEffSF
+//        }
+//        #warning we only handle single lepton trigger for trigger SF systematics 
+//        else if (sys == SupersysWeight::EL_EFF_TRIG_UP) {
+//            delta = el->errEffSF_trig_up_single[id];
+//        }
+//        else if (sys == SupersysWeight::EL_EFF_TRIG_DN) {
+//            delta = el->errEffSF_trig_dn_single[id];
+//        }
     } // isEle
     else if (lep.isMu()) {
         const Muon* mu = dynamic_cast<const Muon*> (&lep);
@@ -775,42 +776,42 @@ double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const Super
         // select the nominal SF
         sf = mu->muoEffSF[id];
 
-        if ( sys == SupersysWeight::MUON_EFF_STAT_UP ) {
-            delta = mu->errEffSF_stat_up[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_STAT_DN ) {
-            delta = mu->errEffSF_stat_dn[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_STAT_LOWPT_UP ) {
-            delta = mu->errEffSF_stat_lowpt_up[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_STAT_LOWPT_DN ) {
-            delta = mu->errEffSF_stat_lowpt_dn[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_SYS_UP ) {
-            delta = mu->errEffSF_syst_up[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_SYS_DN ) {
-            delta = mu->errEffSF_syst_dn[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_SYS_LOWPT_UP ) {
-            delta = mu->errEffSF_syst_lowpt_up[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_SYS_LOWPT_DN ) {
-            delta = mu->errEffSF_syst_lowpt_dn[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_ISO_STAT_UP ) {
-            delta = mu->errIso_stat_up[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_ISO_STAT_DN ) {
-            delta = mu->errIso_stat_dn[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_ISO_SYS_UP ) {
-            delta = mu->errIso_syst_up[id];
-        }
-        else if (sys == SupersysWeight::MUON_EFF_ISO_SYS_DN ) {
-            delta = mu->errIso_syst_dn[id];
-        }
+//        if ( sys == SupersysWeight::MUON_EFF_STAT_UP ) {
+//            delta = mu->errEffSF_stat_up[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_STAT_DN ) {
+//            delta = mu->errEffSF_stat_dn[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_STAT_LOWPT_UP ) {
+//            delta = mu->errEffSF_stat_lowpt_up[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_STAT_LOWPT_DN ) {
+//            delta = mu->errEffSF_stat_lowpt_dn[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_SYS_UP ) {
+//            delta = mu->errEffSF_syst_up[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_SYS_DN ) {
+//            delta = mu->errEffSF_syst_dn[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_SYS_LOWPT_UP ) {
+//            delta = mu->errEffSF_syst_lowpt_up[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_SYS_LOWPT_DN ) {
+//            delta = mu->errEffSF_syst_lowpt_dn[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_ISO_STAT_UP ) {
+//            delta = mu->errIso_stat_up[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_ISO_STAT_DN ) {
+//            delta = mu->errIso_stat_dn[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_ISO_SYS_UP ) {
+//            delta = mu->errIso_syst_up[id];
+//        }
+//        else if (sys == SupersysWeight::MUON_EFF_ISO_SYS_DN ) {
+//            delta = mu->errIso_syst_dn[id];
+//        }
     } // isMu
 
     out_SF = (sf + delta);
