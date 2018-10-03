@@ -7,7 +7,7 @@ import argparse
 import subprocess
 import time
 
-exec_name = "ntupler_nn"
+sf_exec_name = "ntupler_nn"
 out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0303/mc/"
 log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0303/mc/logs/"
 
@@ -16,15 +16,103 @@ filelist_dir = "/data/uclhc/uci/user/dantrim/n0303val/susynt-read/filelists/"
 storage_prefixes = { "mwt2" : "root://fax.mwt2.org:1094/" }
 
 samples = [ "ttbar" ]
-dsids_to_split = [ "410472" ]
+dsids_to_split = []# "410472" ]
 
 run_with_systematics = False
-tar_name = 'area.tgz'
+tar_file = '/data/uclhc/uci/user/dantrim/n0303val/area.tgz'
+tarred_dir = 'susynt-read'
+use_sumw_file = True
 
 do_brick = True
 do_gp = True
 do_uc = True
 do_sdsc = False
+
+def create_prefixed_lists(base_list_dir, storage_prefix) :
+
+    os.chdir(base_list_dir)
+
+    filelist_sample_dirs = glob.glob("./filelists_base/*")
+    filelist_sample_dirnames = [s.split("/")[-1] for s in filelist_sample_dirs]
+
+    for f in filelist_sample_dirnames :
+        cmd = 'mkdir -p ./filelists/%s' % f
+        subprocess.call(cmd, shell = True)
+
+    for idir, fdir in enumerate(filelist_sample_dirnames) :
+        text_files = glob.glob('./filelists_base/%s/*.txt' % fdir)
+        for text_file in text_files :
+            new_file = './filelists/%s/%s' % (filelist_sample_dirnames[idir], text_file.split('/')[-1])
+            with open(new_file, 'w') as out_file :
+                with open(text_file, 'r') as in_file :
+                    for line in in_file :
+                        line = line.strip()
+                        if not line : continue
+                        if line.startswith('#') : continue
+                        new_did = '%s%s' % (storage_prefix, line)
+                        out_file.write(new_did + '\n')
+
+def create_tar(args) :
+
+    print 'Creatting tar file'
+
+    global tar_file
+
+    tar_name = args.tar_name
+    loc_to_place = '/'.join(tar_file.split("/")[:-1])
+
+    if not os.path.isdir(loc_to_place) :
+        print 'ERROR Cannot locate directory to place tar file (attempted dir = %s)' % loc_to_place
+        sys.exit()
+
+    full_name = '%s/%s' % (loc_to_place, tar_name)
+
+    if os.path.isfile(full_name) :
+        print 'ERROR Tar file already exists, will not continue (tar name = %s)' % full_name
+        sys.exit()
+
+    full_dir_to_tar = '%s/%s' % (loc_to_place, tarred_dir)
+    if not os.path.isdir(full_dir_to_tar) :
+        print 'ERROR Directory to tar (=%s) not found in expected directory (=%s)' % (tarred_dir, loc_to_place)
+        sys.exit()
+
+
+
+    if args.skip_list_creation :
+        if not os.path.isdir('%s/%s/filelists/') :
+            print 'ERROR \"filelists\" directory is not found in expected directry (=%s), cannot build tar file' % loc_to_place
+            sys.exit()
+    elif not os.path.isdir('%s/%s/filelists_base/' % (loc_to_place, tarred_dir)) :
+        print 'ERROR \"filelists_base\" directory is not found, cannot create filelists for tar creation'
+        sys.exit()
+
+
+    # move to the dir to dump the tar file
+    if args.verbose :
+        print 'Moving to dir to create tar: %s' % loc_to_place
+    os.chdir(loc_to_place)
+
+    if not args.skip_list_creation :
+        base_list_dir = '%s/%s' % (loc_to_place, tarred_dir)
+        create_prefixed_lists(base_list_dir, args.prefix)
+        os.chdir(loc_to_place)
+
+    things_to_tar = ['build/*'] #, 'filelists/*'] #, 'sumw_file.root']
+
+    if not os.path.isdir('%s/%s/filelists/' % (loc_to_place, tarred_dir)) :
+        print 'ERROR \"filelists\" directory was not made as expected!'
+        sys.exit()
+
+    things_to_tar.append('filelists/*')
+
+    if os.path.isfile('%s/%s/sumw_file.root' % (loc_to_place, tarred_dir)) :
+        things_to_tar.append('sumw_file.root')
+    things_to_tar = ['./%s/%s' % (tarred_dir, s) for s in things_to_tar]
+    tar_cmd = 'tar zcf'
+    if args.verbose :
+        tar_cmd += 'v'
+    tar_cmd += ' %s %s' % (tar_name, ' '.join(things_to_tar))
+    subprocess.call(tar_cmd, shell = True)
 
 def check_samples(sample_names, filelist_dir) :
 
@@ -70,11 +158,6 @@ def bool_string(boolean) :
 
 def make_condor_file(sample, queue_list, condor_filename, exec_name) :
 
-do_brick = True
-do_gp = True
-do_uc = True
-do_sdsc = False
-
     with open(condor_filename, 'w') as f :
 
         f.write('universe = vanilla\n')
@@ -88,13 +171,70 @@ do_sdsc = False
         f.write('notification = Never\n')
 
         for q in queue_list :
+
+            injob_filelist = './' + filelist_dir[filelist_dir.find(tarred_dir):] + '/'
+            injob_filelist += sample
+            injob_filelist += '/%s' % q
+
             log_base = q.split('/')[-1].replace('.txt','')
             sys_string = '-c'
             if run_with_systematics :
                 sys_string = '-a'
 
-    
+            arg_string = ' %s %s %s %s ' % (sf_exec_name, tarred_dir, injob_filelist, q)
 
+            sflow_args = ' %s ' % sys_string
+            if use_sumw_file :
+                sflow_args += ' --sumw ./susynt-read/sumw_file.root '
+
+            arg_string += sflow_args
+
+            f.write('\n')
+            f.write('arguments = %s\n' % arg_string)
+            f.write('output = log_%s.out\n' % log_base)
+            f.write('log = log_%s.log\n' % log_base)
+            f.write('error = log_%s.err\n' % log_base)
+            f.write('queue\n')
+
+def make_executable(exec_name) :
+
+    with open(exec_name, 'w') as f :
+        f.write('#!/bin/bash\n\n\n')
+        f.write('echo "--------- %s ----------"\n' % exec_name)
+        f.write('hostname\n')
+        f.write('echo "start: `date`"\n')
+        f.write('echo "input arguments:"\n')
+        f.write('sf_exec=${1}\n')
+        f.write('tarred_dir=${2}\n')
+        f.write('injob_filelist=${3}\n')
+        f.write('sample_list=${4}\n')
+        f.write('sflow_options=${5}\n')
+        f.write('echo "   SF executable         : ${sf_exec}"\n')
+        f.write('echo "   tarred directory      : ${tarred_dir}"\n')
+        f.write('echo "   injob filelist loc    : ${injob_filelist}"\n')
+        f.write('echo "   sample list name      : ${sample_list}"\n')
+        f.write('echo "   sflow options         : ${sflow_options}"\n\n')
+        f.write('while (( "$#" )); do\n')
+        f.write('   shift\n')
+        f.write('done\n\n')
+        f.write('startdir=${PWD}\n')
+        f.write('echo "untarring area.tgz"\n')
+        f.write('tar -xvf area.tgz\n\n')
+        f.write('echo "current directory structure:"\n')
+        f.write('ls -ltrh\n\n')
+        f.write('export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase\n')
+        f.write('source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh\n')
+        f.write('echo "cd ${stored_dir}"\n') 
+        f.write('cd ${stored_dir}\n')
+        f.write('echo "current directory structure:"\n')
+        f.write('ls -ltrh\n')
+        f.write('lsetup fax\n')
+        f.write('source build/x86*/setup.sh\n')
+        f.write('echo "cd ${startdir}"\n')
+        f.write('echo "calling: ${sf_exec} -i ${injob_filelist} ${sflow_options}"\n')
+        f.write('${sf_exec} -i ${injob_filelist} ${sflow_options}\n')
+        f.write('echo "final directory structure:"\n')
+        f.write('ls -ltrh\n')
 
 def submit_sample(sample, verbose = False) :
 
@@ -111,15 +251,37 @@ def submit_sample(sample, verbose = False) :
 
     split_dict, queue_list = get_split_samples(txt_files_for_sample)
 
+    start_path = os.getcwd()
+
     if queue_list :
+
+        if verbose :
+            print 'Making \"output\" directory'
+
+        cmd = 'mkdir -p output'
+        subprocess.call(cmd, shell = True)
+        full_raw = os.path.abspath("./output")
+        os.chdir(full_raw)
+        if verbose :
+            print 'Current dir: %s' % os.getcwd()
+
+        print 'making queue list'
         condor_filename = 'submit_%s.condor' % sample
         exec_name = 'run_condor_sf_%s.sh' % sample
-        condor_file_name, condor_exec_name = make_condor_file(sample, queue_list, condor_filename, exec_name)
+        make_condor_file(sample, queue_list, condor_filename, exec_name)
+        make_executable(exec_name)
 
+        os.chdir(start_path)
+        if verbose :
+            print 'Current dir: %s' % os.getcwd()
 
-    
+def get_samples(args) :
 
-    
+    global samples
+
+    if args.sample != "" :
+        samples = [s.strip() for s in args.sample.split(",")]
+    return samples
 
 def main() :
 
@@ -128,16 +290,27 @@ def main() :
         help = 'Override samples list by providing a sample name (can be comma-separated-list)')
     parser.add_argument('-v', '--verbose', default = False, action = 'store_true',
         help = 'Turn on verbose mode')
+    parser.add_argument('-t', '--tar', default = False, action = 'store_true',
+        help = 'Create tar file for sending to job location')
+    parser.add_argument('--tar-name', default = 'area.tgz',
+        help = 'Set name of tar file')
+    parser.add_argument('--prefix', default = 'root://fax.mwt2.org:1094/',
+        help = 'Provide FAX STORAGEPREFIX to use (used when creating filelists for tar file creation')
+    parser.add_argument('--skip-list-creation', default = False, action = 'store_true',
+        help = 'Do not build filelists during tar file creation, use already existing \"filelist/\" dir')
     args = parser.parse_args()
 
-    if args.sample != "" :
-        samples = [s.strip() for s in args.sample.split(",")]
-    check_samples(samples, filelist_dir)
+    if args.tar :
+        create_tar(args)
 
-    n_samples = len(samples)
-    for isample, sample in enumerate(samples) :
-        print '[%02d/%02d] Submitting %s' % (isample+1, n_samples, sample)
-        submit_sample(sample, args.verbose)
+    else :
+        samples = get_samples(args)
+        check_samples(samples, filelist_dir)
+
+        n_samples = len(samples)
+        for isample, sample in enumerate(samples) :
+            print '[%02d/%02d] Submitting %s' % (isample+1, n_samples, sample)
+            submit_sample(sample, args.verbose)
 
     
 
