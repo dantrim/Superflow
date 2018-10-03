@@ -165,6 +165,7 @@ def main() :
         run_cmd += ' %s '%ana_name
         run_cmd += ' susynt-read '
         run_cmd += ' %s '%process_group
+        #run_cmd += ' %s '%run_mode # put here any extra cmd line options for Superflow executable
         run_cmd += ' %s --sumw ./susynt-read/sumw_file.root '%run_mode # put here any extra cmd line options for Superflow executable
         run_cmd += '"'
         run_cmd += ' condor_submit %s '%script_name
@@ -290,7 +291,7 @@ def build_condor_script(script_name, executable_name, proc_group_name, n_samples
     f.write('+site_local=%s\n'%local)
     f.write('+sdsc=%s\n'%sdsc)
     f.write('+uc=%s\n'%uc)
-    f.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/atlas/analysisbase:21.2.4"\n')
+#    f.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/atlas/analysisbase:21.2.4"\n')
     f.write('executable = %s\n'%executable_name)
     f.write('arguments = $(Process) $ENV(ARGS)\n')
     f.write('should_transfer_files = YES\n')
@@ -340,6 +341,8 @@ def build_job_executable(executable_name, process_group, n_samples_in_group) :
     f.write('lsetup fax\n')
     f.write('export STORAGEPREFIX=root://fax.mwt2.org:1094/\n')
     f.write('source bash/setup_release.sh\n') # --compile\n')
+    if "_rj_" in ana_name :
+        f.write('source source/RJTupler/scripts/setup_rj.sh\n')
     #f.write('source susynt-read/bash/setup_root.sh\n')
     #f.write('echo " > calling : source RootCore/local_setup.sh"\n')
     #f.write('source RootCore/local_setup.sh\n')

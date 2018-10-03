@@ -223,7 +223,7 @@ def look_for_condor_script(brick_ = False, local_ = False, sdsc_ = False, uc_ = 
     f.write('+site_local=%s\n'%local_)
     f.write('+sdsc=%s\n'%sdsc_)
     f.write('+uc=%s\n'%uc_)
-    f.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/atlas/analysisbase:21.2.4"\n')
+#    f.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/atlas/analysisbase:21.2.4"\n')
     f.write('executable = RunCondorSF.sh\n')
     f.write('arguments = $ENV(ARGS)\n')
     f.write('should_transfer_files = YES\n')
@@ -271,6 +271,8 @@ def look_for_condor_executable() :
     f.write('lsetup fax\n')
     f.write('export STORAGEPREFIX=root://fax.mwt2.org:1094/\n')
     f.write('source bash/setup_release.sh\n')
+    if "_rj_" in ana_name :
+        f.write('source source/RJTupler/scripts/setup_rj.sh\n')
 #    f.write('source susynt-read/bash/setup_root.sh\n')
 #    f.write('echo "Calling : source RootCore/local_setup.sh"\n')
 #    f.write('source RootCore/local_setup.sh\n')
