@@ -126,6 +126,7 @@ def create_tar(args) :
         os.chdir(loc_to_place)
 
     things_to_tar = ['build/*'] #, 'filelists/*'] #, 'sumw_file.root']
+    things_to_tar.append('data/*')
 
     if not os.path.isdir('%s/%s/filelists/' % (loc_to_place, tarred_dir)) :
         print 'ERROR \"filelists\" directory was not made as expected!'
