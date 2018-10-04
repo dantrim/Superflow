@@ -47,9 +47,6 @@ def sflow_exec_arg_string() :
     if use_sumw_file :
         sflow_args += ' --sumw ./susynt-read/sumw_file.root '
 
-    print 'WARNING ONLY LOOPING OVER 50 EVENTS'
-    sflow_args += ' -n 50 '
-
     return sflow_args
 
 def create_prefixed_lists(base_list_dir, storage_prefix) :
