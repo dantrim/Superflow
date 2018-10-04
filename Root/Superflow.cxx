@@ -581,8 +581,8 @@ bool Superflow::computeWeights( Susy::SusyNtObject &ntobj, MCWeighter &weighter,
         // JVT eff
         bool do_jvt = false;
         switch (super_sys->weight_syst) {
-            case SupersysWeight::JVT_EFF_UP :
-            case SupersysWeight::JVT_EFF_DN : {
+            case SupersysWeight::JET_JVTEff_UP :
+            case SupersysWeight::JET_JVTEff_DN : {
                 do_jvt = true;
                 break;
             } default: break;
@@ -592,10 +592,10 @@ bool Superflow::computeWeights( Susy::SusyNtObject &ntobj, MCWeighter &weighter,
             for(int i = 0; i < (int)jets.size(); i++) {
                 double sf = jets[i]->jvtEff;
                 double delta = 0.0;
-                if(super_sys->weight_syst == SupersysWeight::JVT_EFF_UP) {
+                if(super_sys->weight_syst == SupersysWeight::JET_JVTEff_UP) {
                     delta = jets[i]->jvtEff_up;
                 }
-                else if(super_sys->weight_syst == SupersysWeight::JVT_EFF_DN) {
+                else if(super_sys->weight_syst == SupersysWeight::JET_JVTEff_DN) {
                     delta = jets[i]->jvtEff_dn;
                 }
                 outsf *= (sf + delta);
@@ -606,26 +606,42 @@ bool Superflow::computeWeights( Susy::SusyNtObject &ntobj, MCWeighter &weighter,
         if(leptons.size()>=1) {
             bool do_lepSf_ = false;
             switch(super_sys->weight_syst) {
-                case SupersysWeight::EL_EFF_ID_UP :
-                case SupersysWeight::EL_EFF_ID_DN :
-                case SupersysWeight::EL_EFF_ISO_UP :
-                case SupersysWeight::EL_EFF_ISO_DN : 
-                case SupersysWeight::EL_EFF_RECO_UP :
-                case SupersysWeight::EL_EFF_RECO_DN :
-                case SupersysWeight::EL_EFF_TRIG_UP :
-                case SupersysWeight::EL_EFF_TRIG_DN :
-                case SupersysWeight::MUON_EFF_STAT_UP :
-                case SupersysWeight::MUON_EFF_STAT_DN :
-                case SupersysWeight::MUON_EFF_STAT_LOWPT_UP :
-                case SupersysWeight::MUON_EFF_STAT_LOWPT_DN :
-                case SupersysWeight::MUON_EFF_SYS_UP :
-                case SupersysWeight::MUON_EFF_SYS_DN :
-                case SupersysWeight::MUON_EFF_SYS_LOWPT_UP :
-                case SupersysWeight::MUON_EFF_SYS_LOWPT_DN :
-                case SupersysWeight::MUON_EFF_ISO_STAT_UP :
+                case SupersysWeight::EL_EFF_ChargeIDSel_DN :
+                case SupersysWeight::EL_EFF_ChargeIDSel_UP :
+                case SupersysWeight::EL_EFF_ID_TOTAL_Uncorr_DN :
+                case SupersysWeight::EL_EFF_ID_TOTAL_Uncorr_UP :
+                case SupersysWeight::EL_EFF_Iso_TOTAL_Uncorr_DN :
+                case SupersysWeight::EL_EFF_Iso_TOTAL_Uncorr_UP :
+                case SupersysWeight::EL_EFF_Reco_TOTAL_Uncorr_DN :
+                case SupersysWeight::EL_EFF_Reco_TOTAL_Uncorr_UP :
+                case SupersysWeight::EL_EFF_TriggerEff_TOTAL_DN :
+                case SupersysWeight::EL_EFF_TriggerEff_TOTAL_UP :
+                case SupersysWeight::EL_EFF_Trigger_TOTAL_DN :
+                case SupersysWeight::EL_EFF_Trigger_TOTAL_UP :
+                case SupersysWeight::MUON_EFF_BADMUON_STAT_DN :
+                case SupersysWeight::MUON_EFF_BADMUON_STAT_UP :
+                case SupersysWeight::MUON_EFF_BADMUON_SYS_DN :
+                case SupersysWeight::MUON_EFF_BADMUON_SYS_UP :
                 case SupersysWeight::MUON_EFF_ISO_STAT_DN :
-                case SupersysWeight::MUON_EFF_ISO_SYS_UP :
+                case SupersysWeight::MUON_EFF_ISO_STAT_UP :
                 case SupersysWeight::MUON_EFF_ISO_SYS_DN :
+                case SupersysWeight::MUON_EFF_ISO_SYS_UP :
+                case SupersysWeight::MUON_EFF_RECO_STAT_DN :
+                case SupersysWeight::MUON_EFF_RECO_STAT_UP :
+                case SupersysWeight::MUON_EFF_RECO_SYS_DN :
+                case SupersysWeight::MUON_EFF_RECO_SYS_UP :
+                case SupersysWeight::MUON_EFF_RECO_STAT_LOWPT_DN :
+                case SupersysWeight::MUON_EFF_RECO_STAT_LOWPT_UP :
+                case SupersysWeight::MUON_EFF_RECO_SYS_LOWPT_DN :
+                case SupersysWeight::MUON_EFF_RECO_SYS_LOWPT_UP :
+                case SupersysWeight::MUON_EFF_TTVA_STAT_DN :
+                case SupersysWeight::MUON_EFF_TTVA_STAT_UP :
+                case SupersysWeight::MUON_EFF_TTVA_SYS_DN :
+                case SupersysWeight::MUON_EFF_TTVA_SYS_UP :
+                case SupersysWeight::MUON_EFF_TrigStat_DN :
+                case SupersysWeight::MUON_EFF_TrigStat_UP :
+                case SupersysWeight::MUON_EFF_TrigSys_DN :
+                case SupersysWeight::MUON_EFF_TrigSys_UP :
                 case SupersysWeight::null : {
                     do_lepSf_ = true;
                 }; break;
@@ -725,6 +741,7 @@ double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const Super
     double sf = 1.0;
     double delta = 0.0;
 
+    #warning NEED TO CORRECTLY HANDLE TRIGGER SF and TRIGGER SF ERRORS
     AnalysisType currentAnaType = nttools().getAnaType();
 
     if (lep.isEle()) {
@@ -732,86 +749,123 @@ double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const Super
 
         // get the ElectronId for the analysis type to select the correct errSF
         ElectronId id = m_nttools.electronSelector().signalId();
-        //if(currentAnaType==AnalysisType::Ana_Stop2L) { id = ElectronId::MediumLLH; }
-        //else { id = ElectronId::TightLLH; }
 
         // select the nominal SF
         sf = el->eleEffSF[id];
-    #warning NOT HANDLING LEPTON EFFICIENCY SCALEFACTOR UNCERTAINTIES
 
-//        if (sys == SupersysWeight::EL_EFF_ID_UP) {
-//            delta = el->errEffSF_id_up[id];    // we store the signed errEffSF
-//        }
-//        else if (sys == SupersysWeight::EL_EFF_ID_DN) {
-//            delta = el->errEffSF_id_dn[id];    // we store the signed errEffSF
-//        }
-//        else if (sys == SupersysWeight::EL_EFF_ISO_UP) {
-//            delta = el->errEffSF_iso_up[id];
-//        }
-//        else if (sys == SupersysWeight::EL_EFF_ISO_DN) {
-//            delta = el->errEffSF_iso_dn[id];
-//        }
-//        else if (sys == SupersysWeight::EL_EFF_RECO_UP) {
-//            delta = el->errEffSF_reco_up[id];  // we store the signed errEffSF
-//        }
-//        else if (sys == SupersysWeight::EL_EFF_RECO_DN) {
-//            delta = el->errEffSF_reco_dn[id];  // we store the signed errEffSF
-//        }
-//        #warning we only handle single lepton trigger for trigger SF systematics 
-//        else if (sys == SupersysWeight::EL_EFF_TRIG_UP) {
-//            delta = el->errEffSF_trig_up_single[id];
-//        }
-//        else if (sys == SupersysWeight::EL_EFF_TRIG_DN) {
-//            delta = el->errEffSF_trig_dn_single[id];
-//        }
+        // not storing charge id selection SF
+        //if ( sys == SupersysWeight::EL_EFF_ChargeIDSel_DN ) {
+        //}
+        //else if( sys == SupersysWeight::EL_EFF_ChargeIDSel_UP ) {
+        //}
+        if( sys == SupersysWeight::EL_EFF_ID_TOTAL_Uncorr_DN ) {
+            delta = el->errEffSF_id_dn[id];
+        }
+        else if( sys == SupersysWeight::EL_EFF_ID_TOTAL_Uncorr_UP ) {
+            delta = el->errEffSF_id_up[id];
+        }
+        else if( sys == SupersysWeight::EL_EFF_Iso_TOTAL_Uncorr_DN ) {
+            delta = el->errEffSF_iso_dn[id];
+        }
+        else if( sys == SupersysWeight::EL_EFF_Iso_TOTAL_Uncorr_UP ) {
+            delta = el->errEffSF_iso_up[id];
+        }
+        else if( sys == SupersysWeight::EL_EFF_Reco_TOTAL_Uncorr_DN ) {
+            delta = el->errEffSF_reco_dn[id];
+        }
+        else if( sys == SupersysWeight::EL_EFF_Reco_TOTAL_Uncorr_UP ) {
+            delta = el->errEffSF_reco_up[id];
+        }
+        //else if( sys == SupersysWeight::EL_EFF_TriggerEff_TOTAL_DN ) {
+        //}
+        //else if( sys == SupersysWeight::EL_EFF_TriggerEff_TOTAL_UP ) {
+        //}
+        //else if( sys == SupersysWeight::EL_EFF_Trigger_TOTAL_DN ) {
+        //}
+        //else if( sys == SupersysWeight::EL_EFF_Trigger_TOTAL_UP ) {
+        //}
     } // isEle
     else if (lep.isMu()) {
         const Muon* mu = dynamic_cast<const Muon*> (&lep);
 
         // get the MuonId for the analysis type to select the correct errSF
         MuonId id = m_nttools.muonSelector().signalId();
-//        if(currentAnaType==AnalysisType::Ana_Stop2L) { id = MuonId::Medium; }
-//        else { id = MuonId::Medium; }
 
         // select the nominal SF
         sf = mu->muoEffSF[id];
 
-//        if ( sys == SupersysWeight::MUON_EFF_STAT_UP ) {
-//            delta = mu->errEffSF_stat_up[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_STAT_DN ) {
-//            delta = mu->errEffSF_stat_dn[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_STAT_LOWPT_UP ) {
-//            delta = mu->errEffSF_stat_lowpt_up[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_STAT_LOWPT_DN ) {
-//            delta = mu->errEffSF_stat_lowpt_dn[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_SYS_UP ) {
-//            delta = mu->errEffSF_syst_up[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_SYS_DN ) {
-//            delta = mu->errEffSF_syst_dn[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_SYS_LOWPT_UP ) {
-//            delta = mu->errEffSF_syst_lowpt_up[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_SYS_LOWPT_DN ) {
-//            delta = mu->errEffSF_syst_lowpt_dn[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_ISO_STAT_UP ) {
-//            delta = mu->errIso_stat_up[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_ISO_STAT_DN ) {
-//            delta = mu->errIso_stat_dn[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_ISO_SYS_UP ) {
-//            delta = mu->errIso_syst_up[id];
-//        }
-//        else if (sys == SupersysWeight::MUON_EFF_ISO_SYS_DN ) {
-//            delta = mu->errIso_syst_dn[id];
-//        }
+        if ( sys == SupersysWeight::MUON_EFF_BADMUON_STAT_DN ) {
+            delta = mu->errEffSF_badmu_stat_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_BADMUON_STAT_UP ) {
+            delta = mu->errEffSF_badmu_stat_up[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_BADMUON_SYS_DN ) {
+            delta = mu->errEffSF_badmu_syst_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_BADMUON_SYS_UP ) {
+            delta = mu->errEffSF_badmu_syst_up[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_ISO_STAT_DN ) {
+            delta = mu->errEffSF_iso_stat_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_ISO_STAT_UP ) {
+            delta = mu->errEffSF_iso_stat_up[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_ISO_SYS_DN ) {
+            delta = mu->errEffSF_iso_syst_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_ISO_SYS_UP ) {
+            delta = mu->errEffSF_iso_syst_up[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_RECO_STAT_DN ) {
+            delta = mu->errEffSF_reco_stat_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_RECO_STAT_UP ) {
+            delta = mu->errEffSF_reco_stat_up[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_RECO_SYS_DN ) {
+            delta = mu->errEffSF_reco_syst_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_RECO_SYS_UP ) {
+            delta = mu->errEffSF_reco_syst_up[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_RECO_STAT_LOWPT_DN ) {
+            delta = mu->errEffSF_reco_lowpt_stat_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_RECO_STAT_LOWPT_UP ) {
+            delta = mu->errEffSF_reco_lowpt_stat_up[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_RECO_SYS_LOWPT_DN ) {
+            delta = mu->errEffSF_reco_lowpt_syst_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_RECO_SYS_LOWPT_UP ) {
+            delta = mu->errEffSF_reco_lowpt_syst_up[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_TTVA_STAT_DN ) {
+            delta = mu->errEffSF_ttva_stat_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_TTVA_STAT_UP ) {
+            delta = mu->errEffSF_ttva_stat_up[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_TTVA_SYS_DN ) {
+            delta = mu->errEffSF_ttva_syst_dn[id];
+        }
+        else if( sys == SupersysWeight::MUON_EFF_TTVA_SYS_UP ) {
+            delta = mu->errEffSF_ttva_syst_up[id];
+        }
+        //else if( sys == SupersysWeight::MUON_EFF_TrigStat_DN ) {
+        //    delta = mu->errEffSF_trig_stat_dn[id];
+        //}
+        //else if( sys == SupersysWeight::MUON_EFF_TrigStat_UP ) {
+        //    delta = mu->errEffSF_trig_stat_up[id];
+        //}
+        //else if( sys == SupersysWeight::MUON_EFF_TrigSys_DN ) {
+        //    delta = mu->errEffSF_trig_syst_dn[id];
+        //}
+        //else if( sys == SupersysWeight::MUON_EFF_TrigSys_UP ) {
+        //    delta = mu->errEffSF_trig_syst_up[id];
+        //}
     } // isMu
 
     out_SF = (sf + delta);
