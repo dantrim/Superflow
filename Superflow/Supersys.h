@@ -157,4 +157,4 @@ namespace sflow {
     //////////////////////////////////////////////////////
     BTagSys supersys_to_btagsys(SupersysWeight sys);
 
-};
+}

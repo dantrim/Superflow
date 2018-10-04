@@ -168,7 +168,7 @@ Bool_t Superflow::Process(Long64_t entry)
             // loop over the loaded cuts
             bool pass_cuts = true;
             if (m_CutStore.size() > 0) {
-                for (int i = 0; i < m_CutStore.size(); i++) {
+                for (int i = 0; i < (int)m_CutStore.size(); i++) {
                     pass_cuts = m_CutStore[i](sl_);
                     if (pass_cuts) {
                         m_RawCounter[i]++;
@@ -181,7 +181,7 @@ Bool_t Superflow::Process(Long64_t entry)
 
             // we have passed the cuts, now fill the trees
             if (pass_cuts) {
-                for (int v_ = 0; v_ < m_varType.size(); v_++) {
+                for (int v_ = 0; v_ < (int)m_varType.size(); v_++) {
                     switch (m_varType[v_]) {
                         case SupervarType::sv_float: {
                             m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_);
@@ -240,7 +240,7 @@ Bool_t Superflow::Process(Long64_t entry)
             }
 
             if (m_CutStore.size() > 0) {
-                for (int i = 0; i < m_CutStore.size(); i++) {
+                for (int i = 0; i < (int)m_CutStore.size(); i++) {
                     pass_cuts = m_CutStore[i](sl_); // run the cut function
                     if (pass_cuts) {
                         m_RawCounter[i]++;
@@ -259,7 +259,7 @@ Bool_t Superflow::Process(Long64_t entry)
                 }
 
                 // FILL_HFTs
-                for (int v_ = 0; v_ < m_varType.size(); v_++) {
+                for (int v_ = 0; v_ < (int)m_varType.size(); v_++) {
                     switch (m_varType[v_]) {
                         case SupervarType::sv_float: {
                             m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_);
@@ -301,7 +301,7 @@ Bool_t Superflow::Process(Long64_t entry)
         // processing all systematics
         ////////////////////////////////////////////////////////////////////
         case SuperflowRunMode::all_syst: {
-            for (int i = 0; i < index_event_sys.size(); i++) { // loop over event systematics
+            for (int i = 0; i < (int)index_event_sys.size(); i++) { // loop over event systematics
                 SusyNtAna::clearObjects();
                 delete m_RunSyst;
 
@@ -315,7 +315,7 @@ Bool_t Superflow::Process(Long64_t entry)
                 bool pass_cuts = true;
 
                 if (m_CutStore.size() > 0) {
-                    for (int k = 0; k < m_CutStore.size(); k++) {
+                    for (int k = 0; k < (int)m_CutStore.size(); k++) {
                         pass_cuts = m_CutStore[k](sl_);
                         if (!pass_cuts) break;
                     }
@@ -324,7 +324,7 @@ Bool_t Superflow::Process(Long64_t entry)
                 if (pass_cuts) {
                     computeWeights(nt, *m_mcWeighter, m_signalLeptons, m_baseJets, m_RunSyst, m_weights);
                     // FILL_HFTs
-                    for (int v_ = 0; v_ < m_varType.size(); v_++) {
+                    for (int v_ = 0; v_ < (int)m_varType.size(); v_++) {
                         switch (m_varType[v_]) {
                             case SupervarType::sv_float: {
                                 m_varFloat_array[i][v_] = m_varExprFloat[v_](sl_, vf_);
@@ -385,7 +385,7 @@ Bool_t Superflow::Process(Long64_t entry)
             bool pass_cuts = true;
 
             if (m_CutStore.size() > 0) {
-                for (int i = 0; i < m_CutStore.size(); i++) {
+                for (int i = 0; i < (int)m_CutStore.size(); i++) {
                     pass_cuts = m_CutStore[i](sl_); // run the cut function
 
                     if (pass_cuts) {
@@ -406,7 +406,7 @@ Bool_t Superflow::Process(Long64_t entry)
                     m_WeightCounter[m_CutStore.size() - 1] += m_weights->product();
 
                 // FILL HFTs
-                for (int v_ = 0; v_ < m_varType.size(); v_++) {
+                for (int v_ = 0; v_ < (int)m_varType.size(); v_++) {
                     switch (m_varType[v_]) {
                         case SupervarType::sv_float: {
                             m_varFloat[v_] = m_varExprFloat[v_](sl_, vf_);
@@ -442,7 +442,7 @@ Bool_t Superflow::Process(Long64_t entry)
                 /////////////////////////////////////////
                 // fill the weight variations
                 /////////////////////////////////////////
-                for (int w_ = 0; w_ < index_weight_sys.size(); w_++) {
+                for (int w_ = 0; w_ < (int)index_weight_sys.size(); w_++) {
                     Superweight* weightComponents_copy = new Superweight(*m_weights);
 
                     // Up variation
@@ -497,7 +497,7 @@ void Superflow::Terminate()
     cout << app_name << "----------------------------- -------------------------------" << endl;
     cout << std::fixed;
     cout << std::setprecision(0);
-    for (int i = 0; i < m_CutStore.size(); i++) {
+    for (int i = 0; i < (int)m_CutStore.size(); i++) {
         cout << app_name << "Cut " << pad_width(to_string(i), 2) << ": " << pad_width(m_CutStoreNames[i], 32) << ": " << m_RawCounter[i] << endl;
     }
     cout << app_name << endl << app_name << endl;
@@ -508,7 +508,7 @@ void Superflow::Terminate()
     cout << std::resetiosflags(std::ios::floatfield);
     cout << std::resetiosflags(std::ios::adjustfield);
     cout << std::setprecision(6);
-    for (int i = 0; i < m_CutStore.size(); i++) {
+    for (int i = 0; i < (int)m_CutStore.size(); i++) {
         cout << app_name << "Cut " << pad_width(to_string(i), 2) << ": " << pad_width(m_CutStoreNames[i], 32) << ": " << m_WeightCounter[i] << endl;
     }
     cout << app_name << endl << app_name << endl;
@@ -740,9 +740,6 @@ double Superflow::computeLeptonEfficiencySf(const Susy::Lepton &lep, const Super
     double out_SF = 1.0;
     double sf = 1.0;
     double delta = 0.0;
-
-    #warning NEED TO CORRECTLY HANDLE TRIGGER SF and TRIGGER SF ERRORS
-    AnalysisType currentAnaType = nttools().getAnaType();
 
     if (lep.isEle()) {
         const Electron* el = dynamic_cast<const Electron*> (&lep);

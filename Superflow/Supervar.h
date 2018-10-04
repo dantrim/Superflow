@@ -82,5 +82,5 @@ namespace sflow {
         SaveVar() {};
     };
 
-};
+}
 

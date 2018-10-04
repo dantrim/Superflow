@@ -33,4 +33,4 @@ double Superweight::product_multi()
     return susynt_multi * lepSf;
 }
 
-}; // namespace
+} // namespace

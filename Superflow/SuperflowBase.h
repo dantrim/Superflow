@@ -235,7 +235,7 @@ namespace sflow {
     }; // class SuperflowBase
 
 
-}; // namespace sflow
+} // namespace sflow
 
 
 

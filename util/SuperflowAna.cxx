@@ -4,7 +4,7 @@
 // std
 #include <cstdlib>
 #include <cmath>
-#include <fstream> 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <getopt.h>
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
     options.ana_name = ana_name;
     if(!read_options(options)) {
         exit(1);
-    } 
+    }
 
     TChain* chain = new TChain("susyNt");
     chain->SetDirectory(0);
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     ////////////////////////////////////////////////////////////
     Superflow* cutflow = new Superflow(); // initialize the cutflow
     cutflow->setAnaName(options.ana_name);
-    cutflow->setAnaType(AnalysisType::Ana_2Lep); 
+    cutflow->setAnaType(AnalysisType::Ana_2Lep);
     cutflow->setLumi(1000); // set lumi to 1/fb
     cutflow->setSampleName(options.input);
     cutflow->setRunMode(options.run_mode);
@@ -85,13 +85,13 @@ int main(int argc, char* argv[])
     /////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
-    
-    *cutflow << CutName("read in") << [](Superlink* sl) -> bool { return true; };
+
+    *cutflow << CutName("read in") << [](Superlink* /*sl*/) -> bool { return true; };
 
     ////////////////////////////////////////////////////////////
     //  Event Cleaning Cuts
     ////////////////////////////////////////////////////////////
-    
+
     int cutflags = 0;
     *cutflow << CutName("Pass GRL") << [&](Superlink* sl) -> bool {
         cutflags = sl->nt->evt()->cutFlags[NtSys::NOM];
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     ////////////////////////////////////////////////////////////
     //  Analysis Cuts
     ////////////////////////////////////////////////////////////
-    
+
     *cutflow << CutName("exactly two base leptons") << [](Superlink* sl) -> bool {
         return sl->baseLeptons->size() == 2;
     };
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("event weight"); {
         *cutflow << HFTname("eventweight");
-        *cutflow << [](Superlink* sl, var_double*) -> double { 
+        *cutflow << [](Superlink* sl, var_double*) -> double {
             return sl->weights->product();
         };
         *cutflow << SaveVar();
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("mcChannel (dsid)"); {
         *cutflow << HFTname("dsid");
         *cutflow << [&](Superlink* sl, var_double*) -> double {
-            if (sl->isMC) {                        
+            if (sl->isMC) {
                 return sl->nt->evt()->mcChannel;
             }
             else{
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("Monte-Carlo generator event weight"); {
         *cutflow << HFTname("w");
         *cutflow << [](Superlink* sl, var_double*) -> double {
-            return sl->nt->evt()->w; 
+            return sl->nt->evt()->w;
         };
         *cutflow << SaveVar();
     }
@@ -328,7 +328,7 @@ int main(int argc, char* argv[])
     *cutflow << NewVar("number of central light jets"); {
         *cutflow << HFTname("nCentralLightJets");
         *cutflow << [&](Superlink* sl, var_int*) -> int {
-            for (int i = 0; i < sl->jets->size(); i++) {
+            for (int i = 0; i < (int)sl->jets->size(); i++) {
                 if( sl->tools->jetSelector().isCentralLight(sl->jets->at(i))){
                     central_light_jets.push_back(sl->jets->at(i));
                 }
@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("jet-1 Pt"); {
         *cutflow << HFTname("jet1Pt");
-        *cutflow << [&](Superlink* sl, var_float*) -> double {
+        *cutflow << [&](Superlink* /*sl*/, var_float*) -> double {
             return central_light_jets.size() >= 1 ? central_light_jets[0]->Pt() : 0.0;
         };
         *cutflow << SaveVar();
@@ -360,7 +360,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("jet-1 Eta"); {
         *cutflow << HFTname("jet1Eta");
-        *cutflow << [&](Superlink* sl, var_float*) -> double {
+        *cutflow << [&](Superlink* /*sl*/, var_float*) -> double {
             return central_light_jets.size() >= 1 ? central_light_jets[0]->Eta() : 0.0;
         };
         *cutflow << SaveVar();
@@ -368,7 +368,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("jet-1 Phi"); {
         *cutflow << HFTname("jet1Phi");
-        *cutflow << [&](Superlink* sl, var_float*) -> double {
+        *cutflow << [&](Superlink* /*sl*/, var_float*) -> double {
             return central_light_jets.size() >= 1 ? central_light_jets[0]->Phi() : 0.0;
         };
         *cutflow << SaveVar();
@@ -376,7 +376,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("jet-2 Pt"); {
         *cutflow << HFTname("jet2Pt");
-        *cutflow << [&](Superlink* sl, var_float*) -> double {
+        *cutflow << [&](Superlink* /*sl*/, var_float*) -> double {
             return central_light_jets.size() >= 2 ? central_light_jets[1]->Pt() : 0.0;
         };
         *cutflow << SaveVar();
@@ -384,7 +384,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("jet-2 Eta"); {
         *cutflow << HFTname("jet2Eta");
-        *cutflow << [&](Superlink* sl, var_float*) -> double {
+        *cutflow << [&](Superlink* /*sl*/, var_float*) -> double {
             return central_light_jets.size() >= 2 ? central_light_jets[1]->Eta() : 0.0;
         };
         *cutflow << SaveVar();
@@ -392,13 +392,13 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("jet-2 Phi"); {
         *cutflow << HFTname("jet2Phi");
-        *cutflow << [&](Superlink* sl, var_float*) -> double {
+        *cutflow << [&](Superlink* /*sl*/, var_float*) -> double {
             return central_light_jets.size() >= 2 ? central_light_jets[1]->Phi() : 0.0;
         };
         *cutflow << SaveVar();
     }
 
-    *cutflow << [&](Superlink* sl, var_void*) { central_light_jets.clear(); };
+    *cutflow << [&](Superlink* /*sl*/, var_void*) { central_light_jets.clear(); };
 
     // MET
     // MET
@@ -451,7 +451,7 @@ int main(int argc, char* argv[])
 
     *cutflow << NewVar("Pt of di-lepton system, Pt_ll"); {
         *cutflow << HFTname("pTll");
-        *cutflow << [&](Superlink* sl, var_float*) -> double { return local_ll.Pt(); };
+        *cutflow << [&](Superlink* /*sl*/, var_float*) -> double { return local_ll.Pt(); };
         *cutflow << SaveVar();
     }
 
@@ -474,7 +474,7 @@ int main(int argc, char* argv[])
 
             ht += sl->leptons->at(0)->Pt() + sl->leptons->at(1)->Pt();
             ht += sl->met->Et;
-            for (int i = 0; i < sl->jets->size(); i++) {
+            for (int i = 0; i < (int)sl->jets->size(); i++) {
                 if (sl->jets->at(i)->Pt() > 20.0) {
                     ht += sl->jets->at(i)->Pt();
                 }
@@ -498,7 +498,7 @@ int main(int argc, char* argv[])
         *cutflow << [](Superlink* sl, var_float*) -> double {
             double   mDeltaR              = 0.0;
             double   SHATR                = 0.0;
-            double   cosThetaRp1          = 0.0; 
+            double   cosThetaRp1          = 0.0;
             double   dphi_LL_vBETA_T      = 0.0;
             double   dphi_L1_L2           = 0.0;
             double   gamma_R              = 0.0;
@@ -521,7 +521,7 @@ int main(int argc, char* argv[])
         *cutflow << [](Superlink* sl, var_double*) -> double {
             double   mDeltaR              = 0.0;
             double   SHATR                = 0.0;
-            double   cosThetaRp1          = 0.0; 
+            double   cosThetaRp1          = 0.0;
             double   dphi_LL_vBETA_T      = 0.0;
             double   dphi_L1_L2           = 0.0;
             double   gamma_R              = 0.0;
@@ -555,17 +555,17 @@ int main(int argc, char* argv[])
     ////////////////////////////////////
 
     *cutflow << NewSystematic("shift in electron ID efficiency"); {
-        *cutflow << WeightSystematic(SupersysWeight::EL_EFF_ID_UP, SupersysWeight::EL_EFF_ID_DN);
+        *cutflow << WeightSystematic(SupersysWeight::EL_EFF_ID_TOTAL_Uncorr_UP, SupersysWeight::EL_EFF_ID_TOTAL_Uncorr_DN);
         *cutflow << TreeName("EL_EFF_ID");
         *cutflow << SaveSystematic();
     }
     *cutflow << NewSystematic("shift in electron ISO efficiency"); {
-        *cutflow << WeightSystematic(SupersysWeight::EL_EFF_ISO_UP, SupersysWeight::EL_EFF_ISO_DN);
+        *cutflow << WeightSystematic(SupersysWeight::EL_EFF_Iso_TOTAL_Uncorr_UP, SupersysWeight::EL_EFF_Iso_TOTAL_Uncorr_DN);
         *cutflow << TreeName("EL_EFF_Iso");
         *cutflow << SaveSystematic();
     }
     *cutflow << NewSystematic("shift in electron RECO efficiency"); {
-        *cutflow << WeightSystematic(SupersysWeight::EL_EFF_RECO_UP, SupersysWeight::EL_EFF_RECO_DN);
+        *cutflow << WeightSystematic(SupersysWeight::EL_EFF_Reco_TOTAL_Uncorr_UP, SupersysWeight::EL_EFF_Reco_TOTAL_Uncorr_DN);
         *cutflow << TreeName("EL_EFF_Reco");
         *cutflow << SaveSystematic();
     }

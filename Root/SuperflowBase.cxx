@@ -60,18 +60,18 @@ void SuperflowBase::setDebug(bool doit)
 ///////////////////////////////////////////////////////////////////////////////
 void SuperflowBase::initialize_output_arrays()
 {
-    m_nullExprFloat  = [](Superlink* sl, var_float*) -> double { return 0.0; };
-    m_nullExprFloatArray = [](Superlink* sl, var_float_array*) -> vector<double> {
+    m_nullExprFloat  = [](Superlink* /*sl*/, var_float*) -> double { return 0.0; };
+    m_nullExprFloatArray = [](Superlink* /*sl*/, var_float_array*) -> vector<double> {
             vector<double> null;
             for(int i = 0; i < 25; i++) {
                 null.push_back(0.0);
             }
             return null;
     };
-    m_nullExprDouble = [](Superlink* sl, var_double*) -> double { return 0.0; };
-    m_nullExprInt    = [](Superlink* sl, var_int*) -> int { return 0; };
-    m_nullExprBool   = [](Superlink* sl, var_bool*) -> bool { return false; };
-    m_nullExprVoid   = [](Superlink* sl, var_void*) {};
+    m_nullExprDouble = [](Superlink* /*sl*/, var_double*) -> double { return 0.0; };
+    m_nullExprInt    = [](Superlink* /*sl*/, var_int*) -> int { return 0; };
+    m_nullExprBool   = [](Superlink* /*sl*/, var_bool*) -> bool { return false; };
+    m_nullExprVoid   = [](Superlink* /*sl*/, var_void*) {};
 
     m_varFloat  = nullptr;
     m_varDouble = nullptr;
@@ -111,7 +111,7 @@ void SuperflowBase::Begin(TTree* /*tree*/)
 {
     // determine number of weight systematics
     if (m_runMode == SuperflowRunMode::nominal_and_weight_syst || m_runMode == SuperflowRunMode::all_syst) {
-        for (int i = 0; i < m_sysStore.size(); i++) {
+        for (int i = 0; i < (int)m_sysStore.size(); i++) {
             if (m_sysStore[i].type == SupersysType::weight) {
                 index_weight_sys.push_back(i);
             }
@@ -120,16 +120,16 @@ void SuperflowBase::Begin(TTree* /*tree*/)
 
     // determine number of event systematics
     if (m_runMode == SuperflowRunMode::all_syst) {
-        for (int i = 0; i < m_sysStore.size(); i++) {
+        for (int i = 0; i < (int)m_sysStore.size(); i++) {
             if (m_sysStore[i].type == SupersysType::event) {
                 index_event_sys.push_back(i);
             }
         }
     }
-    
+
     // if run mode single_event_syst, set which syst to run on
     if (m_runMode == SuperflowRunMode::single_event_syst) {
-        for (int i = 0; i < m_sysStore.size(); i++) {
+        for (int i = 0; i < (int)m_sysStore.size(); i++) {
             if (m_sysStore[i].type == SupersysType::event && m_sysStore[i].event_syst == m_singleEventSyst) {
                 // initially set to nominal
                 delete m_RunSyst;
@@ -138,11 +138,11 @@ void SuperflowBase::Begin(TTree* /*tree*/)
             }
         }
     } // end if run mode single_event_syst
-    
+
 
 }
 ///////////////////////////////////////////////////////////////////////////////
-void SuperflowBase::Init(TTree* tree)
+void SuperflowBase::Init(TTree* /*tree*/)
 {
 
 }
@@ -187,7 +187,7 @@ void SuperflowBase::determine_output_filename(TString input_sample)
             TString data_run; data_run.Form("%d",nt.evt()->run);
             string year = (data15 ? "2015" : data16 ? "2016" : data17 ? "2017" : "");
             if(year=="") {
-                cout << app_name << "SuperflowBase::determine_output_filename    ERROR Could not determine data year from sample input container: " << endl; 
+                cout << app_name << "SuperflowBase::determine_output_filename    ERROR Could not determine data year from sample input container: " << endl;
                 cout << app_name << "SuperflowBase::determine_output_filename    \t" << input_sample << endl;
                 cout << app_name << "SuperflowBase::determine_output_filename    (seen as: 2015? " << data15 << ", 2016? " << data16 << ", 2017? " << data17 << ")" << endl;
                 exit(1);
@@ -206,7 +206,7 @@ void SuperflowBase::determine_output_filename(TString input_sample)
                 cout << app_name << "SuperflowBase::determine_output_filename    ERROR    The only supported stream is 'Main' ('physics_Main')." << endl;
                 cout << app_name << "SuperflowBase::determine_output_filename    ERROR    >>> Exiting." << endl;
                 exit(1);
-            } 
+            }
 
             stringstream suffix;
             if(m_outputFileNameSuffix!="")
@@ -215,7 +215,7 @@ void SuperflowBase::determine_output_filename(TString input_sample)
 
             sfile_name_ << m_data_stream2string[m_stream] << "_" << year << "_" << data_run << suffix.str() << ".root";
             cout << app_name << "SuperflowBase::determine_output_filename    Setting output file name to: " << sfile_name_.str() << endl;
-            
+
             m_outputFileName = sfile_name_.str();
 
         }
@@ -225,7 +225,7 @@ void SuperflowBase::determine_output_filename(TString input_sample)
             cout << app_name << "SuperflowBase::determine_output_filename    ERROR    set for data (SuperflowRunMode::data). " << endl;
             cout << app_name << "SuperflowBase::determine_output_filename    ERROR    >>> Exiting." << endl;
             exit(1);
-        } 
+        }
 
     }
     else if (m_runMode == SuperflowRunMode::single_event_syst) {
@@ -282,7 +282,7 @@ void SuperflowBase::initialize_output_files(TString input)
 
     stringstream tree_name;
     tree_name << "superNt";
-    cout << app_name << "SuperflowBase::determine_output_filename    Setting output tree name to: " << tree_name.str() << endl; 
+    cout << app_name << "SuperflowBase::determine_output_filename    Setting output tree name to: " << tree_name.str() << endl;
     m_tree_name_auto = tree_name.str();
 
     // initialize output tree
@@ -293,7 +293,7 @@ void SuperflowBase::initialize_output_files(TString input)
     // define number of trees
     m_tree_leafs_size = m_varType.size() + 2 * index_weight_sys.size();// 2nd term may be zero
     m_weight_leaf_offset = m_varType.size();
-   
+
 
     m_varFloat = new Float_t[m_tree_leafs_size]; // this one is larger to hold the syst_WEIGHT
     //m_varFloatArray = new Double_t*[m_varType.size()];
@@ -303,17 +303,17 @@ void SuperflowBase::initialize_output_files(TString input)
 
     // initialize HFT
     for (int i = 0; i < m_tree_leafs_size; i++) m_varFloat[i] = 1.0;
-    for (int i = 0; i < m_varType.size(); i++) m_varDouble[i] = 1.0;
-    for (int i = 0; i < m_varType.size(); i++) m_varInt[i] = 0;
-    for (int i = 0; i < m_varType.size(); i++) m_varBool[i] = false;
-    for (int i = 0; i < m_varType.size(); i++) { //m_varFloatArray[i] = 1.0; }
+    for (int i = 0; i < (int)m_varType.size(); i++) m_varDouble[i] = 1.0;
+    for (int i = 0; i < (int)m_varType.size(); i++) m_varInt[i] = 0;
+    for (int i = 0; i < (int)m_varType.size(); i++) m_varBool[i] = false;
+    for (int i = 0; i < (int)m_varType.size(); i++) { //m_varFloatArray[i] = 1.0; }
         vector<double> null(25, -999);
         vector<bool> f(25, false);
         m_varFloatArray.push_back(null);
         m_varBoolArray.push_back(f);
     }
 
-    for (int i = 0; i < m_varType.size(); i++) {
+    for (int i = 0; i < (int)m_varType.size(); i++) {
         switch (m_varType[i]) {
             case SupervarType::sv_void: break;
             case SupervarType::sv_float: {
@@ -349,7 +349,7 @@ void SuperflowBase::initialize_output_files(TString input)
         }
     }
 
-    for (int i = 0; i < index_weight_sys.size(); i++) {
+    for (int i = 0; i < (int)index_weight_sys.size(); i++) {
         string syst_var_name_up = weight_prefix + m_sysStore[index_weight_sys[i]].tree_name + weight_suffix_up;
         string syst_var_name_down = weight_prefix + m_sysStore[index_weight_sys[i]].tree_name + weight_suffix_down;
 
@@ -366,7 +366,7 @@ void SuperflowBase::initialize_output_files(TString input)
     if (m_runMode == SuperflowRunMode::all_syst) {
 
         m_output_array = new TFile*[index_event_sys.size()];
-        for (int i = 0; i < index_event_sys.size(); i++) {
+        for (int i = 0; i < (int)index_event_sys.size(); i++) {
 
             stringstream suffix;
             if(m_outputFileNameSuffix!="")
@@ -379,7 +379,7 @@ void SuperflowBase::initialize_output_files(TString input)
         }
 
         m_HFT_array = new TTree*[index_event_sys.size()];
-        for (int i = 0; i < index_event_sys.size(); i++) {
+        for (int i = 0; i < (int)index_event_sys.size(); i++) {
             m_HFT_array[i] = new TTree(tree_name.str().data(), tree_name.str().data());
             m_HFT_array[i]->SetDirectory(m_output_array[i]);
             m_HFT_array[i]->SetAutoFlush(-16777216L);
@@ -401,20 +401,20 @@ void SuperflowBase::initialize_output_files(TString input)
         m_varBoolArray_array = fb;
 
 
-        for (int i = 0; i < index_event_sys.size(); i++) {
+        for (int i = 0; i < (int)index_event_sys.size(); i++) {
             m_varFloat_array[i] = new Float_t[m_varType.size()];
             m_varDouble_array[i] = new Double_t[m_varType.size()];
             m_varInt_array[i] = new Int_t[m_varType.size()];
             m_varBool_array[i] = new Bool_t[m_varType.size()];
 
-            for (int j = 0; j < m_varType.size(); j++) m_varFloat_array[i][j] = 1.0;
-            for (int j = 0; j < m_varType.size(); j++) m_varDouble_array[i][j] = 1.0;
-            for (int j = 0; j < m_varType.size(); j++) m_varInt_array[i][j] = 0;
-            for (int j = 0; j < m_varType.size(); j++) m_varBool_array[i][j] = false;
+            for (int j = 0; j < (int)m_varType.size(); j++) m_varFloat_array[i][j] = 1.0;
+            for (int j = 0; j < (int)m_varType.size(); j++) m_varDouble_array[i][j] = 1.0;
+            for (int j = 0; j < (int)m_varType.size(); j++) m_varInt_array[i][j] = 0;
+            for (int j = 0; j < (int)m_varType.size(); j++) m_varBool_array[i][j] = false;
         }
 
-        for (int i = 0; i < index_event_sys.size(); i++) {
-            for (int j = 0; j < m_varType.size(); j++) {
+        for (int i = 0; i < (int)index_event_sys.size(); i++) {
+            for (int j = 0; j < (int)m_varType.size(); j++) {
                 switch (m_varType[j]) {
                     case SupervarType::sv_void: break;
                     case SupervarType::sv_float: {
@@ -422,8 +422,8 @@ void SuperflowBase::initialize_output_files(TString input)
                         m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varFloat_array[i] + j, leaflist_.data(), 65536);
                         break;
                     }
-                    case SupervarType::sv_float_array: { 
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varFloatArray_array[i][j]); 
+                    case SupervarType::sv_float_array: {
+                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varFloatArray_array[i][j]);
                         break;
                     }
                     case SupervarType::sv_bool_array: {
@@ -458,12 +458,12 @@ void SuperflowBase::write_output_files()
     bool ok = true;
     if(m_outputFile->Write() == 0) ok = false;
     // write tree for each of the event systematics
-    for (int i = 0; i < index_event_sys.size(); i++) { if( m_output_array[i]->Write() == 0) ok = false; }
+    for (int i = 0; i < (int)index_event_sys.size(); i++) { if( m_output_array[i]->Write() == 0) ok = false; }
 
     // close nominal file
     m_outputFile->Close();
     // close systematics files
-    for (int i = 0; i < index_event_sys.size(); i++) m_output_array[i]->Close();
+    for (int i = 0; i < (int)index_event_sys.size(); i++) m_output_array[i]->Close();
 
     if(!ok) {
         cout << app_name << "SuperflowBase::write_output_files    WARNING Problem with output files" << endl;
@@ -478,7 +478,7 @@ void SuperflowBase::Terminate()
     write_output_files();
 
     delete m_outputFile;
-    for (int i = 0; i < index_event_sys.size(); i++) delete m_output_array[i];
+    for (int i = 0; i < (int)index_event_sys.size(); i++) delete m_output_array[i];
     delete[] m_output_array;
 
     delete[] m_varFloat;
@@ -487,16 +487,16 @@ void SuperflowBase::Terminate()
     delete[] m_varBool;
 
     if (m_runMode == SuperflowRunMode::all_syst) {
-        for (int i = 0; i < index_event_sys.size(); i++) delete[] m_varFloat_array[i];
+        for (int i = 0; i < (int)index_event_sys.size(); i++) delete[] m_varFloat_array[i];
         delete m_varFloat_array;
-        for (int i = 0; i < index_event_sys.size(); i++) delete[] m_varDouble_array[i];
+        for (int i = 0; i < (int)index_event_sys.size(); i++) delete[] m_varDouble_array[i];
         delete m_varDouble_array;
-        for (int i = 0; i < index_event_sys.size(); i++) delete[] m_varInt_array[i];
+        for (int i = 0; i < (int)index_event_sys.size(); i++) delete[] m_varInt_array[i];
         delete m_varInt_array;
-        for (int i = 0; i < index_event_sys.size(); i++) delete[] m_varBool_array[i];
+        for (int i = 0; i < (int)index_event_sys.size(); i++) delete[] m_varBool_array[i];
         delete m_varBool_array;
     }
-    
+
     if (m_runMode != SuperflowRunMode::single_event_syst) delete m_RunSyst;
 
     cout << app_name << "SuperflowBase::Terminate    Done." << endl;
@@ -711,7 +711,7 @@ SuperflowBase& SuperflowBase::operator<<(std::function<void(Superlink*, var_void
     return *this;
 }
 //////////////////////////////////////////////////////////////////////////////
-SuperflowBase& SuperflowBase::operator<<(SaveVar save_var)
+SuperflowBase& SuperflowBase::operator<<(SaveVar /*save_var*/)
 {
     if (m_varState == SupervarState::open && m_superVar_hasFunction && m_superVar_hasNiceName) {
         if (!m_superVar_hasHFTName) {
@@ -802,7 +802,7 @@ SuperflowBase& SuperflowBase::operator<<(WeightSystematic obj_)
     return *this;
 }
 //////////////////////////////////////////////////////////////////////////////
-SuperflowBase& SuperflowBase::operator<<(SaveSystematic save_var)
+SuperflowBase& SuperflowBase::operator<<(SaveSystematic /*save_var*/)
 {
     if (m_sysState == SupersysState::open
         && m_varState == SupervarState::closed
@@ -848,4 +848,4 @@ SuperflowBase& SuperflowBase::operator<<(SaveSystematic save_var)
     return *this;
 }
 
-}; //namespace sflow
+} //namespace sflow

@@ -26,4 +26,4 @@ namespace sflow {
         void operator<<(std::function<bool(Superlink*)> cut_);
     };
 
-};
+}
