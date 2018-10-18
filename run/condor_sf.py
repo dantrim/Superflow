@@ -7,21 +7,30 @@ import argparse
 import subprocess
 import time
 
-sf_exec_name = "ntupler_val"
-out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0303/mc/"
-log_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0303/mc/logs/"
+sf_exec_name = "ntupler_nn"
+sf_exec_name = "ntupler_rj_stop2l"
+out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0303/data17/"
+out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0303/b_oct7/mc/"
+out_dir = "/data/uclhc/uci/user/dantrim/ntuples/n0303/c_oct8/mc16d/"
 
 filelist_dir = "/data/uclhc/uci/user/dantrim/n0303val/susynt-read/filelists/"
 
-storage_prefixes = { "mwt2" : "root://fax.mwt2.org:1094/" }
+#samples = [ 'ttbar_mc16a', 'WtPP8_mc16a', 'WtPP6_mc16a', 'diboson_sherpa_ll_mc16a', 'zjets_sherpa_mc16a', 'drellyan_sherpa_mc16a', 'wjets_sherpa_mc16a', 'rare_top_mc16a', 'single_higgs_mc16a', 'ttX_mc16a' ]
+#samples = [ 'ttbar_mc16d', 'WtPP8_mc16d', 'WtPP6_mc16d', 'diboson_sherpa_ll_mc16d', 'zjets_sherpa_mc16d', 'drellyan_sherpa_mc16d', 'wjets_sherpa_mc16d', 'rare_top_mc16d', 'single_higgs_mc16d', 'ttX_mc16d' ]
+#samples = [ 'ttbar_mc16a' ]
+#samples = [ 'n0303_data1516' ]
+samples = [ 'n0303_data17' ]
+samples = [ 'ggllvvZZ' ]
+samples = [ 'zv_mc16a' ]
+samples = [ 'diboson_sherpa_ll_mc16d' ]
 
-samples = [ 'ttbar_test',  'rare_top' ]
-dsids_to_split = [ "410472" ]
+dsids_to_split = [ '410472' ] #, '364254' ] #'364254' ]
+#dsids_to_split = [ '364254' ] #'364254' ]
 
 run_with_systematics = False
 tar_file = '/data/uclhc/uci/user/dantrim/n0303val/area.tgz'
 tarred_dir = 'susynt-read'
-use_sumw_file = False
+use_sumw_file = True # True for multi-period running
 
 do_brick = True
 do_gp = True
@@ -45,7 +54,7 @@ def sflow_exec_arg_string() :
 
     sflow_args = ' %s ' % sys_string
     if use_sumw_file :
-        sflow_args += ' --sumw ./susynt-read/sumw_file.root '
+        sflow_args += ' --sumw ./susynt-read/data/sumw_file.root '
 
     return sflow_args
 
@@ -127,6 +136,12 @@ def create_tar(args) :
 
     things_to_tar = ['build/*'] #, 'filelists/*'] #, 'sumw_file.root']
     things_to_tar.append('data/*')
+
+    global sf_exec_name
+    if '_rj_' in sf_exec_name :
+        things_to_tar.append('RestFrames/lib/')
+        things_to_tar.append('RestFrames/setup_RestFrames_BATCH.sh')
+        things_to_tar.append('source/RJTupler/scripts/')
 
     if not os.path.isdir('%s/%s/filelists/' % (loc_to_place, tarred_dir)) :
         print 'ERROR \"filelists\" directory was not made as expected!'
@@ -228,6 +243,8 @@ def make_condor_file(sample, queue_list, condor_filename, exec_name) :
 
 def make_executable(exec_name) :
 
+    global sf_exec_name
+
     with open(exec_name, 'w') as f :
         f.write('#!/bin/bash\n\n\n')
         f.write('echo "--------- %s ----------"\n' % exec_name)
@@ -260,6 +277,8 @@ def make_executable(exec_name) :
         f.write('lsetup fax\n')
         f.write('asetup AnalysisBase,21.2.45\n')
         f.write('source build/x86*/setup.sh\n')
+        if '_rj_' in sf_exec_name :
+            f.write('source ./source/RJTupler/scripts/setup_restframes.sh --batch\n')
         f.write('echo "moving"\n')
         f.write('popd\n')
         f.write('echo "current directory structure:"\n')
@@ -300,6 +319,8 @@ def make_condor_file_split(dsid, split_files, condor_filename, exec_name) :
 
 def make_executable_split(exec_name) :
 
+    global sf_exec_name
+
     with open(exec_name, 'w') as f :
         f.write('#!/bin/bash\n\n\n')
         f.write('echo "------------ %s -------------"\n' % exec_name)
@@ -333,6 +354,10 @@ def make_executable_split(exec_name) :
         f.write('lsetup fax\n')
         f.write('asetup AnalysisBase,21.2.45\n')
         f.write('source build/x86*/setup.sh\n')
+        if '_rj_' in sf_exec_name :
+            f.write('echo "sourcing RJ:"\n')
+            f.write('ls source/RJTupler/scripts/\n')
+            f.write('source source/RJTupler/scripts/setup_restframes.sh --batch\n')
         f.write('echo "moving"\n')
         f.write('popd\n')
         f.write('echo "current directory structure:"\n')
