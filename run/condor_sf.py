@@ -41,6 +41,7 @@ def special_prefixes() :
 
     return { 'mwt2' : 'root://fax.mwt2.org:1094/',
               'atlas-xrd' : 'root://atlas-xrd-us.usatlas.org/',
+                'griddev' : 'root://griddev03.slac.stanford.edu:2094/',
                 'env' : os.environ.get('STORAGEPREFIX','') }
 
 def sflow_exec_arg_string() :
