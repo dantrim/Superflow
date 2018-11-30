@@ -39,9 +39,11 @@ do_sdsc = False
 
 def special_prefixes() :
 
-    return { 'mwt2' : 'root://fax.mwt2.org:1094/',
+    return { #'mwt2' : 'root://fax.mwt2.org:1094/',
+            'mwt2' : 'root://fax.mwt2.org:1094//pnfs/uchicago.edu/atlaslocalgroupdisk/rucio/',
               'atlas-xrd' : 'root://atlas-xrd-us.usatlas.org/',
-                'griddev' : 'root://griddev03.slac.stanford.edu:2094/',
+                'griddev' : 'root://griddev03.slac.stanford.edu:2094//xrootd/atlas/atlasscratchdisk/rucio',
+                #'griddev' : 'root://griddev03.slac.stanford.edu:2094/',
                 'env' : os.environ.get('STORAGEPREFIX','') }
 
 def sflow_exec_arg_string() :
@@ -117,7 +119,7 @@ def create_tar(args) :
 
 
     if args.skip_list_creation :
-        if not os.path.isdir('%s/%s/filelists/') :
+        if not os.path.isdir('%s/%s/filelists/' % (loc_to_place, tarred_dir) ) :
             print 'ERROR \"filelists\" directory is not found in expected directry (=%s), cannot build tar file' % loc_to_place
             sys.exit()
     elif not os.path.isdir('%s/%s/filelists_base/' % (loc_to_place, tarred_dir)) :
@@ -204,6 +206,7 @@ def bool_string(boolean) :
 def make_condor_file(sample, queue_list, condor_filename, exec_name) :
 
     global tar_file
+    global run_with_systematics
 
     with open(condor_filename, 'w') as f :
 
@@ -217,6 +220,8 @@ def make_condor_file(sample, queue_list, condor_filename, exec_name) :
         f.write('transfer_input_files = %s\n' % tar_file)
         f.write('use_x509userproxy = True\n')
         f.write('notification = Never\n')
+        if run_with_systematics : 
+            f.write('request_memory = 4 GB\n')
 
         for q in queue_list :
 
