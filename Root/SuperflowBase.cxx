@@ -3,6 +3,9 @@
 
 namespace sflow {
 
+const static int BRANCH_BASKET_SIZE = 32000;
+const static int TTREE_AUTO_FLUSH = 200;
+
 ///////////////////////////////////////////////////////////////////////////////
 SuperflowBase::SuperflowBase()
 {
@@ -291,7 +294,8 @@ void SuperflowBase::initialize_output_files(TString input)
     // initialize output tree
     m_HFT = new TTree(tree_name.str().data(), tree_name.str().data());
     m_HFT->SetDirectory(m_outputFile);
-    m_HFT->SetAutoFlush(-16777216L);
+    m_HFT->SetAutoFlush(TTREE_AUTO_FLUSH);
+    //m_HFT->SetAutoFlush(-16777216L);
 
     // define number of trees
     m_tree_leafs_size = m_varType.size() + 2 * index_weight_sys.size();// 2nd term may be zero
@@ -321,27 +325,27 @@ void SuperflowBase::initialize_output_files(TString input)
             case SupervarType::sv_void: break;
             case SupervarType::sv_float: {
                 string leaflist_ = m_varHFTName[i] + "/F";
-                m_HFT->Branch(m_varHFTName[i].data(), m_varFloat + i, leaflist_.data(), 65536);
+                m_HFT->Branch(m_varHFTName[i].data(), m_varFloat + i, leaflist_.data(), BRANCH_BASKET_SIZE);
                 break;
             }
             case SupervarType::sv_double: {
                 string leaflist_ = m_varHFTName[i] + "/D";
-                m_HFT->Branch(m_varHFTName[i].data(), m_varDouble + i, leaflist_.data(), 65536);
+                m_HFT->Branch(m_varHFTName[i].data(), m_varDouble + i, leaflist_.data(), BRANCH_BASKET_SIZE);
                 break;
             }
             case SupervarType::sv_int: {
                 string leaflist_ = m_varHFTName[i] + "/I";
-                m_HFT->Branch(m_varHFTName[i].data(), m_varInt + i, leaflist_.data(), 65536);
+                m_HFT->Branch(m_varHFTName[i].data(), m_varInt + i, leaflist_.data(), BRANCH_BASKET_SIZE);
                 break;
             }
             case SupervarType::sv_bool: {
                 string leaflist_ = m_varHFTName[i] + "/O";
-                m_HFT->Branch(m_varHFTName[i].data(), m_varBool + i, leaflist_.data(), 65536);
+                m_HFT->Branch(m_varHFTName[i].data(), m_varBool + i, leaflist_.data(), BRANCH_BASKET_SIZE);
                 break;
             }
             case SupervarType::sv_float_array: {
                 //string leaflist_ = m_varHFTName[i] + "[25]/D";
-                //m_HFT->Branch(m_varHFTName[i].data(), m_varFloatArray.at(i), leaflist_.data(), 65536);
+                //m_HFT->Branch(m_varHFTName[i].data(), m_varFloatArray.at(i), leaflist_.data(), BRANCH_BASKET_SIZE);
                 m_HFT->Branch(m_varHFTName[i].data(), &m_varFloatArray[i]);
                 break;
             }
@@ -361,8 +365,8 @@ void SuperflowBase::initialize_output_files(TString input)
 
         cout << app_name << "Weight var trees: " << syst_var_name_up << ", " << syst_var_name_down << endl;
 
-        m_HFT->Branch(syst_var_name_up.data(), m_varFloat + m_weight_leaf_offset + 2 * i, leaflist_up.data(), 65536);
-        m_HFT->Branch(syst_var_name_down.data(), m_varFloat + m_weight_leaf_offset + 2 * i + 1, leaflist_down.data(), 65536);
+        m_HFT->Branch(syst_var_name_up.data(), m_varFloat + m_weight_leaf_offset + 2 * i, leaflist_up.data(), BRANCH_BASKET_SIZE);
+        m_HFT->Branch(syst_var_name_down.data(), m_varFloat + m_weight_leaf_offset + 2 * i + 1, leaflist_down.data(), BRANCH_BASKET_SIZE);
     }
 
     // Make an output file for each event systematic.
@@ -387,7 +391,8 @@ void SuperflowBase::initialize_output_files(TString input)
         for (int i = 0; i < (int)index_event_sys.size(); i++) {
             m_HFT_array[i] = new TTree(tree_name.str().data(), tree_name.str().data());
             m_HFT_array[i]->SetDirectory(m_output_array[i]);
-            m_HFT_array[i]->SetAutoFlush(-16777216L);
+            m_HFT_array[i]->SetAutoFlush(TTREE_AUTO_FLUSH);
+            //m_HFT_array[i]->SetAutoFlush(-16777216L);
         }
 
         m_varFloat_array = new Float_t*[index_event_sys.size()];
@@ -424,7 +429,7 @@ void SuperflowBase::initialize_output_files(TString input)
                     case SupervarType::sv_void: break;
                     case SupervarType::sv_float: {
                         string leaflist_ = m_varHFTName[j] + "/F";
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varFloat_array[i] + j, leaflist_.data(), 65536);
+                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varFloat_array[i] + j, leaflist_.data(), BRANCH_BASKET_SIZE);
                         break;
                     }
                     case SupervarType::sv_float_array: {
@@ -437,17 +442,17 @@ void SuperflowBase::initialize_output_files(TString input)
                     }
                     case SupervarType::sv_double: {
                         string leaflist_ = m_varHFTName[j] + "/D";
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varDouble_array[i] + j, leaflist_.data(), 65536);
+                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varDouble_array[i] + j, leaflist_.data(), BRANCH_BASKET_SIZE);
                         break;
                     }
                     case SupervarType::sv_int: {
                         string leaflist_ = m_varHFTName[j] + "/I";
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varInt_array[i] + j, leaflist_.data(), 65536);
+                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varInt_array[i] + j, leaflist_.data(), BRANCH_BASKET_SIZE);
                         break;
                     }
                     case SupervarType::sv_bool: {
                         string leaflist_ = m_varHFTName[j] + "/O";
-                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varBool_array[i] + j, leaflist_.data(), 65536);
+                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), m_varBool_array[i] + j, leaflist_.data(), BRANCH_BASKET_SIZE);
                         break;
                     }
                 }
