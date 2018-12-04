@@ -184,15 +184,16 @@ void SuperflowBase::determine_output_filename(TString input_sample)
         bool data15 = input_sample.Contains("data15_13TeV");
         bool data16 = input_sample.Contains("data16_13TeV");
         bool data17 = input_sample.Contains("data17_13TeV");
-        bool is_data = (data15 || data16 || data17);
+        bool data18 = input_sample.Contains("data18_13TeV");
+        bool is_data = (data15 || data16 || data17 || data18);
 
         if(is_data) {
             TString data_run; data_run.Form("%d",nt.evt()->run);
-            string year = (data15 ? "2015" : data16 ? "2016" : data17 ? "2017" : "");
+            string year = (data15 ? "2015" : data16 ? "2016" : data17 ? "2017" : data18 ? "2018" : "");
             if(year=="") {
                 cout << app_name << "SuperflowBase::determine_output_filename    ERROR Could not determine data year from sample input container: " << endl;
                 cout << app_name << "SuperflowBase::determine_output_filename    \t" << input_sample << endl;
-                cout << app_name << "SuperflowBase::determine_output_filename    (seen as: 2015? " << data15 << ", 2016? " << data16 << ", 2017? " << data17 << ")" << endl;
+                cout << app_name << "SuperflowBase::determine_output_filename    (seen as: 2015? " << data15 << ", 2016? " << data16 << ", 2017? " << data17 << ", 2018? " << data18 << ")" << endl;
                 exit(1);
             }
             if(input_sample.Contains("physics_Main")) {
@@ -224,7 +225,7 @@ void SuperflowBase::determine_output_filename(TString input_sample)
         }
         else {
             cout << app_name << "SuperflowBase::determine_output_filename    ERROR    The input container name does not appear to be a data sample." << endl;
-            cout << app_name << "SuperflowBase::determine_output_filename    ERROR    It does not contain either the 'data15_13TeV', 'data16_13TeV', or 'data17_13TeV' grouping and the run mode is" << endl;
+            cout << app_name << "SuperflowBase::determine_output_filename    ERROR    It does not contain either the 'data15_13TeV', 'data16_13TeV', 'data17_13TeV', or 'data18_13TeV' grouping and the run mode is" << endl;
             cout << app_name << "SuperflowBase::determine_output_filename    ERROR    set for data (SuperflowRunMode::data). " << endl;
             cout << app_name << "SuperflowBase::determine_output_filename    ERROR    >>> Exiting." << endl;
             exit(1);
