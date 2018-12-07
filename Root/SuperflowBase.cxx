@@ -73,6 +73,13 @@ void SuperflowBase::initialize_output_arrays()
     };
     m_nullExprDouble = [](Superlink* /*sl*/, var_double*) -> double { return 0.0; };
     m_nullExprInt    = [](Superlink* /*sl*/, var_int*) -> int { return 0; };
+    m_nullExprIntArray = [](Superlink* /*sl*/, var_int_array*) -> vector<int> {
+            vector<int> null;
+            for(int i = 0; i < 25; i++) {
+                null.push_back(0);
+            }
+            return null;
+    };
     m_nullExprBool   = [](Superlink* /*sl*/, var_bool*) -> bool { return false; };
     m_nullExprVoid   = [](Superlink* /*sl*/, var_void*) {};
 
@@ -82,6 +89,7 @@ void SuperflowBase::initialize_output_arrays()
     m_varBool   = nullptr;
 
     m_varFloatArray_array.clear();
+    m_varIntArray_array.clear();
     m_varBoolArray_array.clear();
     m_varFloat_array  = nullptr;
     m_varDouble_array = nullptr;
@@ -315,9 +323,11 @@ void SuperflowBase::initialize_output_files(TString input)
     for (int i = 0; i < (int)m_varType.size(); i++) m_varInt[i] = 0;
     for (int i = 0; i < (int)m_varType.size(); i++) m_varBool[i] = false;
     for (int i = 0; i < (int)m_varType.size(); i++) { //m_varFloatArray[i] = 1.0; }
-        vector<double> null(25, -999);
+        vector<double> null_float(25, -999);
+        vector<int> null_int(25, -999);
         vector<bool> f(25, false);
-        m_varFloatArray.push_back(null);
+        m_varFloatArray.push_back(null_float);
+        m_varIntArray.push_back(null_int);
         m_varBoolArray.push_back(f);
     }
 
@@ -348,6 +358,10 @@ void SuperflowBase::initialize_output_files(TString input)
                 //string leaflist_ = m_varHFTName[i] + "[25]/D";
                 //m_HFT->Branch(m_varHFTName[i].data(), m_varFloatArray.at(i), leaflist_.data(), BRANCH_BASKET_SIZE);
                 m_HFT->Branch(m_varHFTName[i].data(), &m_varFloatArray[i]);
+                break;
+            }
+            case SupervarType::sv_int_array: {
+                m_HFT->Branch(m_varHFTName[i].data(), &m_varIntArray[i]);
                 break;
             }
             case SupervarType::sv_bool_array: {
@@ -402,10 +416,15 @@ void SuperflowBase::initialize_output_files(TString input)
         m_varBool_array = new Bool_t*[index_event_sys.size()];
 
         m_varFloatArray_array.clear();
+        m_varIntArray_array.clear();
         m_varBoolArray_array.clear();
         vector<vector<vector<double>>> f(index_event_sys.size(), vector<vector<double>>(m_varType.size(),
                         vector<double>(25,1.0)));
         m_varFloatArray_array = f;
+        
+        vector<vector<vector<int>>> fi(index_event_sys.size(), vector<vector<int>>(m_varType.size(),
+                        vector<int>(25,1)));
+        m_varIntArray_array = fi;
 
         vector<vector<vector<bool>>> fb(index_event_sys.size(), vector<vector<bool>>(m_varType.size(),
                         vector<bool>(25,false)));
@@ -435,6 +454,10 @@ void SuperflowBase::initialize_output_files(TString input)
                     }
                     case SupervarType::sv_float_array: {
                         m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varFloatArray_array[i][j]);
+                        break;
+                    }
+                    case SupervarType::sv_int_array: {
+                        m_HFT_array[i]->Branch(m_varHFTName[j].data(), &m_varIntArray_array[i][j]);
                         break;
                     }
                     case SupervarType::sv_bool_array: {
@@ -585,6 +608,7 @@ SuperflowBase& SuperflowBase::operator<<(std::function<double(Superlink*, var_fl
     if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
         m_varExprFloat.push_back(var_); // fill
         m_varExprFloatArray.push_back(m_nullExprFloatArray);
+        m_varExprIntArray.push_back(m_nullExprIntArray);
         m_varExprBoolArray.push_back(m_nullExprBoolArray);
         m_varExprDouble.push_back(m_nullExprDouble);
         m_varExprInt.push_back(m_nullExprInt);
@@ -608,6 +632,7 @@ SuperflowBase& SuperflowBase::operator<<(std::function<vector<double>(Superlink*
         m_varExprDouble.push_back(m_nullExprDouble);
         m_varExprBoolArray.push_back(m_nullExprBoolArray);
         m_varExprFloatArray.push_back(var_);
+        m_varExprIntArray.push_back(m_nullExprIntArray);
         m_varExprInt.push_back(m_nullExprInt);
         m_varExprBool.push_back(m_nullExprBool);
         m_varExprVoid.push_back(m_nullExprVoid);
@@ -629,6 +654,7 @@ SuperflowBase& SuperflowBase::operator<<(std::function<vector<bool>(Superlink*, 
         m_varExprDouble.push_back(m_nullExprDouble);
         m_varExprBoolArray.push_back(var_);
         m_varExprFloatArray.push_back(m_nullExprFloatArray);
+        m_varExprIntArray.push_back(m_nullExprIntArray);
         m_varExprInt.push_back(m_nullExprInt);
         m_varExprBool.push_back(m_nullExprBool);
         m_varExprVoid.push_back(m_nullExprVoid);
@@ -648,6 +674,7 @@ SuperflowBase& SuperflowBase::operator<<(std::function<double(Superlink*, var_do
     if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
         m_varExprFloat.push_back(m_nullExprFloat);
         m_varExprFloatArray.push_back(m_nullExprFloatArray);
+        m_varExprIntArray.push_back(m_nullExprIntArray);
         m_varExprBoolArray.push_back(m_nullExprBoolArray);
         m_varExprDouble.push_back(var_); // fill
         m_varExprInt.push_back(m_nullExprInt);
@@ -670,6 +697,7 @@ SuperflowBase& SuperflowBase::operator<<(std::function<int(Superlink*, var_int*)
         m_varExprFloat.push_back(m_nullExprFloat);
         m_varExprDouble.push_back(m_nullExprDouble);
         m_varExprFloatArray.push_back(m_nullExprFloatArray);
+        m_varExprIntArray.push_back(m_nullExprIntArray);
         m_varExprBoolArray.push_back(m_nullExprBoolArray);
         m_varExprInt.push_back(var_); // fill
         m_varExprBool.push_back(m_nullExprBool);
@@ -685,12 +713,35 @@ SuperflowBase& SuperflowBase::operator<<(std::function<int(Superlink*, var_int*)
     return *this;
 }
 //////////////////////////////////////////////////////////////////////////////
+SuperflowBase& SuperflowBase::operator<<(std::function<vector<int>(Superlink*, var_int_array*)> var_)
+{
+    if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
+        m_varExprFloat.push_back(m_nullExprFloat);
+        m_varExprDouble.push_back(m_nullExprDouble);
+        m_varExprBoolArray.push_back(m_nullExprBoolArray);
+        m_varExprFloatArray.push_back(m_nullExprFloatArray);
+        m_varExprIntArray.push_back(var_); // Fill
+        m_varExprInt.push_back(m_nullExprInt);
+        m_varExprBool.push_back(m_nullExprBool);
+        m_varExprVoid.push_back(m_nullExprVoid);
+
+        m_varType.push_back(SupervarType::sv_int_array);
+        m_superVar_hasFunction = true;
+    }
+    else {
+        cout << app_name << "ERROR (Fatal): First open a new Var using NewVar().";
+        exit(1);
+    }
+    return *this;
+}
+//////////////////////////////////////////////////////////////////////////////
 SuperflowBase& SuperflowBase::operator<<(std::function<bool(Superlink*, var_bool*)> var_)
 {
     if (m_varState == SupervarState::open && m_sysState == SupersysState::closed && !m_superVar_hasFunction) {
         m_varExprFloat.push_back(m_nullExprFloat);
         m_varExprDouble.push_back(m_nullExprDouble);
         m_varExprFloatArray.push_back(m_nullExprFloatArray);
+        m_varExprIntArray.push_back(m_nullExprIntArray);
         m_varExprBoolArray.push_back(m_nullExprBoolArray);
         m_varExprInt.push_back(m_nullExprInt);
         m_varExprBool.push_back(var_); // fill
@@ -711,6 +762,7 @@ SuperflowBase& SuperflowBase::operator<<(std::function<void(Superlink*, var_void
     m_varExprFloat.push_back(m_nullExprFloat);
     m_varExprDouble.push_back(m_nullExprDouble);
     m_varExprFloatArray.push_back(m_nullExprFloatArray);
+    m_varExprIntArray.push_back(m_nullExprIntArray);
     m_varExprBoolArray.push_back(m_nullExprBoolArray);
     m_varExprInt.push_back(m_nullExprInt);
     m_varExprBool.push_back(m_nullExprBool);

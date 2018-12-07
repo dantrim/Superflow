@@ -148,6 +148,7 @@ Bool_t Superflow::Process(Long64_t entry)
     var_float* vf_          = nullptr;
     var_double* vd_         = nullptr;
     var_float_array* vfa_   = nullptr;
+    var_int_array* via_     = nullptr;
     var_bool_array* vba_    = nullptr;
     var_int* vi_            = nullptr;
     var_bool* vb_           = nullptr;
@@ -193,6 +194,10 @@ Bool_t Superflow::Process(Long64_t entry)
                         }
                         case SupervarType::sv_float_array: { 
                             m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
+                            break;
+                        }
+                        case SupervarType::sv_int_array: { 
+                            m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
                             break;
                         }
                         case SupervarType::sv_bool_array: {
@@ -269,6 +274,10 @@ Bool_t Superflow::Process(Long64_t entry)
                             m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
                             break;
                         }
+                        case SupervarType::sv_int_array: { 
+                            m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
+                            break;
+                        }
                         case SupervarType::sv_bool_array: {
                             m_varBoolArray[v_] = m_varExprBoolArray[v_](sl_,vba_);
                             break;
@@ -336,6 +345,10 @@ Bool_t Superflow::Process(Long64_t entry)
                             }
                             case SupervarType::sv_float_array: { 
                                 m_varFloatArray_array[i][v_] = m_varExprFloatArray[v_](sl_,vfa_);
+                                break;
+                            }
+                            case SupervarType::sv_int_array: { 
+                                m_varIntArray_array[i][v_] = m_varExprIntArray[v_](sl_,via_);
                                 break;
                             }
                             case SupervarType::sv_bool_array: {
@@ -418,6 +431,10 @@ Bool_t Superflow::Process(Long64_t entry)
                         }
                         case SupervarType::sv_float_array: { 
                             m_varFloatArray[v_] = m_varExprFloatArray[v_](sl_,vfa_);
+                            break;
+                        }
+                        case SupervarType::sv_int_array: { 
+                            m_varIntArray[v_] = m_varExprIntArray[v_](sl_,via_);
                             break;
                         }
                         case SupervarType::sv_bool_array: {
