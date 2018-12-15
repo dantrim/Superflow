@@ -475,15 +475,15 @@ def main() :
         help = 'Do not build filelists during tar file creation, use already existing \"filelist/\" dir')
     args = parser.parse_args()
 
-    pwd = os.getcwd()
-    if os.path.abspath(pwd) != os.path.abspath(out_dir) :
-        print 'ERROR You must call this script from the designated output directory (out_dir = %s)' % os.path.abspath(out_dir)
-        sys.exit()
-
     if args.prefixes :
         for key, prefix in special_prefixes().items() :
             print ' %s : %s' % (key, prefix)
         return
+
+    pwd = os.getcwd()
+    if os.path.abspath(pwd) != os.path.abspath(out_dir) :
+        print 'ERROR You must call this script from the designated output directory (out_dir = %s)' % os.path.abspath(out_dir)
+        sys.exit()
 
     if args.tar :
         create_tar(args)
