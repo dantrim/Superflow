@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 """
 ================================================================================
-Launch Superflow jobs to the condor batch system
+Launch jobs to the condor batch system
 Examples
     python submit_to_condor.py path/to/files/*txt -t ./tar_this/ -e superflow_exec -o outputs/
 
     - If relevant environment variables are set:
     python submit_to_condor.py path/to/files/*txt
+
+Works in general for any executable that takes an input with '-i'. Any
+additional executable arguments will require adding 
 
 Author:
     Alex Armstrong <alarmstr@cern.ch>
@@ -25,7 +28,14 @@ import pdb
 _include_jigsaw = False
 _condor_submit_name = 'submit.condor'
 _condor_exec_name = 'run_condor.sh'
-
+_superflow_executables = [
+    # Alex executables
+    'makeFlatNtuples',
+    # Danny executables
+    'ntupler_nn',
+    'ntupler_rj_stop2l',
+]
+_grabSumw_executable = 'grabSumw'
 # Available sites for condor submissions
 _do_brick = True
 _do_gp = True
@@ -43,7 +53,7 @@ _df_tar_file        = os.getenv('TAR_FILE', 'area.tgz')
 _help_tar_file      = 'Path to tar file to use or create for sending with job \
                        [default: %s]' % _df_tar_file
 
-_df_exec            = os.getenv('SF_EXEC', '$SF_EXEC')
+_df_exec            = os.getenv('CONDOR_EXEC', '$CONDOR_EXEC')
 _help_exec          = 'Name of executable to run during job \
                        [default: %s]' % _df_exec
 
@@ -254,11 +264,11 @@ def build_condor_file_split_queues(ifile_path, exec_name, tar_dir, syst):
     log_base = os.path.basename(ifile_path).replace('.txt','')
 
     for idx, link in enumerate(xrootd_links):
-        sf_args = sflow_exec_arg_string(suffix=idx)
+        exec_args = get_exec_arg_string(exec_name, suffix=idx)
         # Positional arguments for condor executable
         # Order is important. See "build_condor_executable" for expected order
         # They get imported as an environment variable
-        arg_string = ' %s %s %s %s' % (exec_name, tar_dir, link, sf_args)
+        arg_string = ' %s %s %s %s' % (exec_name, tar_dir, link, exec_args)
 
         # Build queue string
         queue_str += '\n'
@@ -281,12 +291,12 @@ def build_condor_file_queues(ifile_path, exec_name, tar_dir, syst):
     queue_str = ''
 
     log_base = os.path.basename(ifile_path).replace('.txt','')
-    sf_args = sflow_exec_arg_string()
+    exec_args = get_exec_arg_string(exec_name)
 
     # Positional arguments for condor executable
     # Order is important. See "build_condor_executable" for expected order
     # They get imported as an environment variable
-    arg_string = ' %s %s %s %s' % (exec_name, tar_dir, ifile_path, sf_args)
+    arg_string = ' %s %s %s %s' % (exec_name, tar_dir, ifile_path, exec_args)
 
     # Build queue string
     queue_str += '\n'
@@ -311,14 +321,14 @@ def build_condor_executable(exec_name, tar_file, jigsaw=False):
 
     # Read in inputs to condor executable from submission script
     # Ordering should agree with what argument order set in submission script
-    exec_str += 'sf_exec=${1}\n'
+    exec_str += 'executable=${1}\n'
     exec_str += 'tarred_dir=${2}\n'
     exec_str += 'injob_filelist=${3}\n'
-    exec_str += 'sflow_options=${@:4}\n'
-    exec_str += 'echo "   SF executable         : ${sf_exec}"\n'
+    exec_str += 'exec_options=${@:4}\n'
+    exec_str += 'echo "   executable            : ${executable}"\n'
     exec_str += 'echo "   tarred directory      : ${tarred_dir}"\n'
     exec_str += 'echo "   injob filelist loc    : ${injob_filelist}"\n'
-    exec_str += 'echo "   sflow options         : ${sflow_options}"\n\n'
+    exec_str += 'echo "   executable options    : ${exec_options}"\n\n'
     exec_str += 'while (( "$#" )); do\n'
     exec_str += '   shift\n'
     exec_str += 'done\n\n'
@@ -351,8 +361,8 @@ def build_condor_executable(exec_name, tar_file, jigsaw=False):
     exec_str += 'ls -ltrh\n'
 
     # Run executable
-    exec_str += 'echo "calling: ${sf_exec} -i ${injob_filelist} ${sflow_options}"\n'
-    exec_str += '${sf_exec} -i ${injob_filelist} ${sflow_options}\n'
+    exec_str += 'echo "calling: ${executable} -i ${injob_filelist} ${exec_options}"\n'
+    exec_str += '${executable} -i ${injob_filelist} ${exec_options}\n'
 
     # Final check for outputs
     exec_str += 'echo "final directory structure:"\n'
@@ -400,6 +410,19 @@ def get_things_to_tar(tar_dir, filelist_dir='', sumw_file='', jigsaw=False):
         things_to_tar.append('source/RJTupler/scripts/')
 
     return things_to_tar
+
+def get_exec_arg_string(exec_name, suffix='', syst='', sumw_file=''):
+    '''
+    '''
+    if exec_name in _superflow_executables:
+        return sflow_exec_arg_string(syst, sumw_file, suffix)
+    elif exec_name == _grabSumw_executable:
+        return ''
+    else:
+        print "WARNING :: Unknown executable name: %s" % exec_name
+        print "INFO :: Running executable with only input file option"
+        return ''
+
 
 def sflow_exec_arg_string(syst=False, sumw_file='', suffix=''):
     '''
