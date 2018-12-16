@@ -18,8 +18,6 @@ import sys, os, traceback, argparse
 import time
 import subprocess
 import pdb
-# Include other SuperFlow tools
-from add_prefix_to_filelists import PREFIXES
 
 ################################################################################
 # Globals
@@ -44,14 +42,6 @@ _help_tar_dir       = 'Directory to be tarred and sent with job \
 _df_tar_file        = os.getenv('TAR_FILE', 'area.tgz')
 _help_tar_file      = 'Path to tar file to use or create for sending with job \
                        [default: %s]' % _df_tar_file
-
-_help_prefix        = 'FAX STORAGEPREFIX to prepend to all file names \
-                       [options: %s]' % (', '.join(PREFIXES.keys()))
-
-_help_save_prefix_dir = 'Directory for storing new filelists with xrootd storage prefixes added.\
-                         Setting this will cause the new filelists to be created'
-
-_help_show_prefixes = 'Show prefix options with their storage prefixes'
 
 _df_exec            = os.getenv('SF_EXEC', '$SF_EXEC')
 _help_exec          = 'Name of executable to run during job \
@@ -88,16 +78,10 @@ def main ():
     make_filelists, make_tar = check_inputs(args)
 
     # Get files to be submitted with jobs
-    if make_filelists:
-        from add_prefix_to_filelists import add_prefix_to_filelists
-        ifiles = add_prefix_to_filelists(args.input_files, args.prefix, args.save_prefix_dir)
-        filelist_dir = args.save_prefix_dir
-    else:
-        ifiles = args.input_files
-        common_dir = os.path.commonprefix(ifiles)
-        while not os.path.isdir(common_dir):
-            common_dir = os.path.dirname(common_dir)
-        filelist_dir = common_dir
+    common_dir = os.path.commonprefix(args.input_files)
+    while not os.path.isdir(common_dir):
+        common_dir = os.path.dirname(common_dir)
+    filelist_dir = common_dir
 
     # Create tar file if necessary
     if make_tar:
@@ -106,13 +90,17 @@ def main ():
 
     # Submit the jobs
 
-    submit_jobs(ifiles,
+    cwd = os.getcwd()
+    os.chdir(args.output_dir)
+    submit_jobs(args.input_files,
                 args.split_dsids,
                 args.executable,
                 args.tar_file,
                 args.tar_dir,
                 args.syst,
                 args.verbose)
+    os.chdir(cwd)
+
 
 def create_tar(tar_dir, tar_file, things_to_tar=["./*"], verbose=False) :
     """
@@ -454,27 +442,16 @@ def check_inputs(args):
     make_tar_file = False
     make_filelists = False
     ############################################################################
-    # Show prefixes, if requested, before doing any other checks
-    if args.show_prefixes :
-        for key, prefix in PREFIXES.items() :
-            print ' %s : %s' % (key, prefix)
-        sys.exit()
-
-    ############################################################################
     # Check for incompatable combinations of user options
-    if args.save_prefix_dir and not args.prefix:
-        print "ERROR :: Requesting to save filelist with added prefixes but no",
-        print "prefix option was set"
-        sys.exit()
 
     ############################################################################
-    # Check that program is being run in correct directory
-    pwd = os.getcwd()
-    if os.path.abspath(pwd) != os.path.abspath(args.output_dir) :
-        #TODO: Have script move to output directory and then return to cwd
-        print 'ERROR :: Must call script from the output directory',
-        print '(= %s)' % os.path.abspath(args.output_dir)
-        sys.exit()
+    ## Check that program is being run in correct directory
+    #pwd = os.getcwd()
+    #if os.path.abspath(pwd) != os.path.abspath(args.output_dir) :
+    #    #TODO: Have script move to output directory and then return to cwd
+    #    print 'ERROR :: Must call script from the output directory',
+    #    print '(= %s)' % os.path.abspath(args.output_dir)
+    #    sys.exit()
 
     # Check that input files were provided
     if not args.input_files:
@@ -496,23 +473,17 @@ def check_inputs(args):
 
     print "INFO :: Reading in %d input file(s)" % len(args.input_files)
 
-    # If no prefix requested, check a few files to make sure they have prefixes
-    if not args.prefix:
-        import random
-        n_files_to_check = min(10, len(args.input_files))
-        file_indices = range(len(args.input_files))
-        for idx in random.sample(file_indices, n_files_to_check):
-            with open(args.input_files[idx], 'r') as f:
-                first_file = f.readline().strip()
-                if not file_name_has_xrootd_prefix(first_file):
-                    print "ERROR :: No prefix option set and files were found",
-                    print "without proper xrootd storage prefixes. Make sure",
-                    print "files have prefixes"
-                    sys.exit()
-
-    # Set flag if new filelists are requested
-    if args.prefix and args.save_prefix_dir:
-        make_filelists = True
+    # Check a few files to make sure they have prefixes
+    import random
+    n_files_to_check = min(10, len(args.input_files))
+    file_indices = range(len(args.input_files))
+    for idx in random.sample(file_indices, n_files_to_check):
+        with open(args.input_files[idx], 'r') as f:
+            first_file = f.readline().strip()
+            if not file_name_has_xrootd_prefix(first_file):
+                print "ERROR :: A file was found without proper xrootd",
+                print "storage prefixes: %s" % args.input_files[idx] 
+                sys.exit()
 
     # Check that directory for storing tar file exists
     if '/' in args.tar_file: # check only if tar_file is a path
@@ -568,13 +539,6 @@ def get_args():
     parser.add_argument('--tar-file',
                         help = _help_tar_file,
                         default = _df_tar_file)
-    parser.add_argument('-p', '--prefix',
-                        help = _help_prefix)
-    parser.add_argument('--save-prefix-dir',
-                        help = _help_save_prefix_dir)
-    parser.add_argument('--show-prefixes',
-                        action='store_true',
-                        help = _help_show_prefixes)
     parser.add_argument('-e', '--executable',
                         help = _help_exec,
                         default = _df_exec)
@@ -600,8 +564,6 @@ def get_args():
     args.input_files = [os.path.abspath(x) for x in args.input_files]
     args.tar_dir = os.path.abspath(args.tar_dir)
     args.tar_file = os.path.abspath(args.tar_file)
-    if args.save_prefix_dir:
-        args.save_prefix_dir = os.path.abspath(args.save_prefix_dir)
     args.sumw = os.path.abspath(args.sumw) if not args.sumw.startswith("$") else ""
     args.output_dir = os.path.abspath(args.output_dir)
 
