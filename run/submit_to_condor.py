@@ -3,13 +3,14 @@
 ================================================================================
 Launch jobs to the condor batch system
 Examples
-    python submit_to_condor.py path/to/files/*txt -t ./tar_this/ -e superflow_exec -o outputs/
+    python submit_to_condor.py path/to/files/*/*txt -t ./tar_this_dir/ -e superflow_exec -o outputs/go/here/
+    python submit_to_condor.py path/to/files/*pattern*txt -t ./tar_that_dir/ -e grabSumw -o outputs/go/there/
 
     - If relevant environment variables are set:
     python submit_to_condor.py path/to/files/*txt
 
 Works in general for any executable that takes an input with '-i'. Any
-additional executable arguments will require adding 
+additional executable arguments will require adding a function to get_exec_arg_string
 
 Author:
     Alex Armstrong <alarmstr@cern.ch>
@@ -26,12 +27,14 @@ import pdb
 # Globals
 ################################################################################
 _include_jigsaw = False
-_testing = False
+_testing = True
 _condor_submit_name = 'submit.condor'
 _condor_exec_name = 'run_condor.sh'
+# Lists of executables to help set executable arguments
 _superflow_executables = [
     # Alex executables
     'makeFlatNtuples',
+    'SuperflowAnaStop2L',
     # Danny executables
     'ntupler_nn',
     'ntupler_rj_stop2l',
@@ -70,6 +73,8 @@ _df_split_dsids     = []
 _help_split_dsids   = 'DSIDs of input samples that will have one job run per file in the sample'
 
 _help_syst          = 'Run with systematics'
+
+_help_overwrite     = 'Overwrite the tar file if it exists'
 
 _help_verbose       = 'verbose output'
 
@@ -430,19 +435,20 @@ def sflow_exec_arg_string(syst=False, sumw_file='', suffix=''):
     sflow_args = ''
 
     if _testing:
+        print "INFO :: Running in TEST MODE. Only running on 1000 Events!"
         sflow_args += ' -n 1000 '
 
     # Systematics
     sys_string = '-c'
     if syst :
         sys_string = '-a'
-    sflow_args = ' %s ' % sys_string
+    sflow_args += ' %s ' % sys_string
 
     # Sum of weights for multi-period processing
     if sumw_file :
         sflow_args += ' --sumw %s ' % sumw_file
 
-    if suffix:
+    if suffix != '': #0 is an acceptable suffix
         sflow_args += ' --suffix %s ' % suffix
 
     return sflow_args
@@ -505,8 +511,9 @@ def check_inputs(args):
     file_indices = range(len(args.input_files))
     for idx in random.sample(file_indices, n_files_to_check):
         with open(args.input_files[idx], 'r') as f:
-            first_file = f.readline().strip()
-            if not file_name_has_xrootd_prefix(first_file):
+            first_line = f.readline().strip()
+            if skip_txt_line(first_line): continue
+            if not file_name_has_xrootd_prefix(first_line):
                 print "ERROR :: A file was found without proper xrootd",
                 print "storage prefixes: %s" % args.input_files[idx] 
                 sys.exit()
@@ -523,7 +530,7 @@ def check_inputs(args):
     # If so, check with user if they want to use it or overwite it.
     # If the user wants to overwrite an old file or no old file exists, then
     # create the new tar file.
-    if os.path.exists(args.tar_file):
+    if os.path.exists(args.tar_file) and not args.overwrite:
         usr_msg =  "Tar file already exists: %s\n" % args.tar_file
         usr_msg += "Would you like to [U]se or [O]verwrite it? [U/O] "
         user_op = raw_input(usr_msg)
@@ -581,6 +588,9 @@ def get_args():
     parser.add_argument('--syst',
                         action='store_true',
                         help=_help_syst)
+    parser.add_argument('--overwrite',
+                        action='store_true',
+                        help=_help_overwrite)
     parser.add_argument('-v', '--verbose',
                         action='store_true',
                         help=_help_verbose)
