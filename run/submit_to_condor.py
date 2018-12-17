@@ -26,6 +26,7 @@ import pdb
 # Globals
 ################################################################################
 _include_jigsaw = False
+_testing = False
 _condor_submit_name = 'submit.condor'
 _condor_exec_name = 'run_condor.sh'
 _superflow_executables = [
@@ -193,7 +194,7 @@ def submit_jobs(input_files, dsids_to_split, exec_name, tar_file, tar_dir, syst,
 
     # Build condor file queues
     for f in input_files:
-        rel_file_path = os.path.relpath(f, tar_dir)
+        rel_file_path = os.path.relpath(f, os.path.dirname(tar_dir))
         if any(dsid in f for dsid in dsids_to_split):
             condor_file_str += build_condor_file_split_queues(
                 f, exec_name, tar_dir_base, syst)
@@ -215,8 +216,7 @@ def submit_jobs(input_files, dsids_to_split, exec_name, tar_file, tar_dir, syst,
     # Submit condor jobs
     print "\nSubmitting Condor Jobs!\n"
     cmd = 'condor_submit %s' % _condor_submit_name
-    print "TESTING :: >>", cmd
-    #subprocess.call(cmd, shell = True)
+    subprocess.call(cmd, shell = True)
 
 def build_condor_file_header(exec_name, tar_file, syst):
     '''
@@ -348,7 +348,7 @@ def build_condor_executable(exec_name, tar_file, jigsaw=False):
     exec_str += 'pushd ${tarred_dir}\n'
     exec_str += 'echo "current directory structure:"\n'
     exec_str += 'ls -ltrh\n'
-    exec_str += 'lsetup fax\n'
+    exec_str += 'lsetup rucio\n'
     exec_str += 'asetup AnalysisBase,21.2.55\n'
     exec_str += 'source build/x86*/setup.sh\n'
     if jigsaw:
@@ -428,6 +428,9 @@ def sflow_exec_arg_string(syst=False, sumw_file='', suffix=''):
     '''
     '''
     sflow_args = ''
+
+    if _testing:
+        sflow_args += ' -n 1000 '
 
     # Systematics
     sys_string = '-c'
