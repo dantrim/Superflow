@@ -40,7 +40,7 @@ _superflow_executables = [
 ]
 _grabSumw_executable = 'grabSumw'
 # Available sites for condor submissions
-_do_brick = True
+_do_brick = False
 _do_gp = True
 _do_uc = True
 _do_sdsc = False # We do not have the necessary permissions, jobs will hang
