@@ -9,6 +9,9 @@ Examples
     - If relevant environment variables are set:
     python submit_to_condor.py path/to/files/*txt
 
+    - To run a job for each entry in a text file
+    python submit_to_condor.py path/to/files/*txt --split-dsids 123456 --split-dsids 987654 *pattern1*
+
 Works in general for any executable that takes an input with '-i'. Any
 additional executable arguments will require adding a function to get_exec_arg_string
 
@@ -21,6 +24,7 @@ Author:
 import sys, os, traceback, argparse
 import time
 import subprocess
+import re
 
 ################################################################################
 # Globals
@@ -69,7 +73,11 @@ _help_output_dir    = 'Directory for storing job output \
                        [default: %s]' % _df_output_dir
 
 _df_split_dsids     = [] 
-_help_split_dsids   = 'DSIDs of input samples that will have one job run per file in the sample'
+_help_split_dsids   = ('DSIDs of input samples that will have one job run per file in the sample. '
+                      +'Use option multiple times to split multiple dsids. '
+                      +'User inputs after dsid are treated as regex patterns for filtering which files to submit. '
+                      +'All regex patterns are ORd. '
+                      +'All files are submitted if no patterns are provided.')
 
 _help_syst          = 'Run with systematics'
 
@@ -179,7 +187,7 @@ def submit_jobs(input_files, dsids_to_split, exec_name, tar_file, tar_dir, sumw_
 
     args:
         input_files (list(str)) - xrootd links or paths to text files with links for sample
-        dsids_to_split (list(str)) - DSIDs of sample to be split into files before submitting
+        dsids_to_split (list(list(dsid_str, regex_patterns))) - DSIDs of sample to be split into files before submitting
         exec_name (str) - name of executable to run in job
         tar_file (str) - path to tarred file for submitting with job
         tar_dir (str) - absolute path to directory that was tarred in tar_file
@@ -203,9 +211,10 @@ def submit_jobs(input_files, dsids_to_split, exec_name, tar_file, tar_dir, sumw_
         elif file_name_has_xrootd_prefix(f): 
             file_name = f
             
-        if f.endswith(".txt") and any(dsid in f for dsid in dsids_to_split):
+        if f.endswith(".txt") and any(dsid[0] in f for dsid in dsids_to_split):
+            patterns = next(dsid[1:] for dsid in dsids_to_split if dsid[0] in f) 
             condor_file_str += build_condor_file_split_queues(
-                f, exec_name, tar_dir_base, sumw_rel_path, syst)
+                f, exec_name, tar_dir_base, sumw_rel_path, patterns, syst)
         else:
             condor_file_str += build_condor_file_queues(
                 file_name, exec_name, tar_dir_base, sumw_rel_path, syst)
@@ -251,27 +260,34 @@ def build_condor_file_header(exec_name, tar_file, syst):
 
     return header_str
 
-def build_condor_file_split_queues(ifile_path, exec_name, tar_dir, sumw_file, syst):
+def build_condor_file_split_queues(ifile_path, exec_name, tar_dir, sumw_file, patterns, syst):
     '''
     args:
         ifile_path (str) - path to input file
         exec_name (str) - name of executable
         tar_dir (str) - name of tarred directory
         sumw_file (str) - path to sumw file relative to tarred directory
+        patterns (list(str)) - regex patterns for selecting files. Patterns are OR'd
         syst (bool) - run exectuable with systematics
     '''
     queue_str = ''
 
     xrootd_links = []
     with open(ifile_path) as f:
-        for line in f:
+        for idx, line in enumerate(f):
             line = line.strip()
             if skip_txt_line(line): continue
-            xrootd_links.append(line)
+            if not patterns: # no patterns requested. Add all files
+                xrootd_links.append((idx,line))
+            elif any(re.search(pattern, line) for pattern in patterns):
+                xrootd_links.append((idx,line))
 
     log_base = os.path.basename(ifile_path).replace('.txt','')
 
-    for idx, link in enumerate(xrootd_links):
+    for idx, link in xrootd_links:
+        # Buffer idx string
+        #idx = "%03d" % idx
+
         exec_args = get_exec_arg_string(exec_name, syst=syst, sumw_file=sumw_file, suffix=idx)
         # Positional arguments for condor executable
         # Order is important. See "build_condor_executable" for expected order
@@ -392,6 +408,7 @@ def get_common_dir(list_of_paths):
     # instead of path/to
     while not os.path.isdir(common_dir): 
         common_dir = os.path.dirname(common_dir)
+    return common_dir
 ################################################################################
 # FORMAT SENSATIVE FUNCTIONS
 # functions making non-robust assumptions
@@ -572,6 +589,15 @@ def check_inputs(args):
     else:
         make_tar_file = True
 
+    # Check that split_dsids are formatted as expected
+    if args.split_dsids:
+        for dsid_ops in args.split_dsids:
+            dsid = dsid_ops[0]
+            if len(dsid)!=6 or not dsid.isdigit():
+                print "ERROR :: split-dsids must first be provided a DSID:", dsid
+            if not any(dsid in f for f in args.input_files if f.endswith(".txt")):
+                print "WARNING :: DSID requested for splitting was not found in inputs:", dsid
+
     # Check that sumw file exists if requested
     if args.sumw and not os.path.exists(args.sumw):
         if args.sumw.startswith("$"):
@@ -607,6 +633,8 @@ def get_args():
                         default = _df_output_dir)
     parser.add_argument('--split-dsids',
                         nargs="*",
+                        action='append',
+                        metavar=('DSID', 'file_patterns'),
                         help = _help_split_dsids,
                         default = _df_split_dsids)
     parser.add_argument('--syst',
