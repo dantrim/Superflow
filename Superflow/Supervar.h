@@ -42,6 +42,11 @@ namespace sflow {
         // in operator overloading
     };
     
+    class var_int_array {
+        // this class is used for type identification 
+        // in operator overloading
+    };
+
     class var_bool_array {
         // this class is used for type identification 
         // in operator overloading
@@ -59,6 +64,7 @@ namespace sflow {
         sv_bool,
         sv_void,
         sv_float_array,
+        sv_int_array,
         sv_bool_array
     };
 
